@@ -1,160 +1,188 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { createContext, useContext, useEffect, useState } from "react"
-import { AnimatePresence } from "framer-motion"
+import type React from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import {
-  createColorTokens,
-  updateColorTokens,
-  type ColorTokens,
+  createColorTokens as createLegacyColorTokens,
+  updateColorTokens as updateLegacyColorTokens,
+  type ColorTokens as LegacyColorTokens,
   type ColorScheme,
   type Mode,
-} from "@/lib/theme/color-tokens"
+} from "@/lib/theme/color-tokens";
+
+import {
+  createAppColorTokens,
+  updateAppColorTokens,
+  type AppColorTokens,
+} from "@/lib/theme/ColorToken";
 
 type ThemeProviderProps = {
-  children: React.ReactNode
-}
+  children: React.ReactNode;
+};
 
 type ThemeContextType = {
-  colorScheme: ColorScheme
-  mode: Mode
-  setColorScheme: (colorScheme: ColorScheme) => void
-  setMode: (mode: Mode) => void
-  colorTokens: ColorTokens
-  // Para compatibilidad con código anterior
-  theme: string
-  setTheme: (theme: string) => void
-}
+  colorScheme: ColorScheme;
+  mode: Mode;
+  setColorScheme: (colorScheme: ColorScheme) => void;
+  setMode: (mode: Mode) => void;
+  legacyColorTokens: LegacyColorTokens;
+  appColorTokens: AppColorTokens;
+  theme: string;
+  setTheme: (theme: string) => void;
+};
 
-export const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
+export const ThemeContext = createContext<ThemeContextType | undefined>(
+  undefined
+);
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  // Estados separados para esquema de color y modo
-  const [colorScheme, setColorScheme] = useState<ColorScheme>("blue")
-  const [mode, setMode] = useState<Mode>("light")
+  const [colorScheme, setColorSchemeInternal] = useState<ColorScheme>("blue");
+  const [mode, setModeInternal] = useState<Mode>("light");
 
-  // Crear los tokens iniciales
-  const [colorTokensState, setColorTokensState] = useState<ColorTokens>(() => {
-    const tokens = createColorTokens("blue", "light")
-    // Actualizar también la variable global
-    updateColorTokens(tokens)
-    return tokens
-  })
+  const [appTokensState, setAppTokensState] = useState<AppColorTokens>(() => {
+    const initialAppTokens = createAppColorTokens("blue", "light");
+    updateAppColorTokens(initialAppTokens);
+    return initialAppTokens;
+  });
 
-  // Para compatibilidad con código anterior
-  const theme = mode === "dark" ? "dark" : colorScheme === "blue" ? "light" : `theme-${colorScheme}`
+  const [legacyTokensState, setLegacyTokensState] = useState<LegacyColorTokens>(
+    () => {
+      const tokens = createLegacyColorTokens("blue", "light");
+      updateLegacyColorTokens(tokens);
+      return tokens;
+    }
+  );
 
-  // Función para cambiar el esquema de color
+  const theme =
+    mode === "dark"
+      ? "dark"
+      : colorScheme === "blue"
+      ? "light"
+      : `theme-${colorScheme}`;
+
+  const updateAllTokens = (newColorScheme: ColorScheme, newMode: Mode) => {
+    const newAppTokens = createAppColorTokens(newColorScheme, newMode);
+    setAppTokensState(newAppTokens);
+    updateAppColorTokens(newAppTokens);
+
+    const newLegacyTokens = createLegacyColorTokens(newColorScheme, newMode);
+    setLegacyTokensState(newLegacyTokens);
+    updateLegacyColorTokens(newLegacyTokens);
+  };
+
   const handleSetColorScheme = (newColorScheme: ColorScheme) => {
-    setColorScheme(newColorScheme)
-    // Actualizar tokens inmediatamente
-    const newTokens = createColorTokens(newColorScheme, mode)
-    setColorTokensState(newTokens)
-    updateColorTokens(newTokens)
-  }
+    setColorSchemeInternal(newColorScheme);
+    updateAllTokens(newColorScheme, mode);
+  };
 
-  // Función para cambiar el modo
   const handleSetMode = (newMode: Mode) => {
-    setMode(newMode)
-    // Actualizar tokens inmediatamente
-    const newTokens = createColorTokens(colorScheme, newMode)
-    setColorTokensState(newTokens)
-    updateColorTokens(newTokens)
-  }
+    setModeInternal(newMode);
+    updateAllTokens(colorScheme, newMode);
+  };
 
   const setTheme = (newTheme: string) => {
+    let newMode: Mode = mode;
+    let newColorScheme: ColorScheme = colorScheme;
+
     if (newTheme === "dark") {
-      handleSetMode("dark")
-      // Mantener el esquema de color actual
+      newMode = "dark";
     } else if (newTheme === "light") {
-      handleSetMode("light")
-      handleSetColorScheme("blue")
+      newMode = "light";
+      newColorScheme = "blue";
     } else if (newTheme === "theme-green") {
-      handleSetMode("light")
-      handleSetColorScheme("green")
+      newMode = "light";
+      newColorScheme = "green";
     } else if (newTheme === "theme-orange") {
-      handleSetMode("light")
-      handleSetColorScheme("orange")
+      newMode = "light";
+      newColorScheme = "orange";
     }
-  }
+    setModeInternal(newMode);
+    setColorSchemeInternal(newColorScheme);
+    updateAllTokens(newColorScheme, newMode);
+  };
 
-  // Efecto para actualizar los tokens de color cuando cambia el esquema o modo
   useEffect(() => {
-    const newTokens = createColorTokens(colorScheme, mode)
-    setColorTokensState(newTokens)
-    // Actualizar la variable global de tokens
-    updateColorTokens(newTokens)
-  }, [colorScheme, mode])
+    updateAllTokens(colorScheme, mode);
+  }, [colorScheme, mode]);
 
-  // Efecto para cargar preferencias guardadas
   useEffect(() => {
-    const storedColorScheme = localStorage.getItem("colorScheme") as ColorScheme
-    const storedMode = localStorage.getItem("mode") as Mode
+    let initialColorScheme = "blue" as ColorScheme;
+    let initialMode = "light" as Mode;
 
-    if (storedColorScheme && ["blue", "green", "orange"].includes(storedColorScheme)) {
-      setColorScheme(storedColorScheme)
+    try {
+      const storedColorScheme = localStorage.getItem(
+        "colorScheme"
+      ) as ColorScheme;
+      const storedMode = localStorage.getItem("mode") as Mode;
+
+      if (
+        storedColorScheme &&
+        ["blue", "green", "orange"].includes(storedColorScheme)
+      ) {
+        initialColorScheme = storedColorScheme;
+      }
+
+      if (storedMode && ["light", "dark"].includes(storedMode)) {
+        initialMode = storedMode;
+      } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        initialMode = "dark";
+      }
+    } catch (error) {
+      console.error("Error reading from localStorage:", error);
     }
 
-    if (storedMode && ["light", "dark"].includes(storedMode)) {
-      setMode(storedMode)
-    } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      // Si no hay preferencia guardada, usar la preferencia del sistema
-      setMode("dark")
-    }
+    setColorSchemeInternal(initialColorScheme);
+    setModeInternal(initialMode);
+  }, []);
 
-    // Actualizar tokens con los valores cargados
-    const newTokens = createColorTokens(
-      storedColorScheme && ["blue", "green", "orange"].includes(storedColorScheme) ? storedColorScheme : "blue",
-      storedMode && ["light", "dark"].includes(storedMode) ? storedMode : "light",
-    )
-    setColorTokensState(newTokens)
-    updateColorTokens(newTokens)
-  }, [])
-
-  // Efecto para aplicar el tema mediante CSS (compatibilidad con el sistema actual)
   useEffect(() => {
-    const root = window.document.documentElement
+    try {
+      const root = window.document.documentElement;
+      root.classList.remove(
+        "dark",
+        "theme-blue",
+        "theme-green",
+        "theme-orange"
+      );
 
-    // Eliminar todas las clases de tema
-    root.classList.remove("dark", "theme-blue", "theme-green", "theme-orange")
+      if (mode === "dark") {
+        root.classList.add("dark");
+      }
 
-    // Aplicar el modo oscuro si corresponde
-    if (mode === "dark") {
-      root.classList.add("dark")
+      if (colorScheme !== "blue" || mode === "light") {
+        if (colorScheme !== "blue") root.classList.add(`theme-${colorScheme}`);
+      }
+
+      localStorage.setItem("colorScheme", colorScheme);
+      localStorage.setItem("mode", mode);
+    } catch (error) {
+      console.error("Error updating documentElement or localStorage:", error);
     }
-
-    // Aplicar el esquema de color (siempre, incluso en modo oscuro)
-    if (colorScheme !== "blue") {
-      root.classList.add(`theme-${colorScheme}`)
-    }
-
-    // Guardar preferencias
-    localStorage.setItem("colorScheme", colorScheme)
-    localStorage.setItem("mode", mode)
-  }, [colorScheme, mode])
+  }, [colorScheme, mode]);
 
   const value = {
     colorScheme,
     mode,
     setColorScheme: handleSetColorScheme,
     setMode: handleSetMode,
-    colorTokens: colorTokensState,
-    // Para compatibilidad
+    legacyColorTokens: legacyTokensState,
+    appColorTokens: appTokensState,
     theme,
     setTheme,
-  }
+  };
 
   return (
     <ThemeContext.Provider value={value}>
       <AnimatePresence mode="wait">{children}</AnimatePresence>
     </ThemeContext.Provider>
-  )
+  );
 }
 
 export const useTheme = () => {
-  const context = useContext(ThemeContext)
+  const context = useContext(ThemeContext);
   if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider")
+    throw new Error("useTheme must be used within a ThemeProvider");
   }
-  return context
-}
+  return context;
+};

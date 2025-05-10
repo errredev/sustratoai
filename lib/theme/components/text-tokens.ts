@@ -1,19 +1,29 @@
-import tinycolor from "tinycolor2";
-import colors from "../colors";
-import type { ColorScheme, Mode } from "../color-tokens";
+import type {
+  AppColorTokens,
+  ColorScheme,
+  Mode,
+  ColorShade,
+} from "../ColorToken";
+
+export type TextTokenColorSet = {
+  pure: string;
+  text: string;
+  dark: string;
+  textShade: string;
+};
 
 export type TextTokens = {
   colors: {
-    default: { pure: string; text: string; dark: string };
-    primary: { pure: string; text: string; dark: string };
-    secondary: { pure: string; text: string; dark: string };
-    tertiary: { pure: string; text: string; dark: string };
-    accent: { pure: string; text: string; dark: string };
-    success: { pure: string; text: string; dark: string };
-    warning: { pure: string; text: string; dark: string };
-    danger: { pure: string; text: string; dark: string };
-    muted: { pure: string; text: string; dark: string };
-    neutral: { pure: string; text: string; dark: string };
+    default: TextTokenColorSet;
+    primary: TextTokenColorSet;
+    secondary: TextTokenColorSet;
+    tertiary: TextTokenColorSet;
+    accent: TextTokenColorSet;
+    success: TextTokenColorSet;
+    warning: TextTokenColorSet;
+    danger: TextTokenColorSet;
+    muted: TextTokenColorSet;
+    neutral: TextTokenColorSet;
   };
   gradients: {
     primary: { start: string; middle: string; end: string };
@@ -36,134 +46,80 @@ export type TextTokens = {
   };
 };
 
-function ensureContrast(
-  color: string,
-  background: string,
-  minRatio = 4.5
-): string {
-  let tc = tinycolor(color);
-  if (tinycolor.readability(tc, background) >= minRatio) {
-    return tc.toHexString();
-  }
-  const bgIsDark = tinycolor(background).isDark();
-  let step = 0;
-  while (tinycolor.readability(tc, background) < minRatio && step < 20) {
-    tc = bgIsDark ? tc.lighten(5) : tc.darken(5);
-    step++;
-  }
-  return tc.toHexString();
-}
-
-export function generateTextTokens(colorScheme: ColorScheme, mode: Mode) {
+export function generateTextTokens(
+  appTokens: AppColorTokens,
+  mode: Mode
+): TextTokens {
   const isDark = mode === "dark";
-  const theme = colors.themes[colorScheme];
-  const semantic = colors.semantic;
-  const neutral = colors.neutral;
 
-  // Fondo oscuro sobre el que contrastaremos
-  const darkBackground = neutral.gray[900] || "#000";
-
-  // Helper para sets de color planos
-  const getColorSet = (obj: any) => ({
-    pure: isDark ? obj.pureDark : obj.pure,
-    text: isDark ? obj.textDark : obj.text,
-    dark: obj.textDark,
+  // Helper para mapear un ColorShade de AppColorTokens a la estructura TextTokenColorSet
+  const mapColorShadeToTokenSet = (shade: ColorShade): TextTokenColorSet => ({
+    pure: shade.pure,
+    text: shade.text,
+    textShade: shade.textShade,
+    dark: shade.textShade,
   });
 
-  // Sets base (sin contraste extra)
-  const baseTextColors = {
+  const textColors = {
     default: {
-      pure: isDark ? neutral.white : neutral.black,
-      text: isDark ? neutral.gray[100] : neutral.gray[900],
-      dark: neutral.gray[700],
+      pure: isDark ? appTokens.neutral.bg : appTokens.neutral.text,
+      text: appTokens.neutral.text,
+      textShade: appTokens.neutral.textShade,
+      dark: appTokens.neutral.textShade,
     },
-    primary: getColorSet(theme.primary),
-    secondary: getColorSet(theme.secondary),
-    tertiary: getColorSet(theme.tertiary),
-    accent: getColorSet(semantic.accent),
-    success: getColorSet(semantic.success),
-    warning: getColorSet(semantic.warning),
-    danger: getColorSet(semantic.danger),
+    primary: mapColorShadeToTokenSet(appTokens.primary),
+    secondary: mapColorShadeToTokenSet(appTokens.secondary),
+    tertiary: mapColorShadeToTokenSet(appTokens.tertiary),
+    accent: mapColorShadeToTokenSet(appTokens.accent),
+    success: mapColorShadeToTokenSet(appTokens.success),
+    warning: mapColorShadeToTokenSet(appTokens.warning),
+    danger: mapColorShadeToTokenSet(appTokens.danger),
     muted: {
-      pure: isDark ? neutral.gray[300] : neutral.gray[600],
-      text: isDark ? neutral.gray[400] : neutral.gray[500],
-      dark: neutral.gray[600],
+      pure: appTokens.neutral.textShade,
+      text: appTokens.neutral.textShade,
+      textShade: isDark ? appTokens.neutral.pure : appTokens.neutral.text,
+      dark: isDark ? appTokens.neutral.pure : appTokens.neutral.text,
     },
-    neutral: {
-      pure: isDark ? neutral.gray[200] : neutral.gray[700],
-      text: isDark ? neutral.gray[300] : neutral.gray[600],
-      dark: neutral.gray[700],
-    },
+    neutral: mapColorShadeToTokenSet(appTokens.neutral),
   };
 
-  // Aplicamos ensureContrast solo en modo dark
-  const textColors = Object.fromEntries(
-    Object.entries(baseTextColors).map(([key, set]) => {
-      if (!isDark) return [key, set];
-      return [
-        key,
-        {
-          pure: ensureContrast(set.pure, darkBackground),
-          text: ensureContrast(set.text, darkBackground),
-          dark: ensureContrast(set.dark, darkBackground),
-        },
-      ];
-    })
-  ) as typeof baseTextColors;
-
-  // Gradientes "crudos"
-  const rawGradients = {
+  const textGradients = {
     primary: {
-      start: isDark ? theme.primary.pureDark : theme.primary.pure,
-      middle: isDark ? theme.primary.textDark : theme.primary.text,
-      end: theme.primary.textDark,
+      start: appTokens.primary.pure,
+      middle: appTokens.primary.pureShade,
+      end: appTokens.primary.textShade,
     },
     secondary: {
-      start: isDark ? theme.secondary.pureDark : theme.secondary.pure,
-      middle: isDark ? theme.secondary.textDark : theme.secondary.text,
-      end: theme.secondary.textDark,
+      start: appTokens.secondary.pure,
+      middle: appTokens.secondary.pureShade,
+      end: appTokens.secondary.textShade,
     },
     tertiary: {
-      start: isDark ? theme.tertiary.pureDark : theme.tertiary.pure,
-      middle: isDark ? theme.tertiary.textDark : theme.tertiary.text,
-      end: theme.tertiary.textDark,
+      start: appTokens.tertiary.pure,
+      middle: appTokens.tertiary.pureShade,
+      end: appTokens.tertiary.textShade,
     },
     accent: {
-      start: isDark ? semantic.accent.pureDark : semantic.accent.pure,
-      middle: isDark ? semantic.accent.textDark : semantic.accent.text,
-      end: semantic.accent.textDark,
+      start: appTokens.accent.pure,
+      middle: appTokens.accent.pureShade,
+      end: appTokens.accent.textShade,
     },
     success: {
-      start: isDark ? semantic.success.pureDark : semantic.success.pure,
-      middle: isDark ? semantic.success.textDark : semantic.success.text,
-      end: semantic.success.textDark,
+      start: appTokens.success.pure,
+      middle: appTokens.success.pureShade,
+      end: appTokens.success.textShade,
     },
     warning: {
-      start: isDark ? semantic.warning.pureDark : semantic.warning.pure,
-      middle: isDark ? semantic.warning.textDark : semantic.warning.text,
-      end: semantic.warning.textDark,
+      start: appTokens.warning.pure,
+      middle: appTokens.warning.pureShade,
+      end: appTokens.warning.textShade,
     },
     danger: {
-      start: isDark ? semantic.danger.pureDark : semantic.danger.pure,
-      middle: isDark ? semantic.danger.textDark : semantic.danger.text,
-      end: semantic.danger.textDark,
+      start: appTokens.danger.pure,
+      middle: appTokens.danger.pureShade,
+      end: appTokens.danger.textShade,
     },
-  } as const;
-
-  // Y ahora ajustamos contraste de cada punto del gradiente
-  const textGradients = Object.fromEntries(
-    Object.entries(rawGradients).map(([key, grad]) => {
-      if (!isDark) return [key, grad];
-      return [
-        key,
-        {
-          start: ensureContrast(grad.start, darkBackground),
-          middle: ensureContrast(grad.middle, darkBackground),
-          end: ensureContrast(grad.end, darkBackground),
-        },
-      ];
-    })
-  ) as typeof rawGradients;
+  };
 
   const variantDefaults = {
     default: { size: "base", weight: "normal", color: "default" },

@@ -1,76 +1,109 @@
-import type { ColorScheme, Mode } from "../color-tokens"
-import colors from "../colors"
+import type { Mode } from "../ColorToken";
+import type { AppColorTokens } from "../ColorToken";
 
 // Tipos de variantes para PageBackground
-export type PageBackgroundVariant = "default" | "gradient" | "subtle" | "minimal"
+export type PageBackgroundVariant =
+  | "default"
+  | "gradient"
+  | "subtle"
+  | "minimal";
 
 // Estructura de tokens para PageBackground
 export type PageBackgroundTokens = {
-  background: string
-  backgroundImage: string
-}
+  background: string;
+  backgroundImage: string;
+};
 
 /**
- * Genera los tokens para PageBackground según la variante, esquema de color y modo
+ * Genera los tokens para PageBackground según la variante, AppColorTokens y modo
  */
 export function generatePageBackgroundTokens(
-  colorScheme: ColorScheme,
+  appTokens: AppColorTokens,
   mode: Mode,
-  variant: PageBackgroundVariant,
+  variant: PageBackgroundVariant
 ): PageBackgroundTokens {
-  const isDark = mode === "dark"
-  const themeColors = colors.themes[colorScheme]
+  const isDark = mode === "dark";
 
-  // Color de fondo base según el modo
-  const baseBackground = isDark ? "#050709" : "hsl(var(--background))"
+  // Color de fondo base derivado de AppColorTokens
+  const baseBackgroundColor = appTokens.neutral.bg;
 
-  // Obtener colores primarios y terciarios según el tema y modo
-  const primaryColor = isDark ? themeColors.primary.bgDark : themeColors.primary.bg
-  const secondaryColor = isDark ? themeColors.secondary.bgDark : themeColors.secondary.bg
-  const tertiaryColor = isDark ? themeColors.tertiary.bgDark : themeColors.tertiary.bg
+  // Colores para los gradientes (asumiendo que .pure son HEX)
+  const themePrimaryPure = appTokens.primary.pure;
+  const themeSecondaryPure = appTokens.secondary.pure;
+  const globalAccentPure = appTokens.accent.pure;
 
-  // Opacidades estandarizadas para todos los temas
-  // Ajustamos las opacidades para que los colores sean más visibles según el tema
-  const primaryOpacity = variant === "gradient" && isDark ? "20" : isDark ? "25" : "35"
-  const secondaryOpacity = variant === "gradient" && isDark ? "15" : isDark ? "20" : "30"
-  const tertiaryOpacity = variant === "gradient" && isDark ? "15" : isDark ? "20" : "25"
-  const subtleOpacity = isDark ? "15" : "20"
-  const minimalOpacity = isDark ? "10" : "15"
+  // Opacidades HEX para los toques de color (muy sutiles)
+  const touchOpacityHex = isDark ? "0A" : "10"; // ~4% y ~6%
+  const defaultOpacityHex = isDark ? "0F" : "1A"; // ~6% y ~10%
+
+  // Opacidades para gradientes radiales (originales, concatenadas a HEX)
+  const primaryOpacityRadial =
+    variant === "gradient" && isDark ? "20" : isDark ? "25" : "35";
+  const secondaryOpacityRadial =
+    variant === "gradient" && isDark ? "15" : isDark ? "20" : "30";
+  const accentOpacityRadial =
+    variant === "gradient" && isDark ? "15" : isDark ? "20" : "25"; // Usando la misma lógica que tertiary antes
+  const subtleOpacityRadial = isDark ? "15" : "20";
+
+  // Opacidad HEX muy sutil para el tinte de primary.pure en la variante "gradient"
+  const primaryPureTintOpacityGradient = isDark ? "1A" : "26"; // ~10% para oscuro, ~15% para claro (ajustable)
+  // Para accent.bg, generalmente no necesitaremos opacidad adicional en el gradiente si ya es un color de fondo.
+
+  // Opacidad HEX muy sutil para los tintes en las esquinas para la variante "gradient"
+  const cornerTintOpacityGradient = isDark ? "1A" : "26"; // ~10% para oscuro, ~15% para claro (ajustable)
 
   // Generar tokens según la variante
   switch (variant) {
     case "gradient":
       return {
-        background: baseBackground,
+        background: baseBackgroundColor,
         backgroundImage: `
-          radial-gradient(circle at top right, ${primaryColor}${primaryOpacity}, transparent ${isDark ? "60%" : "70%"}), 
-          radial-gradient(circle at center, ${secondaryColor}${secondaryOpacity}, transparent ${isDark ? "50%" : "60%"}),
-          radial-gradient(circle at bottom left, ${tertiaryColor}${tertiaryOpacity}, transparent ${isDark ? "60%" : "70%"})
+          radial-gradient(circle at top right, ${appTokens.primary.pure}${primaryPureTintOpacityGradient}, transparent 25%),
+          radial-gradient(circle at bottom left, ${appTokens.accent.bg}, transparent 25%)
         `,
-      }
+      };
 
     case "subtle":
       return {
-        background: baseBackground,
+        background: baseBackgroundColor,
         backgroundImage: `
-          radial-gradient(circle at top right, ${primaryColor}${subtleOpacity}, transparent 70%),
-          radial-gradient(circle at bottom left, ${tertiaryColor}${subtleOpacity}, transparent 70%)
+          radial-gradient(circle at top right, ${themePrimaryPure}${subtleOpacityRadial}, transparent 70%),
+          radial-gradient(circle at bottom left, ${globalAccentPure}${subtleOpacityRadial}, transparent 70%)
         `,
-      }
+      };
 
     case "minimal":
       return {
-        background: baseBackground,
-        backgroundImage: isDark
-          ? `linear-gradient(to bottom, ${primaryColor}${minimalOpacity}, transparent 70%)`
-          : `linear-gradient(to bottom, ${primaryColor}${minimalOpacity}, ${primaryColor}${minimalOpacity})`,
-      }
+        background: baseBackgroundColor,
+        backgroundImage: `
+          linear-gradient(to bottom, 
+            ${themePrimaryPure}${touchOpacityHex} 0%, 
+            transparent 40%, 
+            transparent 60%, 
+            ${globalAccentPure}${touchOpacityHex} 100%
+          )
+        `,
+      };
 
-    // default
-    default:
+    case "default": // Cambiado para usar los nuevos toques de color y gradientes duales
       return {
-        background: baseBackground,
-        backgroundImage: `linear-gradient(to bottom, ${primaryColor}${minimalOpacity}, transparent 80%)`,
-      }
+        background: baseBackgroundColor,
+        backgroundImage: `
+          linear-gradient(to top, 
+            ${themePrimaryPure}${defaultOpacityHex} 0%, 
+            transparent 50%
+          ),
+          linear-gradient(to bottom,
+            ${globalAccentPure}${defaultOpacityHex} 0%,
+            transparent 50%
+          )
+        `,
+      };
+
+    default: // Fallback por si se añade una variante y no se maneja (aunque TypeScript debería ayudar)
+      return {
+        background: baseBackgroundColor,
+        backgroundImage: `linear-gradient(to bottom, ${themePrimaryPure}${touchOpacityHex}, transparent 80%)`,
+      };
   }
 }

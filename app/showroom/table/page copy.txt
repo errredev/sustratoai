@@ -497,7 +497,7 @@ const columns: ColumnDef<Person, any>[] = [
               </Badge>
             </div>
           )}
-      </div>
+        </div>
       );
     },
     meta: {

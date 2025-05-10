@@ -17,5 +17,31 @@
     "titleBar.activeForeground": "#15202b",
     "titleBar.inactiveBackground": "#adff9999",
     "titleBar.inactiveForeground": "#15202b99"
-  }
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": false,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "node_modules": true,
+    "out": true,
+    "next-env.d.ts": true,
+    "tailwind.config.ts": true,
+    "postcss.config.mjs": false,
+    ".eslintrc.json": true,
+    ".gitignore": true,
+    "components.json": true,
+    "next.config.ts": true,
+    "package-lock.json": true,
+    "package.json": true,
+    "README.md": true,
+    "setup-project.sh": true,
+    "test.css": true,
+    "tsconfig.build.json": true,
+    "tsconfig.json": true,
+    "tsconfig.node.json": true
+  },
+  "explorerExclude.backup": {}
 }

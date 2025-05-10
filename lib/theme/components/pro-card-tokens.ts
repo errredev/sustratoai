@@ -1,88 +1,287 @@
-import type { ProCardVariant } from "../color-tokens"
-import type { ColorScheme, Mode } from "../color-tokens"
+import type {
+  AppColorTokens,
+  ColorScheme,
+  Mode,
+  ProCardVariant,
+} from "../ColorToken";
 
 /**
- * Genera los tokens de fondo para ProCard
+ * Genera los tokens de fondo para ProCard usando AppColorTokens.
  */
 export function generateProCardBackgroundGradients(
-  semanticTokens: any,
-  isDark: boolean,
+  appTokens: AppColorTokens,
+  mode: Mode
 ): Record<ProCardVariant, string> {
-  return {
-    primary: `linear-gradient(135deg, ${semanticTokens.primary.gradient[0]} 0%, ${semanticTokens.primary.gradient[1]} 100%)`,
-    secondary: `linear-gradient(135deg, ${semanticTokens.secondary.gradient[0]} 0%, ${semanticTokens.secondary.gradient[1]} 100%)`,
-    tertiary: `linear-gradient(135deg, ${semanticTokens.tertiary.gradient[0]} 0%, ${semanticTokens.tertiary.gradient[1]} 100%)`,
-    accent: `linear-gradient(135deg, ${semanticTokens.accent.gradient[0]} 0%, ${semanticTokens.accent.gradient[1]} 100%)`,
-    success: `linear-gradient(135deg, ${semanticTokens.success.gradient[0]} 0%, ${semanticTokens.success.gradient[1]} 100%)`,
-    warning: `linear-gradient(135deg, ${semanticTokens.warning.gradient[0]} 0%, ${semanticTokens.warning.gradient[1]} 100%)`,
-    danger: `linear-gradient(135deg, ${semanticTokens.danger.gradient[0]} 0%, ${semanticTokens.danger.gradient[1]} 100%)`,
-    neutral: `linear-gradient(135deg, ${semanticTokens.neutral.gradient[0]} 0%, ${semanticTokens.neutral.gradient[1]} 100%)`,
-    white: `linear-gradient(135deg, ${semanticTokens.white.gradient[0]} 0%, ${semanticTokens.white.gradient[1]} 100%)`,
+  const variants: ProCardVariant[] = [
+    "primary",
+    "secondary",
+    "tertiary",
+    "accent",
+    "success",
+    "warning",
+    "danger",
+    "neutral",
+    "white",
+  ];
+  const gradients: Partial<Record<ProCardVariant, string>> = {};
+  const isDark = mode === "dark";
+
+  for (const variant of variants) {
+    let color1: string | undefined;
+    let color2: string | undefined;
+
+    // Fallback defensivo si appTokens no está completamente formado o falta una variante
+    const currentVariantTokens = appTokens?.[variant] as
+      | AppColorTokens[ProCardVariant]
+      | undefined;
+    const neutralTokens = appTokens?.neutral;
+    const whiteTokens = appTokens?.white;
+
+    if (variant === "white") {
+      color1 = whiteTokens?.bg;
+      color2 = isDark ? whiteTokens?.bgShade : neutralTokens?.bg;
+    } else if (
+      variant === "primary" ||
+      variant === "secondary" ||
+      variant === "tertiary"
+    ) {
+      color1 = currentVariantTokens?.bg;
+      color2 = isDark ? neutralTokens?.bgShade : whiteTokens?.bg;
+    } else {
+      color1 = currentVariantTokens?.bg;
+      color2 = neutralTokens?.bg;
+    }
+
+    if (color1 && color2) {
+      gradients[
+        variant
+      ] = `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`;
+    } else {
+      console.warn(
+        `ProCard: Tokens for background gradient variant '${variant}' not fully defined. C1: ${color1}, C2: ${color2}`
+      );
+      gradients[variant] = `linear-gradient(135deg, #808080 0%, #C0C0C0 100%)`;
+    }
   }
+  return gradients as Record<ProCardVariant, string>;
 }
 
 /**
- * Genera los tokens de borde para ProCard
+ * Genera los tokens de borde para ProCard usando AppColorTokens.
  */
-export function generateProCardBorders(semanticTokens: any): Record<ProCardVariant, string> {
-  return {
-    primary: semanticTokens.primary.border,
-    secondary: semanticTokens.secondary.border,
-    tertiary: semanticTokens.tertiary.border,
-    accent: semanticTokens.accent.border,
-    success: semanticTokens.success.border,
-    warning: semanticTokens.warning.border,
-    danger: semanticTokens.danger.border,
-    neutral: semanticTokens.neutral.border,
-    white: semanticTokens.white.border,
+export function generateProCardBorders(
+  appTokens: AppColorTokens
+): Record<ProCardVariant, string> {
+  const variants: ProCardVariant[] = [
+    "primary",
+    "secondary",
+    "tertiary",
+    "accent",
+    "success",
+    "warning",
+    "danger",
+    "neutral",
+    "white",
+  ];
+  const borders: Partial<Record<ProCardVariant, string>> = {};
+
+  for (const variant of variants) {
+    const currentVariantTokens = appTokens?.[variant] as
+      | AppColorTokens[ProCardVariant]
+      | undefined;
+    borders[variant] = currentVariantTokens?.pureShade ?? "#808080";
   }
+  return borders as Record<ProCardVariant, string>;
 }
 
 /**
- * Genera los tokens de gradiente de borde superior para ProCard
+ * Genera los tokens de gradiente de borde superior para ProCard usando AppColorTokens.
  */
-export function generateProCardBorderGradientsTop(semanticTokens: any): Record<ProCardVariant, string> {
-  return {
-    primary: `linear-gradient(90deg, ${semanticTokens.primary.borderGradient[0]} 0%, ${semanticTokens.primary.borderGradient[1]} 100%)`,
-    secondary: `linear-gradient(90deg, ${semanticTokens.secondary.borderGradient[0]} 0%, ${semanticTokens.secondary.borderGradient[1]} 100%)`,
-    tertiary: `linear-gradient(90deg, ${semanticTokens.tertiary.borderGradient[0]} 0%, ${semanticTokens.tertiary.borderGradient[1]} 100%)`,
-    accent: `linear-gradient(90deg, ${semanticTokens.accent.borderGradient[0]} 0%, ${semanticTokens.accent.borderGradient[1]} 100%)`,
-    success: `linear-gradient(90deg, ${semanticTokens.success.borderGradient[0]} 0%, ${semanticTokens.success.borderGradient[1]} 100%)`,
-    warning: `linear-gradient(90deg, ${semanticTokens.warning.borderGradient[0]} 0%, ${semanticTokens.warning.borderGradient[1]} 100%)`,
-    danger: `linear-gradient(90deg, ${semanticTokens.danger.borderGradient[0]} 0%, ${semanticTokens.danger.borderGradient[1]} 100%)`,
-    neutral: `linear-gradient(90deg, ${semanticTokens.neutral.borderGradient[0]} 0%, ${semanticTokens.neutral.borderGradient[1]} 100%)`,
-    white: `linear-gradient(90deg, ${semanticTokens.white.borderGradient[0]} 0%, ${semanticTokens.white.borderGradient[1]} 100%)`,
+export function generateProCardBorderGradientsTop(
+  appTokens: AppColorTokens
+): Record<ProCardVariant, string> {
+  const variants: ProCardVariant[] = [
+    "primary",
+    "secondary",
+    "tertiary",
+    "accent",
+    "success",
+    "warning",
+    "danger",
+    "neutral",
+    "white",
+  ];
+  const gradients: Partial<Record<ProCardVariant, string>> = {};
+
+  for (const variant of variants) {
+    const currentVariantTokens = appTokens?.[variant] as
+      | AppColorTokens[ProCardVariant]
+      | undefined;
+    const primaryTokens = appTokens?.primary;
+    const accentTokens = appTokens?.accent;
+    const neutralTokens = appTokens?.neutral;
+
+    const color1 = currentVariantTokens?.pure;
+    let color2: string | undefined;
+
+    if (
+      variant === "primary" ||
+      variant === "secondary" ||
+      variant === "tertiary"
+    ) {
+      color2 = accentTokens?.pure;
+    } else if (
+      variant === "success" ||
+      variant === "warning" ||
+      variant === "danger"
+    ) {
+      color2 = neutralTokens?.pure;
+    } else if (
+      variant === "accent" ||
+      variant === "neutral" ||
+      variant === "white"
+    ) {
+      color2 = primaryTokens?.pure;
+    } else {
+      color2 = neutralTokens?.pure;
+    }
+
+    if (color1 && color2) {
+      gradients[
+        variant
+      ] = `linear-gradient(90deg, ${color1} 0%, ${color2} 100%)`;
+    } else {
+      console.warn(
+        `ProCard: Tokens for top border gradient variant '${variant}' not fully defined.`
+      );
+      gradients[variant] = `linear-gradient(90deg, #808080 0%, #C0C0C0 100%)`;
+    }
   }
+  return gradients as Record<ProCardVariant, string>;
 }
 
 /**
- * Genera los tokens de gradiente de borde izquierdo para ProCard
+ * Genera los tokens de gradiente de borde izquierdo para ProCard usando AppColorTokens.
  */
-export function generateProCardBorderGradientsLeft(semanticTokens: any): Record<ProCardVariant, string> {
-  return {
-    primary: `linear-gradient(180deg, ${semanticTokens.primary.borderGradient[0]} 0%, ${semanticTokens.primary.borderGradient[1]} 100%)`,
-    secondary: `linear-gradient(180deg, ${semanticTokens.secondary.borderGradient[0]} 0%, ${semanticTokens.secondary.borderGradient[1]} 100%)`,
-    tertiary: `linear-gradient(180deg, ${semanticTokens.tertiary.borderGradient[0]} 0%, ${semanticTokens.tertiary.borderGradient[1]} 100%)`,
-    accent: `linear-gradient(180deg, ${semanticTokens.accent.borderGradient[0]} 0%, ${semanticTokens.accent.borderGradient[1]} 100%)`,
-    success: `linear-gradient(180deg, ${semanticTokens.success.borderGradient[0]} 0%, ${semanticTokens.success.borderGradient[1]} 100%)`,
-    warning: `linear-gradient(180deg, ${semanticTokens.warning.borderGradient[0]} 0%, ${semanticTokens.warning.borderGradient[1]} 100%)`,
-    danger: `linear-gradient(180deg, ${semanticTokens.danger.borderGradient[0]} 0%, ${semanticTokens.danger.borderGradient[1]} 100%)`,
-    neutral: `linear-gradient(180deg, ${semanticTokens.neutral.borderGradient[0]} 0%, ${semanticTokens.neutral.borderGradient[1]} 100%)`,
-    white: `linear-gradient(180deg, ${semanticTokens.white.borderGradient[0]} 0%, ${semanticTokens.white.borderGradient[1]} 100%)`,
+export function generateProCardBorderGradientsLeft(
+  appTokens: AppColorTokens
+): Record<ProCardVariant, string> {
+  const variants: ProCardVariant[] = [
+    "primary",
+    "secondary",
+    "tertiary",
+    "accent",
+    "success",
+    "warning",
+    "danger",
+    "neutral",
+    "white",
+  ];
+  const gradients: Partial<Record<ProCardVariant, string>> = {};
+
+  for (const variant of variants) {
+    const currentVariantTokens = appTokens?.[variant] as
+      | AppColorTokens[ProCardVariant]
+      | undefined;
+    const primaryTokens = appTokens?.primary;
+    const accentTokens = appTokens?.accent;
+    const neutralTokens = appTokens?.neutral;
+
+    const color1 = currentVariantTokens?.pure;
+    let color2: string | undefined;
+
+    if (
+      variant === "primary" ||
+      variant === "secondary" ||
+      variant === "tertiary"
+    ) {
+      color2 = accentTokens?.pure;
+    } else if (
+      variant === "success" ||
+      variant === "warning" ||
+      variant === "danger"
+    ) {
+      color2 = neutralTokens?.pure;
+    } else if (
+      variant === "accent" ||
+      variant === "neutral" ||
+      variant === "white"
+    ) {
+      color2 = primaryTokens?.pure;
+    } else {
+      color2 = neutralTokens?.pure;
+    }
+
+    if (color1 && color2) {
+      gradients[
+        variant
+      ] = `linear-gradient(180deg, ${color1} 0%, ${color2} 100%)`;
+    } else {
+      console.warn(
+        `ProCard: Tokens for left border gradient variant '${variant}' not fully defined.`
+      );
+      gradients[variant] = `linear-gradient(180deg, #808080 0%, #C0C0C0 100%)`;
+    }
   }
+  return gradients as Record<ProCardVariant, string>;
 }
 
 /**
- * Genera todos los tokens para ProCard
+ * Genera todos los tokens para ProCard usando AppColorTokens.
+ * Ahora devuelve un objeto 'selected' con colores por variante.
  */
-export function generateProCardTokens(colorScheme: ColorScheme, mode: Mode, semanticTokens: any, themeColors: any) {
-  const isDark = mode === "dark"
+export type ProCardComponentTokens = {
+  backgroundGradient: Record<ProCardVariant, string>;
+  border: Record<ProCardVariant, string>;
+  borderGradientTop: Record<ProCardVariant, string>;
+  borderGradientLeft: Record<ProCardVariant, string>;
+  selected: Record<ProCardVariant, string>; // Cambiado para ser específico de la variante
+};
+
+export function generateProCardTokens(
+  appTokens: AppColorTokens | any,
+  mode: Mode
+): ProCardComponentTokens {
+  const selectedTokens: Partial<Record<ProCardVariant, string>> = {};
+  const variants: ProCardVariant[] = [
+    "primary",
+    "secondary",
+    "tertiary",
+    "accent",
+    "success",
+    "warning",
+    "danger",
+    "neutral",
+    "white",
+  ];
+
+  // Fallback si appTokens no es la estructura esperada (llamada desde sistema legacy)
+  const defaultPureShade =
+    typeof appTokens?.primary?.pureShade === "string"
+      ? appTokens.primary.pureShade
+      : "#0000FF";
+
+  for (const variant of variants) {
+    // Acceso defensivo a las propiedades de appTokens
+    const currentVariantTokens = appTokens?.[variant] as
+      | AppColorTokens[ProCardVariant]
+      | undefined;
+    selectedTokens[variant] =
+      currentVariantTokens?.pureShade ?? defaultPureShade;
+  }
+
+  // Asegurarse de que generateProCardBackgroundGradients también sea defensivo si appTokens es 'any'
+  // o pasarle un appTokens 'seguro' o mock si es 'any'
+  const safeAppTokens =
+    appTokens && typeof appTokens === "object" && appTokens.primary
+      ? (appTokens as AppColorTokens)
+      : ({} as AppColorTokens);
 
   return {
-    backgroundGradient: generateProCardBackgroundGradients(semanticTokens, isDark),
-    border: generateProCardBorders(semanticTokens),
-    borderGradientTop: generateProCardBorderGradientsTop(semanticTokens),
-    borderGradientLeft: generateProCardBorderGradientsLeft(semanticTokens),
-    selected: isDark ? themeColors.primary.pureDark : themeColors.primary.pure,
-  }
+    backgroundGradient: generateProCardBackgroundGradients(safeAppTokens, mode),
+    border: generateProCardBorders(safeAppTokens),
+    borderGradientTop: generateProCardBorderGradientsTop(safeAppTokens),
+    borderGradientLeft: generateProCardBorderGradientsLeft(safeAppTokens),
+    selected: selectedTokens as Record<ProCardVariant, string>,
+  };
 }

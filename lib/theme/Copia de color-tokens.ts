@@ -4,11 +4,7 @@
  * organizados por componente y variante.
  */
 import colors from "./colors";
-import type { ColorShade } from "./colors";
-import {
-  generateProCardTokens,
-  type ProCardComponentTokens,
-} from "./components/pro-card-tokens";
+import { generateProCardTokens } from "./components/pro-card-tokens";
 import { generatePageBackgroundTokens } from "./components/page-background-tokens";
 import { generateTextTokens, type TextTokens } from "./components/text-tokens";
 import {
@@ -131,7 +127,17 @@ export type SemanticTokens = {
 // Tokens específicos para componentes
 export type ComponentTokens = {
   // ProCard
-  proCard: ProCardComponentTokens;
+  proCard: {
+    // Fondos precomputados para cada variante
+    backgroundGradient: Record<ProCardVariant, string>;
+    // Bordes precomputados para cada variante
+    border: Record<ProCardVariant, string>;
+    // Gradientes de borde precomputados para cada variante y dirección
+    borderGradientTop: Record<ProCardVariant, string>;
+    borderGradientLeft: Record<ProCardVariant, string>;
+    // Estado seleccionado
+    selected: string;
+  };
 
   // Text tokens
   text: TextTokens;
@@ -409,55 +415,66 @@ function generateComponentTokens(
   const isDark = mode === "dark";
   const themeColors = colors.themes[colorScheme];
 
-  // Componentes Refactorizados: Ya NO se generan aquí.
-  // Se usarán placeholders o valores mínimos ya que los componentes refactorizados
-  // no consumen de legacyColorTokens.component.proCard, .text, .pageBackground
-  const proCardPlaceholder = {} as ProCardComponentTokens; // Placeholder
-  const textPlaceholder = {} as TextTokens; // Placeholder
+  // Generar tokens para ProCard usando el módulo específico
+  const proCardTokens = generateProCardTokens(
+    colorScheme,
+    mode,
+    semanticTokens,
+    themeColors
+  );
 
-  // Componentes Legacy: Usan la lógica original
+  // Generar tokens de texto usando el nuevo módulo
+  const textTokens = generateTextTokens(colorScheme, mode);
+
+  // ThemeBackground tokens
   const themeBackgroundTokens = {
     background: isDark ? colors.neutral.gray[900] : colors.neutral.white,
     foreground: isDark ? colors.neutral.gray[100] : colors.neutral.gray[900],
   };
 
-  // PageBackground también está refactorizado. Se usa un placeholder.
-  // Los componentes refactorizados NO deben buscar aquí.
-  const pageBackgroundPlaceholder = {
-    default: { background: "", backgroundImage: "" },
-    gradient: { background: "", backgroundImage: "" },
-    subtle: { background: "", backgroundImage: "" },
-    minimal: { background: "", backgroundImage: "" },
-  } as ComponentTokens["pageBackground"];
+  // PageBackground tokens
+  const pageBackgroundTokens = {
+    default: generatePageBackgroundTokens(colorScheme, mode, "default"),
+    gradient: generatePageBackgroundTokens(colorScheme, mode, "gradient"),
+    subtle: generatePageBackgroundTokens(colorScheme, mode, "subtle"),
+    minimal: generatePageBackgroundTokens(colorScheme, mode, "minimal"),
+  };
 
+  // Divider tokens
   const dividerTokens = generateDividerTokens(colorScheme, mode);
+
+  // Navbar tokens
   const navbarTokens = generateNavbarTokens(colorScheme, mode);
+
+  // Icon tokens
   const iconTokens = generateIconTokens(colorScheme, mode);
 
-  // Corregir la llamada a generateInputTokens para que use solo 2 argumentos
+  // Input tokens
   const inputTokens = generateInputTokens(colorScheme, mode);
 
+  // Select tokens
   const selectTokens = generateSelectTokens(colorScheme, mode);
+
+  // Button tokens - asegurarnos de que se generen correctamente
   const buttonTokens = generateButtonTokens(colorScheme, mode);
+
+  // Table tokens
   const tableTokens = generateTableTokens(
     colorScheme,
     mode,
-    semanticTokens, // generateTableTokens espera semanticTokens
-    modeTokens // y modeTokens
+    semanticTokens,
+    modeTokens
   );
 
   return {
-    // Componentes refactorizados usan placeholders
-    proCard: proCardPlaceholder,
-    text: textPlaceholder,
-    pageBackground: pageBackgroundPlaceholder, // Usar el placeholder
-
-    // Componentes legacy
+    input: inputTokens,
+    proCard: proCardTokens,
+    text: textTokens,
     themeBackground: themeBackgroundTokens,
+    pageBackground: pageBackgroundTokens,
     divider: dividerTokens,
     navbar: navbarTokens,
     icon: iconTokens,
-    input: inputTokens,
     select: selectTokens,
     button: buttonTokens,
     table: tableTokens,
@@ -465,8 +482,7 @@ function generateComponentTokens(
 }
 
 /**
- * Crea todos los tokens de color basados en el esquema de color y modo.
- * Esta es la función que el theme-provider usa como `createLegacyColorTokens`.
+ * Crea todos los tokens de color basados en el esquema de color y modo
  */
 export function createColorTokens(
   colorScheme: ColorScheme,

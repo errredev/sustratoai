@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import { useRipple } from "@/components/ripple/RippleProvider";
 import { CustomPaletteIcon } from "./icons/custom-palette-icon";
-import { createColorTokens, updateColorTokens } from "@/lib/theme/color-tokens";
 import { Text } from "@/components/ui/text";
 import { Icon } from "@/components/ui/icon";
 import { useColorTokens } from "@/hooks/use-color-tokens";
@@ -38,10 +37,6 @@ export function ThemeSwitcher() {
     const newMode = mode === "light" ? "dark" : "light";
     setMode(newMode);
 
-    // Forzar actualización de tokens
-    const newTokens = createColorTokens(colorScheme, newMode);
-    updateColorTokens(newTokens);
-
     // Forzar re-renderizado
     setTimeout(() => {
       setForceUpdate({});
@@ -52,10 +47,6 @@ export function ThemeSwitcher() {
   const handleColorSchemeChange = (scheme: "blue" | "green" | "orange") => {
     // Aplicamos el cambio de esquema
     setColorScheme(scheme);
-
-    // Forzar actualización de tokens
-    const newTokens = createColorTokens(scheme, mode);
-    updateColorTokens(newTokens);
 
     // Cerramos el menú
     setIsOpen(false);

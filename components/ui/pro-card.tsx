@@ -1,10 +1,11 @@
 "use client";
 
 import type React from "react";
-import { forwardRef } from "react";
+import { forwardRef, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { useColorTokens } from "@/hooks/use-color-tokens";
-import type { ProCardVariant } from "@/lib/theme/color-tokens";
+import { useTheme } from "@/app/theme-provider";
+import type { ProCardVariant } from "@/lib/theme/ColorToken";
+import { generateProCardTokens } from "@/lib/theme/components/pro-card-tokens";
 import { Text } from "@/components/ui/text";
 import type { FontPairType } from "@/components/ui/text";
 
@@ -18,6 +19,8 @@ export interface ProCardProps extends React.HTMLAttributes<HTMLDivElement> {
   loading?: boolean;
   className?: string;
   children?: React.ReactNode;
+  noPadding?: boolean;
+  shadow?: "none" | "sm" | "md" | "lg" | "xl";
 }
 
 // Subcomponentes
@@ -82,22 +85,41 @@ const ProCard = forwardRef<HTMLDivElement, ProCardProps>(
       loading = false,
       className,
       children,
-      ...props
+      noPadding = false,
+      shadow = "md",
+      ...rest
     },
     ref
   ) => {
     const actualBorderVariant = borderVariant || variant;
-    const tokens = useColorTokens();
-    const hasTokens = tokens?.component?.proCard;
+    const { appColorTokens, mode } = useTheme();
+
+    const proCardComponentTokens = useMemo(() => {
+      if (!appColorTokens) return null;
+      return generateProCardTokens(appColorTokens, mode);
+    }, [appColorTokens, mode]);
+
+    const hasTokens = !!proCardComponentTokens;
+
+    const paddingClasses = noPadding ? "" : "p-4";
+
+    const shadowClasses = {
+      none: "shadow-none",
+      sm: "shadow-sm",
+      md: "shadow-md",
+      lg: "shadow-lg",
+      xl: "shadow-xl",
+    }[shadow];
+
     const selectedClass = selected ? "ring-2" : "";
     const selectedStyle =
       selected && hasTokens
-        ? { ringColor: tokens.component.proCard.selected }
+        ? { ringColor: proCardComponentTokens.selected[variant] }
         : {};
     const loadingClass = loading ? "animate-pulse" : "";
 
     const loadingContent = (
-      <div className="flex flex-col gap-2">
+      <div className={cn("flex flex-col gap-2", paddingClasses)}>
         <div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-700"></div>
         <div className="h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700"></div>
         <div className="h-4 w-5/6 rounded bg-gray-200 dark:bg-gray-700"></div>
@@ -110,18 +132,21 @@ const ProCard = forwardRef<HTMLDivElement, ProCardProps>(
     const defaultBorderGradient =
       "linear-gradient(90deg, #e0e0e0 0%, #f0f0f0 100%)";
 
+    const baseContainerClasses = cn(
+      "rounded-lg transition-all duration-200",
+      !hasTokens && defaultBackground,
+      selectedClass,
+      loadingClass,
+      shadowClasses,
+      className
+    );
+
     const renderContent = () => (
       <div
-        className={cn(
-          "rounded-lg p-4 transition-all duration-200",
-          !hasTokens && defaultBackground,
-          selectedClass,
-          loadingClass,
-          className
-        )}
+        className={cn(baseContainerClasses, paddingClasses)}
         style={{
           background: hasTokens
-            ? tokens.component.proCard.backgroundGradient[variant]
+            ? proCardComponentTokens.backgroundGradient[variant]
             : defaultGradient,
           ...selectedStyle,
         }}
@@ -132,36 +157,61 @@ const ProCard = forwardRef<HTMLDivElement, ProCardProps>(
 
     if (border === "top") {
       return (
-        <div ref={ref} className="relative" {...props}>
+        <div
+          ref={ref}
+          className={cn("relative", shadowClasses, className)}
+          {...rest}
+        >
           <div
             className="absolute top-0 left-0 right-0 h-1 rounded-t-lg z-10"
             style={{
               backgroundImage: hasTokens
-                ? tokens.component.proCard.borderGradientTop[
-                    actualBorderVariant
-                  ]
+                ? proCardComponentTokens.borderGradientTop[actualBorderVariant]
                 : defaultBorderGradient,
             }}
           />
-          {renderContent()}
+          <div
+            className={cn(paddingClasses, "rounded-b-lg")}
+            style={{
+              background: hasTokens
+                ? proCardComponentTokens.backgroundGradient[variant]
+                : defaultGradient,
+              ...selectedStyle,
+            }}
+          >
+            {loading ? loadingContent : children}
+          </div>
         </div>
       );
     }
 
     if (border === "left") {
       return (
-        <div ref={ref} className="relative" {...props}>
+        <div
+          ref={ref}
+          className={cn("relative flex", shadowClasses, className)}
+          {...rest}
+        >
           <div
             className="absolute top-0 left-0 bottom-0 w-2 rounded-l-lg z-10"
             style={{
               backgroundImage: hasTokens
-                ? tokens.component.proCard.borderGradientLeft[
-                    actualBorderVariant
-                  ]
+                ? proCardComponentTokens.borderGradientLeft[actualBorderVariant]
                 : defaultBorderGradient,
             }}
           />
-          {renderContent()}
+          <div
+            className={cn("flex-1", paddingClasses, "rounded-r-lg")}
+            style={{
+              background: hasTokens
+                ? proCardComponentTokens.backgroundGradient[variant]
+                : defaultGradient,
+              ...selectedStyle,
+              marginLeft: "8px",
+            }}
+          >
+            {loading ? loadingContent : children}
+          </div>
         </div>
       );
     }
@@ -171,23 +221,21 @@ const ProCard = forwardRef<HTMLDivElement, ProCardProps>(
         <div
           ref={ref}
           className={cn(
-            "rounded-lg p-4 transition-all duration-200 border",
-            !hasTokens && defaultBackground,
-            !hasTokens && defaultBorder,
-            selectedClass,
-            loadingClass,
-            className
+            baseContainerClasses,
+            paddingClasses,
+            "border",
+            !hasTokens && defaultBorder
           )}
           style={{
             background: hasTokens
-              ? tokens.component.proCard.backgroundGradient[variant]
+              ? proCardComponentTokens.backgroundGradient[variant]
               : defaultGradient,
             borderColor: hasTokens
-              ? tokens.component.proCard.border[actualBorderVariant]
+              ? proCardComponentTokens.border[actualBorderVariant]
               : undefined,
             ...selectedStyle,
           }}
-          {...props}
+          {...rest}
         >
           {loading ? loadingContent : children}
         </div>
@@ -197,20 +245,14 @@ const ProCard = forwardRef<HTMLDivElement, ProCardProps>(
     return (
       <div
         ref={ref}
-        className={cn(
-          "rounded-lg p-4 transition-all duration-200",
-          !hasTokens && defaultBackground,
-          selectedClass,
-          loadingClass,
-          className
-        )}
+        className={cn(baseContainerClasses, paddingClasses)}
         style={{
           background: hasTokens
-            ? tokens.component.proCard.backgroundGradient[variant]
+            ? proCardComponentTokens.backgroundGradient[variant]
             : defaultGradient,
           ...selectedStyle,
         }}
-        {...props}
+        {...rest}
       >
         {loading ? loadingContent : children}
       </div>

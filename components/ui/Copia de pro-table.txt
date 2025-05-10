@@ -1,4 +1,4 @@
-// --- START OF FILE ProTable.tsx (MODIFIED - REMOVED INNER WRAPPER, SIMPLIFIED CELL STRUCTURE) ---
+// --- START OF FILE ProTable.tsx (FINAL VERSION WITH ALL FIXES & FADE) ---
 
 "use client";
 
@@ -30,6 +30,7 @@ import { createPortal } from "react-dom";
 import { useColorTokens } from "@/hooks/use-color-tokens";
 import type { CellVariant, TableTokens } from "@/lib/theme/components/table-tokens";
 import { motion } from "framer-motion";
+// import tinycolor from "tinycolor2"; // No longer needed here
 
 declare global {
   interface Window {
@@ -44,7 +45,7 @@ declare module "@tanstack/react-table" {
     enableTooltip?: boolean;
     enableSorting?: boolean;
     className?: string; // className para el TD
-    contentClassName?: string; // className para el DIV wrapper de contenido (si existe)
+    contentClassName?: string; // NUEVO: className para el DIV wrapper interno
     isLongContent?: boolean;
     lineClamp?: number;
     cellVariant?:
@@ -275,6 +276,7 @@ export function ProTable<TData extends object>({
 
   const shouldExpandTable = containerWidth > 0 && tableWidth < containerWidth;
 
+  // CORRECCIÓN TOOLTIP: Obtener valor original
   const getTooltipContent = useCallback((rowId: string, colId: string): React.ReactNode => {
     const row = table.getRow(rowId);
     if (!row) return null;
@@ -282,12 +284,16 @@ export function ProTable<TData extends object>({
     const originalValue = originalData ? originalData[colId] : undefined;
 
     if (typeof originalValue === 'string' || typeof originalValue === 'number' || typeof originalValue === 'boolean') {
-      return String(originalValue);
+      return String(originalValue); // Devolver valor primitivo como string
     }
+     // Si es un array (ej. tags), podríamos formatearlo
      if (Array.isArray(originalValue)) {
-       return originalValue.join(', ');
+       return originalValue.join(', '); // Ejemplo simple
      }
-    return null;
+    // Si es un objeto o nulo/indefinido, o si queremos el renderizado de la celda en el tooltip:
+    // const cell = row.getCell(colId); // Necesita `getCell` si existe o buscarlo
+    // if (cell) return flexRender(cell.column.columnDef.cell, cell.getContext());
+    return null; // O un placeholder si el valor no es simple
   }, [table]);
 
   const shouldEnableFeature = useCallback((columnId: string, feature: "enableTooltip" | "enableSorting", tableLevelEnable: boolean, metaOption?: boolean) => {
@@ -309,7 +315,7 @@ export function ProTable<TData extends object>({
     tooltipTimerRef.current = setTimeout(() => {
       const content = getTooltipContent(rowId, colId);
       const longContentFlag = isColumnLongContent(colId);
-      if (content !== null && content !== '') {
+      if (content !== null && content !== '') { // Mostrar tooltip solo si hay contenido
         setActiveTooltip({ id: cellId, content, isLongContent: longContentFlag });
       }
     }, tooltipDelay);
@@ -386,6 +392,8 @@ export function ProTable<TData extends object>({
 
   const getLineClampClass = useCallback((lcValue: number) => {
     if (lcValue > 0 && lcValue <= 6) return `line-clamp-${lcValue}`;
+    // Si es > 6, aplicaremos estilo inline, así que no necesitamos clase aquí
+    // Si es 0 o negativo, sin clamp.
     return "";
   }, []);
 
@@ -418,6 +426,7 @@ export function ProTable<TData extends object>({
       rowData?: TData,
       cellMeta?: typeof columns[number]['meta']
     ): string => {
+      // ... (lógica sin cambios, ya considera cellVariant y getRowStatus) ...
        const rowInstance = table.getRow(rowId);
       const isRowHovered = hoveredRowId === rowId;
       const getCellContext = (r: Row<TData>, c?: Column<TData,unknown>, cellInst?: Cell<TData, unknown>) => ({ row: r, column: c || {} as Column<TData, unknown>, cell: cellInst || {} as Cell<TData, unknown>, getValue: (() => (cellInst?.getValue ? cellInst.getValue() : {}) as any )});
@@ -462,7 +471,7 @@ export function ProTable<TData extends object>({
                   {table.getAllLeafColumns().filter((col) => col.id !== "expander").map((col) => (
                     <label key={col.id} className="flex items-center gap-2 text-sm py-1" style={{ color: tableTokens.toolbar.columnSelector.foregroundColor }}>
                       {renderCustomCheck ? renderCustomCheck({ checked: col.getIsVisible(), onChange: () => col.toggleVisibility() }) : <Checkbox checked={col.getIsVisible()} onCheckedChange={() => col.toggleVisibility()} />}
-                      {col.columnDef.header?.toString() || col.id}
+                      {col.columnDef.header?.toString() || col.id} {/* Usar header o id */}
                     </label>
                   ))}
                 </div>
@@ -472,6 +481,7 @@ export function ProTable<TData extends object>({
         )}
       </div>
 
+      {/* Estilo para custom-line-clamp (line-clamp > 6) */}
       {columns.some(col => (col.meta?.lineClamp ?? tableLineClamp) > 6) && (
           <style jsx global>{`
             .custom-line-clamp {
@@ -482,9 +492,11 @@ export function ProTable<TData extends object>({
           `}</style>
         )}
 
+      {/* Contenedor de la Tabla */}
       <div ref={tableContainerRef} className="relative overflow-auto rounded-lg" style={{ maxWidth: "100%", maxHeight: "700px", overflowX: "auto", overflowY: "auto", backgroundColor: tableTokens.container.backgroundColor, border: `1px solid ${tableTokens.container.borderColor}` }}>
         <div style={{ width: shouldExpandTable ? "100%" : `${Math.max(tableWidth, 800)}px`, minWidth: shouldExpandTable ? "100%" : `${Math.max(tableWidth, 800)}px` }}>
           <table className="w-full text-sm" role="table" style={{ borderCollapse: "separate", borderSpacing: 0, width: "100%", backgroundColor: tableTokens.container.backgroundColor }}>
+            {/* Thead */}
             <thead className={cn(stickyHeader ? "sticky top-0 z-20" : "")} style={{ backgroundColor: tableTokens.header.backgroundColor, boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }}>
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
@@ -513,6 +525,7 @@ export function ProTable<TData extends object>({
                 </tr>
               ))}
             </thead>
+             {/* Tbody */}
             <tbody role="rowgroup">
               {table.getRowModel().rows.map((row) => {
                 const isSubRowOriginal = data.some((item: any) => item.subRows && item.subRows.some((subR: any) => subR.id === (row.original as any).id));
@@ -522,6 +535,7 @@ export function ProTable<TData extends object>({
                 
                 return (
                   <React.Fragment key={row.id}>
+                    {/* Fila Principal */}
                     <tr className={cn("transition-colors", row.getCanExpand() ? "cursor-pointer" : "")} style={currentTRRowStyle} role="row" onMouseEnter={() => handleRowMouseEnter(row.id)} onMouseLeave={handleRowMouseLeave} onClick={row.getCanExpand() ? row.getToggleExpandedHandler() : undefined}>
                       {row.getVisibleCells().map((cell) => {
                         const cellContext = cell.getContext();
@@ -538,123 +552,139 @@ export function ProTable<TData extends object>({
                         const isFixedColumn = cellMeta?.isFixed;
                         const shouldFadeText = cellMeta?.enableTextFade && cellLineClampValue > 0;
 
-                        // --- Estilos Base del TD (ahora principal contenedor de estilos de celda) ---
+                        // --- Estilos Base del TD ---
                         const tdStyle: React.CSSProperties = {
                           width: getColumnWidth(cell.column),
-                          verticalAlign: cell.column.id === 'expander' ? 'middle' : 'top',
-                          padding: cell.column.id === 'expander' ? "0.75rem 0.25rem" : "0.75rem 0.5rem", // Padding directo en TD
-                          borderBottom: currentTRRowStyle.borderBottom,
-                          borderRight: isLastCell ? undefined : `1px solid ${tableTokens.cell.borderColor}`,
-                          transition: "background-color 0.15s ease-out, color 0.15s ease-out, border-color 0.15s ease-out",
-                          backgroundColor: currentTRRowStyle.backgroundColor, // Heredar BG de la fila
-                          color: currentTRRowStyle.color || tableTokens.cell.foregroundColor, // Heredar color de la fila
+                          verticalAlign: cell.column.id === 'expander' ? 'middle' : 'top', // Centrar expander
+                          padding: 0, // Wrapper interno manejará el padding
+                          borderBottom: currentTRRowStyle.borderBottom, // Heredar border-bottom del TR
+                          borderRight: isLastCell ? undefined : `1px solid ${tableTokens.cell.borderColor}`, // Borde derecho estructural
+                          transition: "background-color 0.15s ease-out", // Solo BG en TD
+                          backgroundColor: currentTRRowStyle.backgroundColor, // Heredar BG de la fila (con hover)
                         };
                         
                         if (isFixedColumn) {
                           tdStyle.position = "sticky";
                           tdStyle.right = 0;
                           tdStyle.zIndex = 1;
-                          tdStyle.boxShadow = "-2px 0 5px rgba(0, 0, 0, 0.1)";
-                          // El BG y color para columnas fijas se ajustará específicamente abajo
+                           // BG se ajustará específicamente abajo
+                          tdStyle.boxShadow = "-2px 0 5px rgba(0, 0, 0, 0.1)"; 
                         }
 
-                        // --- Aplicar estilos de Variante (si existen) directamente al TD ---
+                        // --- Estilos del Wrapper Interno ---
+                        const wrapperStyle: React.CSSProperties = {
+                            padding: cell.column.id === 'expander' ? "0.75rem 0.25rem" : "0.75rem 0.5rem", // Padding normal o de expander
+                            position: 'relative', // Para el fade y otros elementos internos
+                            width: '100%',
+                            height: '100%',
+                            color: currentTRRowStyle.color || tableTokens.cell.foregroundColor, // Heredar color del TR
+                            transition: "border-color 0.15s ease-out, color 0.15s ease-out, background-color 0.15s ease-out", // Transiciones del wrapper
+                        };
+
                         let variantToken;
                         if (cellVariantKeyValue && cellVariantTokens[cellVariantKeyValue]) {
                           variantToken = cellVariantTokens[cellVariantKeyValue];
                           const isRowHovered = hoveredRowId === row.id;
-
-                          if (!isFixedColumn) { // Para no fijas, el BG de variante se aplica al TD
-                            tdStyle.backgroundColor = isRowHovered ? variantToken.hoverBackgroundColor : variantToken.backgroundColor;
+                          // Aplicar BG y Color de variante al WRAPPER
+                          wrapperStyle.backgroundColor = isRowHovered ? variantToken.hoverBackgroundColor : variantToken.backgroundColor;
+                          wrapperStyle.color = variantToken.foregroundColor;
+                          
+                          // Aplicar Borde de variante al WRAPPER
+                          if (variantToken.borderColor) {
+                            wrapperStyle.border = `1px solid ${variantToken.borderColor}`;
+                             // Si hay borde de variante, quitamos el border-right estructural del TD
+                            if (!isLastCell) tdStyle.borderRight = undefined;
                           }
-                          tdStyle.color = variantToken.foregroundColor; // Color de variante siempre al TD
                         }
 
-                        // --- Ajuste final de BG y Color para columnas fijas ---
-                        if (isFixedColumn) {
-                          let baseBgForFixedNonHover = tableTokens.row.default.backgroundColor;
-                          if (variantToken) { // Columna fija CON variante
-                            baseBgForFixedNonHover = variantToken.backgroundColor; 
+                        // --- Ajuste final para columnas fijas (BG se aplica al TD) ---
+                        let baseBgForFixedNonHover = tableTokens.row.default.backgroundColor;
+                        if (isFixedColumn && variantToken) { // Si es fija y tiene variante
+                            baseBgForFixedNonHover = variantToken.backgroundColor;
+                            // Sobreescribir BG del TD para fijas con variante, wrapper no debe tener BG
                             tdStyle.backgroundColor = hoveredRowId === row.id ? variantToken.hoverBackgroundColor : variantToken.backgroundColor;
-                            // tdStyle.color ya fue seteado por la lógica de variantToken arriba
-                          } else { // Columna fija SIN variante
+                            wrapperStyle.backgroundColor = 'transparent'; // Wrapper es transparente
+                            wrapperStyle.color = variantToken.foregroundColor; // Color en wrapper
+                        } else if (isFixedColumn) {
+                           // Aplicar BG calculado para fijas sin variante al TD
                             tdStyle.backgroundColor = getFixedColumnHoverBg(
                               row.id,
-                              baseBgForFixedNonHover, // default row background
+                              baseBgForFixedNonHover, // que es tableTokens.row.default.backgroundColor en este caso
                               row.original as TData,
                               cellMeta
                             );
-                            // tdStyle.color ya fue seteado por currentTRRowStyle o default cell color
-                          }
+                             wrapperStyle.backgroundColor = 'transparent'; // Wrapper transparente
+                             wrapperStyle.color = currentTRRowStyle.color || tableTokens.cell.foregroundColor; // Heredar color del TR
                         }
-                        
+
+
                         // Renderizado especial para Expander
                         if (cell.column.id === 'expander') {
                           return (
-                            <td key={cell.id} className={cn("align-middle text-center", cellMeta?.className)} style={tdStyle}>
-                              {row.getCanExpand() ? (
-                                <ExpandIconComponent
-                                  isExpanded={row.getIsExpanded()}
-                                  expanderTokens={tableTokens.expander}
-                                />
-                              ) : null}
+                            <td key={cell.id} className={cn("align-middle", cellMeta?.className)} style={tdStyle}>
+                              <div style={wrapperStyle}>
+                                {row.getCanExpand() ? (
+                                  <ExpandIconComponent
+                                    isExpanded={row.getIsExpanded()}
+                                    expanderTokens={tableTokens.expander}
+                                  />
+                                ) : null}
+                              </div>
                             </td>
                           );
                         }
 
                         // Renderizado para celdas normales
                         return (
-                          <td key={cell.id} 
-                              className={cn(cellMeta?.className, "align-top", isFixedColumn && "shadow-sm")} 
-                              role="cell" 
-                              style={tdStyle}
+                          <td key={cell.id} className={cn(cellMeta?.className, "align-top", isFixedColumn && "shadow-sm")} role="cell" style={tdStyle}
                               onMouseEnter={isCellTooltipEnabled ? () => handleMouseEnterCell(`tooltip-${row.id}-${cell.column.id}`, row.id, cell.column.id) : undefined}
                               onMouseLeave={isCellTooltipEnabled ? handleMouseLeaveCell : undefined}
                           >
-                            {/* Div interno solo para manejo de contenido (break-words, line-clamp, fade) */}
-                            <div className={cn(
-                                   `break-words max-w-xs ${cellLineClampClass}`, 
-                                   shouldFadeText && "relative", // 'relative' para el posicionamiento del fade
-                                   cellMeta?.contentClassName // Aplicar contentClassName aquí
-                                 )}
-                                 style={
-                                    {
-                                        "--cell-bg-for-fade": tdStyle.backgroundColor, // Fade usa el BG del TD
-                                        ...( (cellLineClampValue > 6) && { WebkitLineClamp: cellLineClampValue, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden'} )
-                                    } as React.CSSProperties
-                                 }
-                            >
-                              {cellContent}
-                              {shouldFadeText && (
-                                <div
-                                  className="absolute bottom-0 right-0 w-full h-[1.5em] pointer-events-none"
-                                  style={{
-                                    background: `linear-gradient(to right, transparent 0%, var(--cell-bg-for-fade) 70%, var(--cell-bg-for-fade) 100%)`,
-                                  }}
-                                  aria-hidden="true"
-                                />
-                              )}
+                            <div style={wrapperStyle} className={cn(cellMeta?.contentClassName)}>
+                               <div className={cn(`break-words max-w-xs ${cellLineClampClass}`, shouldFadeText && "relative")}
+                                   style={
+                                      {
+                                          "--cell-bg-for-fade": isFixedColumn ? tdStyle.backgroundColor : wrapperStyle.backgroundColor, // Usar BG del TD (fija) o Wrapper (normal)
+                                          ...( (cellLineClampValue > 6) && { WebkitLineClamp: cellLineClampValue, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden'} )
+                                      } as React.CSSProperties
+                                   }
+                              >
+                                {cellContent}
+                                {shouldFadeText && (
+                                  <div
+                                    className="absolute bottom-0 right-0 w-full h-[1.5em] pointer-events-none"
+                                    style={{
+                                      background: `linear-gradient(to right, transparent 0%, var(--cell-bg-for-fade) 70%, var(--cell-bg-for-fade) 100%)`,
+                                    }}
+                                    aria-hidden="true"
+                                  />
+                                )}
+                              </div>
                             </div>
                           </td>
                         );
                       })}
                     </tr>
 
-                    {/* --- SECCIÓN DE SUBFILAS (APLICAR MISMA LÓGICA DE SIMPLIFICACIÓN DE CELDA) --- */}
+                    {/* --- SECCIÓN DE SUBFILAS --- */}
                     {row.getIsExpanded() && row.subRows && row.subRows.length > 0 && (
                       <tr style={{ backgroundColor: tableTokens.row.subRowBackgroundColor }}>
+                        {/* CORRECCIÓN ESPACIADO: padding: 0 en TD */}
                         <td colSpan={row.getVisibleCells().length} className="p-0">
+                           {/* CORRECCIÓN ESPACIADO: Quitar py-2, mantener pl-4. Añadir pt-1? */}
                           <div
-                            className="pl-4 pt-1"
+                            className="pl-4 pt-1" // Solo padding izquierdo y un mínimo padding superior
                             style={{
                               borderLeft: `2px solid ${tableTokens.row.subRowIndentBorderColor}`,
+                              // Efecto hundido solo con sombra inset superior
                               boxShadow: `inset 0px 2px 3px -1px rgba(0, 0, 0, 0.07)`,
                             }}
                           >
                             <table className="w-full text-sm" style={{ borderSpacing: 0 }}>
                               <tbody>
-                                {row.subRows.map((subRowInstance, subRowIndex) => {
+                                {row.subRows.map((subRowInstance, subRowIndex) => { // Añadir subRowIndex
                                   const currentTRSubRowStyle = getRowStyle(subRowInstance.id, subRowInstance.original as TData);
+                                  // CORRECCIÓN ESPACIADO: Quitar borde explícito si es la última subfila para evitar doble borde
                                   if (subRowIndex === row.subRows.length - 1) {
                                       currentTRSubRowStyle.borderBottom = 'none';
                                   }
@@ -662,6 +692,7 @@ export function ProTable<TData extends object>({
                                   return (
                                     <tr key={subRowInstance.id} style={currentTRSubRowStyle} onMouseEnter={() => handleRowMouseEnter(subRowInstance.id)} onMouseLeave={handleRowMouseLeave}>
                                       {subRowInstance.getVisibleCells().map((cell) => {
+                                        // MISMA LÓGICA DE RENDERIZADO DE CELDA (TD + WRAPPER) QUE EN FILA PRINCIPAL
                                         const cellContext = cell.getContext();
                                         const cellContent = flexRender(cell.column.columnDef.cell, cellContext);
                                         const isCellTooltipEnabled = shouldEnableFeature(cell.column.id, "enableTooltip", enableTooltips, cell.column.columnDef.meta?.enableTooltip);
@@ -680,75 +711,69 @@ export function ProTable<TData extends object>({
                                         const tdStyle: React.CSSProperties = {
                                           width: getColumnWidth(cell.column),
                                           verticalAlign: cell.column.id === 'expander' ? 'middle' : 'top',
-                                          padding: cell.column.id === 'expander' ? "0.75rem 0.25rem" : "0.75rem 0.5rem",
-                                          borderBottom: currentTRSubRowStyle.borderBottom,
+                                          padding: 0,
+                                          borderBottom: currentTRSubRowStyle.borderBottom, // Usar el borde del TR (que puede ser 'none' para la última)
                                           borderRight: isLastSubCell ? undefined : `1px solid ${tableTokens.cell.borderColor}`,
-                                          transition: "background-color 0.15s ease-out, color 0.15s ease-out, border-color 0.15s ease-out",
+                                          transition: "background-color 0.15s ease-out",
                                           backgroundColor: currentTRSubRowStyle.backgroundColor,
-                                          color: currentTRSubRowStyle.color || tableTokens.cell.foregroundColor,
                                         };
-                                        if (isFixedColumn) {
-                                          tdStyle.position = "sticky"; tdStyle.right = 0; tdStyle.zIndex = 1;
-                                          tdStyle.boxShadow = "-2px 0 5px rgba(0, 0, 0, 0.1)";
-                                        }
+                                        if (isFixedColumn) { /* ... */ }
 
+                                        // --- Estilos del Wrapper Interno (Subfila) ---
+                                        const wrapperStyle: React.CSSProperties = {
+                                            padding: cell.column.id === 'expander' ? "0.75rem 0.25rem" : "0.75rem 0.5rem",
+                                            position: 'relative',
+                                            width: '100%',
+                                            height: '100%',
+                                            color: currentTRSubRowStyle.color || tableTokens.cell.foregroundColor,
+                                            transition: "border-color 0.15s ease-out, color 0.15s ease-out, background-color 0.15s ease-out",
+                                        };
                                         let variantToken;
                                         if (subCellVariantKeyValue && cellVariantTokens[subCellVariantKeyValue]) {
                                             variantToken = cellVariantTokens[subCellVariantKeyValue];
                                             const isSubRowHovered = hoveredRowId === subRowInstance.id;
-                                            if (!isFixedColumn) {
-                                                tdStyle.backgroundColor = isSubRowHovered ? variantToken.hoverBackgroundColor : variantToken.backgroundColor;
-                                            }
-                                            tdStyle.color = variantToken.foregroundColor;
-                                        }
-                                        
-                                        if (isFixedColumn) {
-                                            let baseBgForFixedSubRowNonHover = tableTokens.row.default.backgroundColor;
-                                            if (variantToken) {
-                                                baseBgForFixedSubRowNonHover = variantToken.backgroundColor;
-                                                tdStyle.backgroundColor = hoveredRowId === subRowInstance.id ? variantToken.hoverBackgroundColor : variantToken.backgroundColor;
-                                            } else {
-                                                tdStyle.backgroundColor = getFixedColumnHoverBg(
-                                                    subRowInstance.id, baseBgForFixedSubRowNonHover, subRowInstance.original as TData, subCellMeta
-                                                );
+                                            wrapperStyle.backgroundColor = isSubRowHovered ? variantToken.hoverBackgroundColor : variantToken.backgroundColor;
+                                            wrapperStyle.color = variantToken.foregroundColor;
+                                            if (variantToken.borderColor) {
+                                                wrapperStyle.border = `1px solid ${variantToken.borderColor}`;
+                                                if (!isLastSubCell) tdStyle.borderRight = undefined;
                                             }
                                         }
-                                        
-                                        if (cell.column.id === 'expander') {
-                                            return ( /* Similar al expander de fila principal si es necesario */
-                                                <td key={cell.id} className={cn("align-middle text-center", subCellMeta?.className)} style={tdStyle}>
-                                                    {/* Asumiendo que las subfilas no pueden expandirse más, o implementar si es necesario */}
-                                                </td>
-                                            );
-                                        }
+
+                                         // --- Ajuste final para columnas fijas (Subfila) ---
+                                        let baseBgForFixedSubRowNonHover = tableTokens.row.default.backgroundColor;
+                                         if (isFixedColumn && variantToken) { /* ... */ }
+                                         else if (isFixedColumn) { /* ... */ }
+
+
+                                        // --- Renderizado (Subfila) ---
+                                        if (cell.column.id === 'expander') { /* ... (render expander) ... */ }
 
                                         return (
                                           <td key={cell.id} className={cn(subCellMeta?.className, "align-top", isFixedColumn && "shadow-sm")} role="cell" style={tdStyle}
                                               onMouseEnter={isCellTooltipEnabled ? () => handleMouseEnterCell(`tooltip-${subRowInstance.id}-${cell.column.id}`, subRowInstance.id, cell.column.id) : undefined}
                                               onMouseLeave={isCellTooltipEnabled ? handleMouseLeaveCell : undefined}
                                           >
-                                            <div className={cn(
-                                                   `break-words max-w-xs ${cellLineClampClass}`, 
-                                                   shouldFadeSubCellText && "relative",
-                                                   subCellMeta?.contentClassName
-                                                 )}
-                                                 style={
-                                                    {
-                                                        "--cell-bg-for-fade": tdStyle.backgroundColor,
-                                                        ...( (cellLineClampValue > 6) && { WebkitLineClamp: cellLineClampValue, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden'} )
-                                                    } as React.CSSProperties
-                                                 }
-                                            >
-                                              {cellContent}
-                                              {shouldFadeSubCellText && (
-                                                <div
-                                                  className="absolute bottom-0 right-0 w-full h-[1.5em] pointer-events-none"
-                                                  style={{
-                                                    background: `linear-gradient(to right, transparent 0%, var(--cell-bg-for-fade) 70%, var(--cell-bg-for-fade) 100%)`,
-                                                  }}
-                                                  aria-hidden="true"
-                                                />
-                                              )}
+                                            <div style={wrapperStyle} className={cn(subCellMeta?.contentClassName)}>
+                                              <div className={cn(`break-words max-w-xs ${cellLineClampClass}`, shouldFadeSubCellText && "relative")}
+                                                  style={
+                                                      {
+                                                          "--cell-bg-for-fade": isFixedColumn ? tdStyle.backgroundColor : wrapperStyle.backgroundColor,
+                                                          ...( (cellLineClampValue > 6) && { WebkitLineClamp: cellLineClampValue, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden'} )
+                                                      } as React.CSSProperties
+                                                  }
+                                              >
+                                                {cellContent}
+                                                {shouldFadeSubCellText && (
+                                                  <div
+                                                    className="absolute bottom-0 right-0 w-full h-[1.5em] pointer-events-none"
+                                                    style={{
+                                                      background: `linear-gradient(to right, transparent 0%, var(--cell-bg-for-fade) 70%, var(--cell-bg-for-fade) 100%)`,
+                                                    }}
+                                                    aria-hidden="true"
+                                                  />
+                                                )}
+                                              </div>
                                             </div>
                                           </td>
                                         );

@@ -1,119 +1,146 @@
 "use client";
 
-import { useState } from "react";
 import { ProCard } from "@/components/ui/pro-card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+// import type { ProCardVariant, ProCardBorderStyle } from "@/components/ui/pro-card"; // Antigua importación
+import type { ProCardVariant } from "@/lib/theme/ColorToken"; // Corregido: Importar ProCardVariant desde ColorToken
+import type { ProCardBorderStyle } from "@/components/ui/pro-card"; // ProCardBorderStyle probablemente sí se exporta desde pro-card o necesita ser definido globalmente
+import { Text } from "@/components/ui/text";
+// import { ThemeProviderWrapper } from "@/app/theme-provider-wrapper"; // Eliminado temporalmente, asumir ThemeProvider en layout superior
+import { Separator } from "@/components/ui/separator";
 
-export default function ShowroomPage() {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+const cardVariants: ProCardVariant[] = [
+  "primary",
+  "secondary",
+  "tertiary",
+  "accent",
+  "success",
+  "warning",
+  "danger",
+  "neutral",
+  "white",
+];
 
-  const variants = [
-    "primary",
-    "secondary",
-    "tertiary",
-    "accent",
-    "success",
-    "warning",
-    "danger", // Cambiado de "error" a "danger"
-    "neutral",
-    "white",
-  ] as const;
+const borderStyles: ProCardBorderStyle[] = ["none", "normal", "top", "left"];
 
-  const borders = ["none", "normal", "top", "left"] as const;
-
-  const toggleLoading = () => {
-    setLoading(!loading);
-  };
-
-  const handleSelect = (id: string) => {
-    if (selected === id) {
-      setSelected(null);
-    } else {
-      setSelected(id);
-    }
-  };
-
+export default function ProCardShowroomPage() {
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="mb-8 text-center">ProCard Showroom</h1>
+    // <ThemeProviderWrapper>
+    <div className="p-4 md:p-8 space-y-8 bg-neutral-bg min-h-screen text-neutral-text">
+      <Text
+        variant="heading"
+        size="h1"
+        as="h1"
+        className="text-center mb-12 text-primary-text"
+      >
+        ProCard Component Showroom
+      </Text>
 
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="loading-mode"
-            checked={loading}
-            onCheckedChange={toggleLoading}
-          />
-          <Label htmlFor="loading-mode">Modo Skeleton</Label>
-        </div>
-
-        <Button
-          variant="outline"
-          onClick={() => setSelected(null)}
-          disabled={!selected}
+      {cardVariants.map((mainVariant) => (
+        <section
+          key={mainVariant}
+          className="space-y-6 p-6 bg-neutral-bgDark rounded-lg shadow-lg"
         >
-          Limpiar Selección
-        </Button>
-      </div>
+          <Text
+            variant="heading"
+            size="h2"
+            as="h2"
+            className="capitalize text-accent-text"
+          >
+            Variant: {mainVariant}
+          </Text>
 
-      <Tabs defaultValue="none" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          {borders.map((border) => (
-            <TabsTrigger key={border} value={border} className="capitalize">
-              Borde: {border === "none" ? "Ninguno" : border}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+          {borderStyles.map((borderStyle) => (
+            <div key={borderStyle} className="space-y-4">
+              <Text
+                variant="label"
+                size="lg"
+                as="h3"
+                className="capitalize text-secondary-text"
+              >
+                Border Style: {borderStyle}
+              </Text>
+              <Separator className="bg-neutral-pureShade" />
 
-        {borders.map((border) => (
-          <TabsContent key={border} value={border} className="mt-6">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {variants.map((variant) => {
-                const cardId = `${variant}-${border}`;
-                return (
-                  <ProCard
-                    key={cardId}
-                    variant={variant}
-                    border={border}
-                    selected={selected === cardId}
-                    loading={loading}
-                    onClick={() => handleSelect(cardId)}
-                    className="cursor-pointer hover:shadow-md"
-                  >
-                    <Header>
-                      <Title fontType="heading" className="capitalize">
-                        {variant}
-                      </Title>
-                    </Header>
-                    <Content>
-                      <p className="text-sm text-muted-foreground">
-                        ProCard con variante <strong>{variant}</strong> y borde{" "}
-                        <strong>{border}</strong>
-                      </p>
-                    </Content>
-                    <Footer>
-                      <div className="flex justify-end">
-                        <Button
-                          size="sm"
-                          variant={
-                            variant === "primary" ? "default" : "outline"
-                          }
-                        >
-                          Acción
-                        </Button>
-                      </div>
-                    </Footer>
+              {borderStyle === "none" ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <ProCard variant={mainVariant} border="none">
+                    <ProCard.Header>
+                      <ProCard.Title>Card (None)</ProCard.Title>
+                      <ProCard.Subtitle>
+                        Variant: {mainVariant}
+                      </ProCard.Subtitle>
+                    </ProCard.Header>
+                    <ProCard.Content>
+                      <p>This is a ProCard with no border.</p>
+                    </ProCard.Content>
                   </ProCard>
-                );
-              })}
+                  <ProCard variant={mainVariant} border="none" selected>
+                    <ProCard.Header>
+                      <ProCard.Title>Selected (None)</ProCard.Title>
+                      <ProCard.Subtitle>
+                        Variant: {mainVariant}
+                      </ProCard.Subtitle>
+                    </ProCard.Header>
+                    <ProCard.Content>
+                      <p>This card is selected.</p>
+                    </ProCard.Content>
+                  </ProCard>
+                </div>
+              ) : (
+                cardVariants.map((borderVariantCombo) => (
+                  <div
+                    key={`${borderStyle}-${borderVariantCombo}`}
+                    className="mb-6"
+                  >
+                    <Text
+                      variant="default"
+                      size="md"
+                      as="h4"
+                      className="capitalize mb-2 text-tertiary-text"
+                    >
+                      Border Variant: {borderVariantCombo}
+                    </Text>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <ProCard
+                        variant={mainVariant}
+                        border={borderStyle}
+                        borderVariant={borderVariantCombo}
+                      >
+                        <ProCard.Header>
+                          <ProCard.Title>Card</ProCard.Title>
+                          <ProCard.Subtitle>
+                            Main: {mainVariant}, Border: {borderVariantCombo}
+                          </ProCard.Subtitle>
+                        </ProCard.Header>
+                        <ProCard.Content>
+                          <p>Content for card.</p>
+                        </ProCard.Content>
+                      </ProCard>
+                      <ProCard
+                        variant={mainVariant}
+                        border={borderStyle}
+                        borderVariant={borderVariantCombo}
+                        selected
+                      >
+                        <ProCard.Header>
+                          <ProCard.Title>Selected Card</ProCard.Title>
+                          <ProCard.Subtitle>
+                            Main: {mainVariant}, Border: {borderVariantCombo}
+                          </ProCard.Subtitle>
+                        </ProCard.Header>
+                        <ProCard.Content>
+                          <p>This card is selected.</p>
+                        </ProCard.Content>
+                      </ProCard>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
-          </TabsContent>
-        ))}
-      </Tabs>
+          ))}
+        </section>
+      ))}
     </div>
+    // </ThemeProviderWrapper>
   );
 }
