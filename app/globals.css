@@ -9,6 +9,24 @@
 */
 
 @layer base {
+  /* globals.css o tu archivo CSS principal */
+html,
+body,
+body > div:first-child, /* A menudo el div#__next de Next.js */
+div#__next,
+div#__next > div { /* Para cubrir el wrapper de FontThemeProvider y Providers si usan divs */
+  height: 100%; /* O min-height: 100% para permitir crecer más */
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  /* Permite scroll si el contenido es más alto que el viewport */
+  /* overflow-y: auto; /* Puedes añadir esto si es necesario, pero a menudo no lo es si height:100% está bien configurado arriba */
+}
+
+/* Si AuthLayoutWrapper usa flex flex-col y tiene height:100% (o min-height:100%), */
+/* entonces el main con flex-grow funcionará. */
   :root {
     /* 
       COLORES BASE

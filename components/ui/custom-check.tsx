@@ -10,6 +10,7 @@ import {
   type CheckSize,
   type CheckVisualVariant,
 } from "@/lib/theme/components/check-tokens";
+import type { CheckTokens as CheckTokensType } from "@/lib/theme/components/check-tokens";
 
 export interface CustomCheckProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
@@ -46,7 +47,7 @@ const CustomCheck = forwardRef<HTMLInputElement, CustomCheckProps>(
     },
     ref
   ) => {
-    const { colorScheme, mode } = useTheme();
+    const { appColorTokens } = useTheme();
     const [isChecked, setIsChecked] = useState<boolean>(
       Boolean(defaultChecked || checked)
     );
@@ -54,13 +55,15 @@ const CustomCheck = forwardRef<HTMLInputElement, CustomCheckProps>(
       useState<boolean>(indeterminate);
 
     // Generar tokens con manejo de errores
-    const tokens = generateCheckTokens(
-      colorScheme || "blue",
-      mode || "light",
-      size,
-      error ? "danger" : variant,
-      visualVariant
-    );
+    const tokens: CheckTokensType | null = React.useMemo(() => {
+      if (!appColorTokens) return null;
+      return generateCheckTokens(
+        appColorTokens,
+        size,
+        error ? "danger" : variant,
+        visualVariant
+      );
+    }, [appColorTokens, size, error, variant, visualVariant]);
 
     // Actualizar estado cuando cambian las props
     useEffect(() => {
@@ -95,6 +98,52 @@ const CustomCheck = forwardRef<HTMLInputElement, CustomCheckProps>(
         inputRef.current.indeterminate = isIndeterminate;
       }
     }, [isIndeterminate]);
+
+    // Fallback if tokens are not ready
+    if (!tokens) {
+      // Simple fallback rendering - a disabled-looking checkbox
+      return (
+        <label
+          className={cn(
+            "flex items-start gap-2 cursor-not-allowed opacity-50",
+            className
+          )}
+        >
+          <div
+            className="flex-shrink-0"
+            style={{
+              width: getSizeTokens(size).box,
+              height: getSizeTokens(size).box,
+              border: "1px solid #cccccc",
+              borderRadius: getSizeTokens(size).borderRadius,
+              backgroundColor: "#e0e0e0",
+            }}
+          />
+          {(label || description) && (
+            <div className="flex flex-col">
+              {label && (
+                <span
+                  className={cn(
+                    "text-sm font-medium text-gray-400",
+                    labelClassName
+                  )}
+                  style={{ fontSize: getSizeTokens(size).fontSize }}
+                >
+                  {label}
+                </span>
+              )}
+              {description && (
+                <span
+                  className={cn("text-xs text-gray-400", descriptionClassName)}
+                >
+                  {description}
+                </span>
+              )}
+            </div>
+          )}
+        </label>
+      );
+    }
 
     // Estilos base
     const checkboxStyle: React.CSSProperties = {
@@ -272,14 +321,10 @@ const CustomCheck = forwardRef<HTMLInputElement, CustomCheckProps>(
               <span
                 className={cn(
                   "text-sm font-medium",
-                  {
-                    "text-gray-900": mode === "light",
-                    "text-gray-100": mode === "dark",
-                  },
                   disabled && "opacity-60",
                   labelClassName
                 )}
-                style={{ fontSize: tokens.size.fontSize }}
+                style={{ fontSize: tokens.size.fontSize, color: tokens.text }}
               >
                 {label}
               </span>
@@ -288,13 +333,10 @@ const CustomCheck = forwardRef<HTMLInputElement, CustomCheckProps>(
               <span
                 className={cn(
                   "text-xs",
-                  {
-                    "text-gray-500": mode === "light",
-                    "text-gray-400": mode === "dark",
-                  },
                   disabled && "opacity-60",
                   descriptionClassName
                 )}
+                style={{ color: tokens.text }}
               >
                 {description}
               </span>
@@ -309,3 +351,51 @@ const CustomCheck = forwardRef<HTMLInputElement, CustomCheckProps>(
 CustomCheck.displayName = "CustomCheck";
 
 export { CustomCheck };
+
+// Helper function (or import if it's moved to a shared util)
+// This is duplicated from check-tokens.ts for now.
+// In a real scenario, this should be a shared utility or imported.
+function getSizeTokens(size: CheckSize) {
+  switch (size) {
+    case "xs":
+      return {
+        box: "16px",
+        checkThickness: 2.5,
+        borderRadius: "3px",
+        fontSize: "0.75rem",
+        padding: "0.25rem",
+      };
+    case "sm":
+      return {
+        box: "18px",
+        checkThickness: 3,
+        borderRadius: "4px",
+        fontSize: "0.875rem",
+        padding: "0.375rem",
+      };
+    case "lg":
+      return {
+        box: "24px",
+        checkThickness: 4,
+        borderRadius: "6px",
+        fontSize: "1.125rem",
+        padding: "0.625rem",
+      };
+    case "xl":
+      return {
+        box: "28px",
+        checkThickness: 5,
+        borderRadius: "7px",
+        fontSize: "1.25rem",
+        padding: "0.75rem",
+      };
+    default: // md
+      return {
+        box: "20px",
+        checkThickness: 3.5,
+        borderRadius: "5px",
+        fontSize: "1rem",
+        padding: "0.5rem",
+      };
+  }
+}

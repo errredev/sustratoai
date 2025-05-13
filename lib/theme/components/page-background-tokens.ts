@@ -59,7 +59,7 @@ export function generatePageBackgroundTokens(
         background: baseBackgroundColor,
         backgroundImage: `
           radial-gradient(circle at top right, ${appTokens.primary.pure}${primaryPureTintOpacityGradient}, transparent 25%),
-          radial-gradient(circle at bottom left, ${appTokens.accent.bg}, transparent 25%)
+          radial-gradient(circle at bottom left, ${appTokens.accent.bg}, transparent 15%)
         `,
       };
 

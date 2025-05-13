@@ -226,7 +226,7 @@ export default function ShowroomSelect() {
                   leadingIcon={Globe}
                   clearable
                 />
-                <Text variant="caption" color="neutral" colorVariant="muted">
+                <Text variant="caption" color="neutral">
                   Valor seleccionado: {singleValue || "Ninguno"}
                 </Text>
               </div>
@@ -245,7 +245,7 @@ export default function ShowroomSelect() {
                   multiple
                   clearable
                 />
-                <Text variant="caption" color="neutral" colorVariant="muted">
+                <Text variant="caption" color="neutral">
                   Valores seleccionados:{" "}
                   {multiValue.length > 0 ? multiValue.join(", ") : "Ninguno"}
                 </Text>

@@ -7,7 +7,12 @@ import { type Session, type User } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { createBrowserClient } from '@supabase/ssr';
+
+export const supabase =
+  typeof window !== 'undefined'
+    ? createBrowserClient(supabaseUrl, supabaseAnonKey)
+    : createClient(supabaseUrl, supabaseAnonKey);
 
 // Para el sandbox, vamos a crear un mock de Supabase
 // Esto solo se usa en el entorno de desarrollo del sandbox
@@ -147,19 +152,39 @@ export const mockSupabase = {
 // Exportamos el cliente adecuado según el entorno
 export const supabaseClient = isSandbox ? mockSupabase : supabase;
 
-// Funciones de autenticación
+// Funciones de autenticación (garantizando cookies en navegador)
 export async function signIn(email: string, password: string) {
-  return supabaseClient.auth.signInWithPassword({ email, password });
+  const client = isSandbox
+    ? mockSupabase
+    : (typeof window !== 'undefined'
+        ? createBrowserClient(supabaseUrl, supabaseAnonKey)
+        : createClient(supabaseUrl, supabaseAnonKey));
+  return client.auth.signInWithPassword({ email, password });
 }
 
 export async function signUp(email: string, password: string) {
-  return supabaseClient.auth.signUp({ email, password });
+  const client = isSandbox
+    ? mockSupabase
+    : (typeof window !== 'undefined'
+        ? createBrowserClient(supabaseUrl, supabaseAnonKey)
+        : createClient(supabaseUrl, supabaseAnonKey));
+  return client.auth.signUp({ email, password });
 }
 
 export async function signOut() {
-  return supabaseClient.auth.signOut();
+  const client = isSandbox
+    ? mockSupabase
+    : (typeof window !== 'undefined'
+        ? createBrowserClient(supabaseUrl, supabaseAnonKey)
+        : createClient(supabaseUrl, supabaseAnonKey));
+  return client.auth.signOut();
 }
 
 export async function getSession() {
-  return supabaseClient.auth.getSession();
+  const client = isSandbox
+    ? mockSupabase
+    : (typeof window !== 'undefined'
+        ? createBrowserClient(supabaseUrl, supabaseAnonKey)
+        : createClient(supabaseUrl, supabaseAnonKey));
+  return client.auth.getSession();
 }

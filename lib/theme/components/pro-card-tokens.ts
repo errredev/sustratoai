@@ -55,7 +55,7 @@ export function generateProCardBackgroundGradients(
     if (color1 && color2) {
       gradients[
         variant
-      ] = `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`;
+      ] = `linear-gradient(135deg, ${color1} 0%, ${color2} 90%)`;
     } else {
       console.warn(
         `ProCard: Tokens for background gradient variant '${variant}' not fully defined. C1: ${color1}, C2: ${color2}`

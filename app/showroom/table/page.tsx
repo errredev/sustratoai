@@ -497,7 +497,7 @@ const columns: ColumnDef<Person, any>[] = [
               </Badge>
             </div>
           )}
-      </div>
+        </div>
       );
     },
     meta: {
@@ -604,10 +604,6 @@ const ProTableShowroomPage: React.FC = () => {
   return (
     <PageWrapper
       title="Showroom de ProTable"
-      breadcrumbs={[
-        { label: "Showroom", href: "/showroom" },
-        { label: "ProTable" },
-      ]}
       className="container mx-auto px-4 py-8"
     >
       <Text variant="heading" as="h1" className="mb-4">
@@ -656,7 +652,6 @@ const ProTableShowroomPage: React.FC = () => {
         lineClamp={1}
         tooltipDelay={250}
         stickyHeader={true}
-        maxVisibleLines={2}
         initialVisibility={{
           department: false,
         }}

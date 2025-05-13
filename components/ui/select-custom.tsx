@@ -4,11 +4,13 @@ import * as React from "react";
 import { Check, ChevronDown, ChevronUp, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { useColorTokens } from "@/hooks/use-color-tokens";
+import { useTheme } from "@/app/theme-provider";
+import { generateSelectTokens } from "@/lib/theme/components/select-tokens";
 import type {
   SelectSize,
   SelectVariant,
 } from "@/lib/theme/components/select-tokens";
+import type { AppColorTokens, Mode } from "@/lib/theme/ColorToken";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 
@@ -78,9 +80,11 @@ const SelectCustom = React.forwardRef<HTMLDivElement, SelectCustomProps>(
     },
     ref
   ) => {
-    // Usar useColorTokens para acceder a los tokens de color
-    const { component, semantic } = useColorTokens();
-    const selectTokens = component.select;
+    const {
+      appColorTokens,
+      mode,
+    }: { appColorTokens: AppColorTokens; mode: Mode } = useTheme();
+    const selectTokens = generateSelectTokens(appColorTokens, mode);
     const variantTokens = selectTokens.variants[variant];
     const sizeTokens = selectTokens.sizes[size];
 
@@ -796,12 +800,7 @@ const SelectCustom = React.forwardRef<HTMLDivElement, SelectCustomProps>(
 
         {/* Hint text */}
         {hint && !(error || (success && successMessage)) && (
-          <Text
-            variant="caption"
-            color="neutral"
-            colorVariant="muted"
-            className="mt-1.5"
-          >
+          <Text variant="caption" color="neutral" className="mt-1.5">
             {hint}
           </Text>
         )}

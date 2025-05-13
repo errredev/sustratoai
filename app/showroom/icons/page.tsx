@@ -13,6 +13,8 @@ import {
   Award,
 } from "@/components/ui/lucide-icons";
 import { Icon } from "@/components/ui/icon";
+import { PageBackground } from "@/components/ui/page-background"; // Asegúrese que la ruta es correcta
+import { ProCard } from "@/components/ui/pro-card"; // Asegúrese que la ruta es correcta
 
 export default function IconShowroom() {
   // Lista de colores disponibles
@@ -22,18 +24,20 @@ export default function IconShowroom() {
     { name: "secondary", value: "secondary" },
     { name: "tertiary", value: "tertiary" },
     { name: "accent", value: "accent" },
-    { name: "muted", value: "muted" },
+    // { name: "muted", value: "muted" }, // Muted no es un IconColor estándar, considerar si se debe incluir o mapear
     { name: "success", value: "success" },
     { name: "warning", value: "warning" },
     { name: "danger", value: "danger" },
     { name: "neutral", value: "neutral" },
+    { name: "white", value: "white" },
   ];
 
-  // Lista de variantes de color
-  const colorVariants = [
+  // Lista de variantes de color actualizada
+  const colorVariants: Array<{ name: string; value: "pure" | "text" | "shade" | "bg" }> = [
     { name: "Pure", value: "pure" },
     { name: "Text", value: "text" },
-    { name: "Dark", value: "dark" },
+    { name: "Shade", value: "shade" }, // Actualizado de "Dark" a "Shade"
+    { name: "Background", value: "bg" },
   ];
 
   // Lista de tamaños disponibles
@@ -63,174 +67,183 @@ export default function IconShowroom() {
   ];
 
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-8">Sistema de Iconos</h1>
-
-      <section className="mb-12">
-        <h2 className="text-2xl font-semibold mb-4">
-          Todas las Variantes de Color
-        </h2>
-        <div className="grid grid-cols-1 gap-6">
-          {colorVariants.map((variant) => (
-            <div key={variant.name} className="p-6 border rounded-lg">
-              <h3 className="text-xl font-medium mb-4">
-                Variante: {variant.name}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {colors.map((color) => (
-                  <div key={color.name} className="p-4 border rounded-lg">
-                    <h4 className="text-lg font-medium mb-3 capitalize">
-                      {color.name}
-                    </h4>
-                    <div className="flex flex-wrap gap-4">
-                      {icons.slice(0, 6).map(({ name, Component }) => (
-                        <div key={name} className="flex flex-col items-center">
-                          <Component
-                            color={color.value}
-                            colorVariant={
-                              variant.value as "pure" | "text" | "dark"
-                            }
-                            size="md"
-                          />
-                          <span className="text-xs mt-1">{name}</span>
+    <PageBackground>
+      <div className="container mx-auto py-10 px-4"> {/* Añadido px-4 para padding horizontal */}
+        <ProCard
+          title="Sistema de Iconos"
+    
+          className="w-full" // Asegura que ProCard ocupe el ancho disponible
+        >
+          <section className="mb-12">
+            <h2 className="text-2xl font-semibold mb-6 pt-4"> {/* Añadido pt-4 para espacio superior */}
+              Todas las Variantes de Color
+            </h2>
+            <div className="grid grid-cols-1 gap-8"> {/* Aumentado gap */}
+              {colorVariants.map((variant) => (
+                <div key={variant.name} className="p-6 border rounded-lg shadow-sm"> {/* Añadido shadow-sm */}
+                  <h3 className="text-xl font-medium mb-6"> {/* Aumentado mb */}
+                    Variante: {variant.name}
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"> {/* Ajustado grid y gap */}
+                    {colors.map((color) => (
+                      <div key={color.name} className="p-4 border rounded-md"> {/* Cambiado a rounded-md */}
+                        <h4 className="text-lg font-medium mb-4 capitalize"> {/* Aumentado mb */}
+                          {color.name}
+                        </h4>
+                        <div className="flex flex-wrap gap-x-6 gap-y-4"> {/* Ajustado gap */}
+                          {icons.slice(0, 4).map(({ name, Component }) => ( // Reducido a 4 iconos por simplicidad
+                            <div key={name} className="flex flex-col items-center text-center">
+                              <Icon
+                                color={color.value}
+                                colorVariant={variant.value} // El tipo ya es correcto
+                                size="md"
+                              >
+                                <Component />
+                              </Icon>
+                              <span className="text-xs mt-2">{name}</span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="mb-12">
+            <h2 className="text-2xl font-semibold mb-6">Iconos con Gradiente</h2>
+            <div className="grid grid-cols-1 gap-8">
+              {/* Gradiente con contorno inverso (predeterminado) */}
+              <div className="p-6 border rounded-lg shadow-sm">
+                <h3 className="text-xl font-medium mb-4">
+                  Gradiente con Contorno Inverso (Predeterminado)
+                </h3>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Aplica un gradiente al relleno y un gradiente inverso al contorno.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                  {colors
+                    .filter((c) => c.name !== "accent" && c.name !== "white" && c.name !== "default") // Evitar combinaciones menos visibles
+                    .slice(0, 3)
+                    .map((color) => (
+                      <div key={color.name} className="p-4 border rounded-md">
+                        <h4 className="text-lg font-medium mb-4 capitalize">
+                          {color.name} + Accent
+                        </h4>
+                        <div className="flex flex-wrap gap-x-6 gap-y-4">
+                          {icons.slice(0, 2).map(({ name, Component }) => (
+                            <div key={name} className="flex flex-col items-center text-center">
+                              <Icon
+                                color={color.value}
+                                size="xl"
+                                gradient={true}
+                                gradientWith="accent"
+                              >
+                                <Component />
+                              </Icon>
+                              <span className="text-xs mt-2">{name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Gradiente clásico (opcional) */}
+              <div className="p-6 border rounded-lg shadow-sm">
+                <h3 className="text-xl font-medium mb-4">
+                  Gradiente Clásico (Opcional: inverseStroke=false)
+                </h3>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Mismo gradiente para relleno y contorno.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                  {colors
+                    .filter((c) => c.name !== "accent" && c.name !== "white" && c.name !== "default")
+                    .slice(0, 3)
+                    .map((color) => (
+                      <div key={color.name} className="p-4 border rounded-md">
+                        <h4 className="text-lg font-medium mb-4 capitalize">
+                          {color.name} + Accent
+                        </h4>
+                        <div className="flex flex-wrap gap-x-6 gap-y-4">
+                          {icons.slice(2, 4).map(({ name, Component }) => (
+                            <div key={name} className="flex flex-col items-center text-center">
+                              <Icon
+                                color={color.value}
+                                size="xl"
+                                gradient={true}
+                                gradientWith="accent"
+                                inverseStroke={false}
+                              >
+                                <Component />
+                              </Icon>
+                              <span className="text-xs mt-2">{name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Gradiente solo en el borde */}
+              <div className="p-6 border rounded-lg shadow-sm">
+                <h3 className="text-xl font-medium mb-4">
+                  Gradiente Solo en Borde (strokeOnly=true)
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                  {colors
+                    .filter((c) => c.name !== "accent" && c.name !== "white" && c.name !== "default")
+                    .slice(0, 3)
+                    .map((color) => (
+                      <div key={color.name} className="p-4 border rounded-md">
+                        <h4 className="text-lg font-medium mb-4 capitalize">
+                          {color.name} + Accent
+                        </h4>
+                        <div className="flex flex-wrap gap-x-6 gap-y-4">
+                          {icons.slice(4, 6).map(({ name, Component }) => (
+                            <div key={name} className="flex flex-col items-center text-center">
+                              <Icon
+                                color={color.value}
+                                size="xl" // 'lg' es un buen tamaño para strokeOnly también
+                                gradient={true}
+                                gradientWith="accent"
+                                strokeOnly={true}
+                              >
+                                <Component />
+                              </Icon>
+                              <span className="text-xs mt-2">{name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="mb-12">
+            <h2 className="text-2xl font-semibold mb-6">Tamaños de Iconos</h2>
+            <div className="p-6 border rounded-lg shadow-sm">
+              <div className="flex flex-wrap items-end gap-x-8 gap-y-6"> {/* Ajustado gap */}
+                {sizes.map((size) => (
+                  <div key={size.name} className="flex flex-col items-center text-center">
+                    <Icon color="primary" size={size.value}>
+                      <Home />
+                    </Icon>
+                    <span className="text-xs mt-2">{size.name.toUpperCase()}</span>
                   </div>
                 ))}
               </div>
             </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-2xl font-semibold mb-4">Iconos con Gradiente</h2>
-        <div className="grid grid-cols-1 gap-6">
-          {/* Gradiente con contorno inverso (ahora es el predeterminado) */}
-          <div className="p-6 border rounded-lg">
-            <h3 className="text-xl font-medium mb-4">
-              Gradiente con Contorno Inverso (Predeterminado)
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Esta técnica aplica un gradiente al relleno y un gradiente inverso
-              al contorno, creando un efecto visual que resalta las formas
-              internas. Este es ahora el comportamiento predeterminado para
-              iconos con gradiente.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {colors
-                .filter((c) => c.name !== "accent")
-                .slice(0, 6)
-                .map((color) => (
-                  <div key={color.name} className="p-4 border rounded-lg">
-                    <h4 className="text-lg font-medium mb-3 capitalize">
-                      {color.name} + Accent
-                    </h4>
-                    <div className="flex flex-wrap gap-6">
-                      {icons.slice(0, 4).map(({ name, Component }) => (
-                        <div key={name} className="flex flex-col items-center">
-                          <Component
-                            color={color.value}
-                            size="xl"
-                            gradient={true}
-                            gradientWith="accent"
-                          />
-                          <span className="text-xs mt-1">{name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-
-          {/* Gradiente clásico (ahora es opcional) */}
-          <div className="p-6 border rounded-lg">
-            <h3 className="text-xl font-medium mb-4">
-              Gradiente Clásico (Opcional)
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              El estilo clásico con el mismo gradiente tanto para el relleno
-              como para el contorno. Para usar este estilo, especifica{" "}
-              <code>inverseStroke=false</code>.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {colors
-                .filter((c) => c.name !== "accent")
-                .slice(0, 6)
-                .map((color) => (
-                  <div key={color.name} className="p-4 border rounded-lg">
-                    <h4 className="text-lg font-medium mb-3 capitalize">
-                      {color.name} + Accent
-                    </h4>
-                    <div className="flex flex-wrap gap-6">
-                      {icons.slice(0, 4).map(({ name, Component }) => (
-                        <div key={name} className="flex flex-col items-center">
-                          <Component
-                            color={color.value}
-                            size="xl"
-                            gradient={true}
-                            gradientWith="accent"
-                            inverseStroke={false}
-                          />
-                          <span className="text-xs mt-1">{name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-
-          {/* Gradiente solo en el borde */}
-          <div className="p-6 border rounded-lg">
-            <h3 className="text-xl font-medium mb-4">
-              Gradiente Solo en Borde
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {colors
-                .filter((c) => c.name !== "accent")
-                .slice(0, 6)
-                .map((color) => (
-                  <div key={color.name} className="p-4 border rounded-lg">
-                    <h4 className="text-lg font-medium mb-3 capitalize">
-                      {color.name} + Accent
-                    </h4>
-                    <div className="flex flex-wrap gap-6">
-                      {icons.slice(0, 4).map(({ name, Component }) => (
-                        <div key={name} className="flex flex-col items-center">
-                          <Component
-                            color={color.value}
-                            size="lg"
-                            gradient={true}
-                            gradientWith="accent"
-                            strokeOnly={true}
-                          />
-                          <span className="text-xs mt-1">{name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-2xl font-semibold mb-4">Tamaños de Iconos</h2>
-        <div className="p-4 border rounded-lg">
-          <div className="flex flex-wrap items-end gap-8">
-            {sizes.map((size) => (
-              <div key={size.name} className="flex flex-col items-center">
-                <Home color="primary" size={size.value} />
-                <span className="text-xs mt-2">{size.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    </div>
+          </section>
+        </ProCard>
+      </div>
+    </PageBackground>
   );
 }

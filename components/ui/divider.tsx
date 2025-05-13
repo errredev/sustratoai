@@ -1,41 +1,59 @@
-"use client"
+"use client";
 
-import { cn } from "@/lib/utils"
-import type { DividerSize, DividerVariant } from "@/lib/theme/components/divider-tokens"
-import type { HTMLAttributes } from "react"
-import { useColorTokens } from "@/hooks/use-color-tokens"
+import React from "react";
+import { cn } from "@/lib/utils";
+import { useTheme } from "@/app/theme-provider";
+import {
+  generateDividerTokens,
+  type DividerSize,
+  type DividerVariant,
+} from "@/lib/theme/components/divider-tokens";
+import type { HTMLAttributes } from "react";
 
 export interface DividerProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: DividerVariant
-  size?: DividerSize
-  className?: string
+  variant?: DividerVariant;
+  size?: DividerSize;
+  className?: string;
 }
 
-export function Divider({ variant = "gradient", size = "md", className, ...props }: DividerProps) {
-  // Usar el hook useColorTokens para asegurar que los tokens se actualicen con el tema
-  const { component } = useColorTokens()
+export function Divider({
+  variant = "gradient",
+  size = "md",
+  className,
+  ...props
+}: DividerProps) {
+  const { appColorTokens } = useTheme();
 
-  // Obtener los tokens del divider
-  const dividerTokens = component?.divider
+  const dividerTokens = React.useMemo(() => {
+    if (!appColorTokens) return null;
+    return generateDividerTokens(appColorTokens);
+  }, [appColorTokens]);
 
-  // Si no hay tokens disponibles, renderizar un divider básico
   if (!dividerTokens) {
-    return <div className={cn("h-0.5 w-16 bg-primary rounded-full mx-auto", className)} {...props} />
+    return (
+      <div
+        className={cn("h-0.5 w-16 bg-primary rounded-full mx-auto", className)}
+        {...props}
+      />
+    );
   }
 
-  // Obtener los estilos según la variante y tamaño
-  const variantStyle = dividerTokens.variants[variant]
-  const sizeStyle = dividerTokens.sizes[size]
+  const variantStyle = dividerTokens.variants[variant];
+  const sizeStyle = dividerTokens.sizes[size];
 
-  // Crear el estilo en línea para el divider
-  const style = {
+  const style: React.CSSProperties = {
     height: sizeStyle.height,
     width: sizeStyle.width,
     borderRadius: sizeStyle.borderRadius,
-    ...(variant === "gradient"
-      ? { backgroundImage: variantStyle.backgroundImage }
-      : { background: variantStyle.background }),
+  };
+
+  if (variant === "gradient") {
+    style.backgroundImage = (
+      variantStyle as { backgroundImage: string }
+    ).backgroundImage;
+  } else {
+    style.background = (variantStyle as { background: string }).background;
   }
 
-  return <div className={cn("mx-auto", className)} style={style} {...props} />
+  return <div className={cn("mx-auto", className)} style={style} {...props} />;
 }

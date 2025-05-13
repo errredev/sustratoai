@@ -21,6 +21,7 @@ export function HomeCards() {
         variant="primary"
         border="top"
         className="overflow-hidden hover:shadow-md transition-shadow duration-300"
+        
       >
         <ProCard.Header>
           <div className="flex items-center justify-between">
@@ -36,7 +37,7 @@ export function HomeCards() {
               />
               Transcripciones
             </ProCard.Title>
-            <BadgeCustom variant="success" bordered>
+            <BadgeCustom variant="success" subtle bordered>
               Activo
             </BadgeCustom>
           </div>
@@ -112,6 +113,7 @@ export function HomeCards() {
         variant="secondary"
         border="top"
         className="overflow-hidden hover:shadow-md transition-shadow duration-300"
+        selected={true}
       >
         <ProCard.Header>
           <div className="flex items-center justify-between">
@@ -127,7 +129,7 @@ export function HomeCards() {
               />
               Artículos Académicos
             </ProCard.Title>
-            <BadgeCustom variant="warning" bordered>
+            <BadgeCustom variant="warning" bordered subtle>
               En construcción
             </BadgeCustom>
           </div>
@@ -152,13 +154,17 @@ export function HomeCards() {
             sistemática de literatura científica.
           </Text>
 
-          <ProCard variant="tertiary" border="none" className="mb-6">
+          <ProCard variant="tertiary" border="none"
+          shadow="none"
+          disableShadowHover
+          className="mb-6">
             <ProCard.Content>
               <Text
                 variant="label"
                 className="mb-2"
                 fontType="heading"
                 weight="semibold"
+                
               >
                 Funcionalidades previstas:
               </Text>

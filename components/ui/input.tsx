@@ -5,12 +5,15 @@ import { cn } from "@/lib/utils";
 import { AlertCircle, X, CheckCircle, Eye, EyeOff } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useColorTokens } from "@/hooks/use-color-tokens";
+import { useTheme } from "@/app/theme-provider";
 import type {
   InputVariant,
   InputSize,
+  InputTokens,
 } from "@/lib/theme/components/input-tokens";
+import { generateInputTokens } from "@/lib/theme/components/input-tokens";
 import { Icon } from "@/components/ui/icon";
+import tinycolor from "tinycolor2";
 
 export interface InputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
@@ -48,8 +51,33 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     },
     ref
   ) => {
-    const { component, semantic } = useColorTokens();
-    const inputTokens = component.input;
+    const { appColorTokens, mode } = useTheme();
+
+    const inputTokens: InputTokens | null = React.useMemo(() => {
+      if (!appColorTokens || !mode) return null;
+      return generateInputTokens(appColorTokens, mode);
+    }, [appColorTokens, mode]);
+
+    if (!inputTokens) {
+      return (
+        <div className="w-full">
+          <input
+            type={type}
+            className={cn(
+              "peer flex w-full rounded-md transition-all h-10 px-3 py-2 text-sm",
+              "border border-gray-300 bg-gray-100",
+              disabled && "cursor-not-allowed opacity-50",
+              className
+            )}
+            ref={ref}
+            disabled={disabled}
+            {...props}
+            placeholder="Loading..."
+          />
+        </div>
+      );
+    }
+
     const variantTokens = inputTokens.variants[variant];
     const sizeTokens = inputTokens.sizes[size];
 
@@ -57,10 +85,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       props.value ? String(props.value).length : 0
     );
 
-    // Estado para controlar la visibilidad de la contraseña
     const [showPassword, setShowPassword] = React.useState(false);
 
-    // Determinar el tipo de input basado en el tipo original y el estado de showPassword
     const inputType = type === "password" && showPassword ? "text" : type;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,14 +101,17 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     }, [props.value]);
 
     const getCounterColor = () => {
-      if (!props.maxLength) return "text-muted-foreground";
-      if (charCount === props.maxLength) return "text-green-500";
-      if (charCount > props.maxLength) return "text-red-500";
-      if (charCount >= props.maxLength * 0.8) return "text-amber-500";
-      return "text-muted-foreground";
+      if (!props.maxLength)
+        return appColorTokens?.neutral.text || "text-neutral-500";
+      if (charCount === props.maxLength)
+        return appColorTokens?.success.text || "text-green-500";
+      if (charCount > props.maxLength)
+        return appColorTokens?.danger.text || "text-red-500";
+      if (charCount >= props.maxLength * 0.8)
+        return appColorTokens?.warning?.text || "text-amber-500";
+      return appColorTokens?.neutral.text || "text-neutral-500";
     };
 
-    // Mapear tamaños de Input a tamaños de Icon
     const mapInputSizeToIconSize = (inputSize: InputSize) => {
       switch (inputSize) {
         case "sm":
@@ -90,7 +119,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         case "lg":
           return "md";
         default:
-          return "sm"; // md input -> sm icon
+          return "sm";
       }
     };
 
@@ -103,7 +132,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       success ||
       type === "password";
 
-    // Definir el padding izquierdo basado en el tamaño del input
     const getLeadingPadding = () => {
       if (!hasLeadingIcon) return "";
       switch (size) {
@@ -112,11 +140,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         case "lg":
           return "pl-12";
         default:
-          return "pl-10"; // md
+          return "pl-10";
       }
     };
 
-    // Definir el padding derecho basado en el tamaño del input
     const getTrailingPadding = () => {
       if (!hasTrailingIcon) return "";
       switch (size) {
@@ -125,19 +152,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         case "lg":
           return "pr-12";
         default:
-          return "pr-10"; // md
+          return "pr-10";
       }
     };
 
-    // Obtener el color de borde basado en el estado
-    const getBorderColor = () => {
-      if (disabled) return variantTokens.disabledBorder;
-      if (error) return variantTokens.errorBorder;
-      if (success) return variantTokens.successBorder;
-      return variantTokens.border;
-    };
-
-    // Obtener el color de fondo basado en el estado
     const getBackgroundColor = () => {
       if (disabled) return variantTokens.disabledBackground;
       if (error) return variantTokens.errorBackground;
@@ -146,13 +164,18 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       return variantTokens.background;
     };
 
-    // Obtener el color del texto basado en el estado
+    const getBorderColor = () => {
+      if (disabled) return variantTokens.disabledBorder;
+      if (error) return variantTokens.errorBorder;
+      if (success) return variantTokens.successBorder;
+      return variantTokens.border;
+    };
+
     const getTextColor = () => {
       if (disabled) return variantTokens.disabledText;
       return variantTokens.text;
     };
 
-    // Ajustar la posición del icono según el tamaño
     const getIconLeftPosition = () => {
       switch (size) {
         case "sm":
@@ -160,21 +183,19 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         case "lg":
           return "left-4";
         default:
-          return "left-3"; // md
+          return "left-3";
       }
     };
 
-    // Función para alternar la visibilidad de la contraseña
     const togglePasswordVisibility = () => {
       setShowPassword(!showPassword);
     };
 
-    // Depuración de valores
     React.useEffect(() => {
-      console.log("Input border color:", getBorderColor());
-      console.log("Input focus border:", variantTokens.focusBorder);
-      console.log("Input semantic primary:", semantic.primary.border);
-    }, [variantTokens, semantic]);
+      // console.log("Input border color:", getBorderColor());
+      // console.log("Input focus border:", variantTokens.focusBorder);
+      // console.log("Input semantic primary:", semantic.primary.border);
+    }, [variantTokens]);
 
     return (
       <div className="w-full">
@@ -187,10 +208,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               sizeTokens.fontSize,
               !hasLeadingIcon ? sizeTokens.paddingX : "pr-3",
               sizeTokens.paddingY,
-              "border",
-              "shadow-[0_0_0_1px_rgba(176,190,217,0.2),0_1px_2px_rgba(176,190,217,0.2)]",
               getLeadingPadding(),
               getTrailingPadding(),
+              "border",
               disabled && "disabled:cursor-not-allowed",
               className
             )}
@@ -198,13 +218,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               backgroundColor: getBackgroundColor(),
               borderColor: getBorderColor(),
               color: getTextColor(),
-              // Aplicar estilos de focus directamente
               outline: "none",
-              // Usar boxShadow para el efecto de ring
               boxShadow: "none",
             }}
             onFocus={(e) => {
-              // Aplicar estilos de focus manualmente
               const target = e.target as HTMLInputElement;
               if (error) {
                 target.style.borderColor = variantTokens.errorBorder;
@@ -219,11 +236,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               props.onFocus?.(e);
             }}
             onBlur={(e) => {
-              // Restaurar estilos normales
               const target = e.target as HTMLInputElement;
               target.style.borderColor = getBorderColor();
-              target.style.boxShadow =
-                "0 0 0 1px rgba(176,190,217,0.2), 0 1px 2px rgba(176,190,217,0.2)";
+              target.style.boxShadow = "none";
               props.onBlur?.(e);
             }}
             ref={ref}
@@ -242,106 +257,89 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                   : variantTokens.iconColor,
               }}
             >
-              <Icon
-                size={iconSize}
-                color={
-                  disabled
-                    ? "neutral"
-                    : error
-                    ? "danger"
-                    : success
-                    ? "success"
-                    : isEditing
-                    ? "tertiary"
-                    : "default"
-                }
-                colorVariant="text"
-              >
-                {leadingIcon && React.createElement(leadingIcon)}
-              </Icon>
+              {React.createElement(leadingIcon, {
+                size: iconSize === "xs" ? 14 : iconSize === "sm" ? 16 : 20,
+              })}
             </div>
           )}
 
           <div className="absolute right-3 top-0 h-full flex items-center gap-2">
-            {/* Icono de ojo para contraseñas */}
             {type === "password" && (
               <button
                 type="button"
                 className="outline-none focus:outline-none"
                 onClick={togglePasswordVisibility}
                 tabIndex={-1}
+                style={{
+                  color: disabled
+                    ? variantTokens.disabledText
+                    : variantTokens.iconColor,
+                }}
               >
-                <Icon size={iconSize} color="neutral" colorVariant="text">
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </Icon>
+                {React.createElement(showPassword ? EyeOff : Eye, {
+                  size: iconSize === "xs" ? 14 : iconSize === "sm" ? 16 : 20,
+                })}
               </button>
             )}
 
-            {/* Botón de limpiar */}
             {props.value && onClear && (
               <button
                 type="button"
                 className="outline-none focus:outline-none"
                 onClick={onClear}
                 tabIndex={-1}
+                style={{
+                  color: disabled
+                    ? variantTokens.disabledText
+                    : error && appColorTokens?.danger.text
+                    ? appColorTokens.danger.text
+                    : variantTokens.iconColor,
+                }}
               >
-                <Icon
-                  size={iconSize}
-                  color={error ? "danger" : "neutral"}
-                  colorVariant="text"
-                >
-                  <X size={size === "sm" ? 14 : size === "lg" ? 20 : 16} />
-                </Icon>
+                {React.createElement(X, {
+                  size: iconSize === "xs" ? 14 : iconSize === "sm" ? 16 : 20,
+                })}
               </button>
             )}
 
-            {/* Icono de error/éxito */}
             {(error || success) && (
-              <Icon
-                size={iconSize}
-                color={error ? "danger" : "success"}
-                colorVariant="text"
+              <div
+                style={{
+                  color: error
+                    ? appColorTokens?.danger.text
+                    : appColorTokens?.success.text,
+                }}
               >
-                {error ? (
-                  <AlertCircle
-                    size={size === "sm" ? 14 : size === "lg" ? 20 : 16}
-                  />
-                ) : (
-                  <CheckCircle
-                    size={size === "sm" ? 14 : size === "lg" ? 20 : 16}
-                  />
-                )}
-              </Icon>
+                {React.createElement(error ? AlertCircle : CheckCircle, {
+                  size: iconSize === "xs" ? 14 : iconSize === "sm" ? 16 : 20,
+                })}
+              </div>
             )}
 
-            {/* Icono personalizado */}
             {trailingIcon && !error && !success && (
-              <Icon
-                size={iconSize}
-                color={
-                  disabled ? "neutral" : isEditing ? "tertiary" : "default"
-                }
-                colorVariant="text"
+              <div
+                style={{
+                  color: disabled
+                    ? variantTokens.disabledText
+                    : variantTokens.iconColor,
+                }}
               >
                 {React.createElement(trailingIcon, {
-                  size: size === "sm" ? 14 : size === "lg" ? 20 : 16,
+                  size: iconSize === "xs" ? 14 : iconSize === "sm" ? 16 : 20,
                 })}
-              </Icon>
+              </div>
             )}
           </div>
         </div>
 
-        {/* Mostrar contador de caracteres */}
-        {showCharacterCount && (
+        {showCharacterCount && props.maxLength && (
           <div className="flex justify-end mt-1">
             <span className={`text-xs ${getCounterColor()}`}>
-              {charCount}
-              {props.maxLength && `/${props.maxLength}`}
+              {charCount}/{props.maxLength}
             </span>
           </div>
         )}
 
-        {/* Mostrar texto de error */}
         <AnimatePresence>
           {error && (
             <motion.div
@@ -351,14 +349,16 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               transition={{ duration: 0.2 }}
               className="mt-1.5"
             >
-              <div className="flex items-center text-red-500 text-sm">
+              <div
+                className="flex items-center text-sm"
+                style={{ color: appColorTokens?.danger.text }}
+              >
                 <span>{error}</span>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Mostrar mensaje de éxito */}
         <AnimatePresence>
           {success && successMessage && (
             <motion.div
@@ -368,27 +368,34 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               transition={{ duration: 0.2 }}
               className="mt-1.5"
             >
-              <div className="flex items-center text-green-500 text-sm">
+              <div
+                className="flex items-center text-sm"
+                style={{ color: appColorTokens?.success.text }}
+              >
                 <span>{successMessage}</span>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Mostrar pista */}
         {hint && !error && !success && (
-          <div className="mt-1.5 text-muted-foreground text-sm">{hint}</div>
+          <div
+            className="mt-1.5 text-sm"
+            style={{
+              color: appColorTokens?.neutral.text
+                ? tinycolor(appColorTokens.neutral.text)
+                    .setAlpha(0.7)
+                    .toRgbString()
+                : "#71717a",
+            }}
+          >
+            {hint}
+          </div>
         )}
       </div>
     );
   }
 );
-
-// Definir estilos para padding de iconos
-const inputStyles = {
-  leadingIconPadding: "pl-10",
-  trailingIconPadding: "pr-10",
-};
 
 Input.displayName = "Input";
 export { Input };

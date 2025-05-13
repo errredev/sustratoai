@@ -1,5 +1,6 @@
-import { colors } from "@/lib/theme/colors"
-import type { ColorScheme, Mode } from "@/lib/theme/color-tokens"
+import { colors } from "@/lib/theme/colors";
+import type { ColorScheme, Mode } from "@/lib/theme/color-tokens";
+import type { AppColorTokens } from "../ColorToken";
 
 export type ProgressVariant =
   | "primary"
@@ -10,139 +11,139 @@ export type ProgressVariant =
   | "warning"
   | "danger"
   | "neutral"
-  | "termometro"
-export type ProgressSize = "xs" | "sm" | "md" | "lg" | "xl"
+  | "termometro";
+export type ProgressSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 export interface ProgressTokens {
-  trackColor: string
-  barColor: string
-  barGradient: string
-  accentGradient: string
-  borderRadius: string
-  transition: string
+  trackColor: string;
+  barColor: string;
+  barGradient: string;
+  accentGradient: string;
+  borderRadius: string;
+  transition: string;
 }
 
 /**
  * Genera los tokens para el componente Progress
  */
 export function generateProgressTokens(
-  colorScheme: ColorScheme = "blue",
-  mode: Mode = "light",
-  variant: ProgressVariant = "primary",
+  appColorTokens: AppColorTokens,
+  variant: ProgressVariant = "primary"
 ): ProgressTokens {
-  const isDark = mode === "dark"
-  const themeColors = colors.themes[colorScheme]
-  const semanticColors = colors.semantic
-  const accentColor = semanticColors.accent
+  // const isDark = mode === "dark" // Removed
+  // const themeColors = colors.themes[colorScheme] // Removed
+  // const semanticColors = colors.semantic // Removed
+  // const accentColor = semanticColors.accent // Will use appColorTokens.accent
 
   // Función para obtener los colores base según la variante
   const getBaseColors = () => {
     switch (variant) {
       case "primary": {
-        const mainColor = isDark ? themeColors.primary.pureDark : themeColors.primary.pure
-        const secondColor = isDark ? themeColors.secondary.pureDark : themeColors.secondary.pure
+        const mainColor = appColorTokens.primary.pure;
+        const secondColor = appColorTokens.secondary.pure;
         return {
-          track: isDark ? `${themeColors.primary.bgDark}40` : `${themeColors.primary.bg}80`,
+          track: `${appColorTokens.primary.bg}40`,
           bar: mainColor,
           gradient: `linear-gradient(90deg, ${mainColor}, ${secondColor})`,
-          accentGradient: `linear-gradient(90deg, ${mainColor}, ${accentColor.pure})`,
-        }
+          accentGradient: `linear-gradient(90deg, ${mainColor}, ${appColorTokens.accent.pure})`,
+        };
       }
       case "secondary": {
-        const mainColor = isDark ? themeColors.secondary.pureDark : themeColors.secondary.pure
-        const primaryColor = isDark ? themeColors.primary.pureDark : themeColors.primary.pure
+        const mainColor = appColorTokens.secondary.pure;
+        const primaryColor = appColorTokens.primary.pure;
         return {
-          track: isDark ? `${themeColors.secondary.bgDark}40` : `${themeColors.secondary.bg}80`,
+          track: `${appColorTokens.secondary.bg}40`,
           bar: mainColor,
           gradient: `linear-gradient(90deg, ${primaryColor}, ${mainColor})`,
-          accentGradient: `linear-gradient(90deg, ${mainColor}, ${accentColor.pure})`,
-        }
+          accentGradient: `linear-gradient(90deg, ${mainColor}, ${appColorTokens.accent.pure})`,
+        };
       }
       case "tertiary": {
-        const mainColor = isDark ? themeColors.tertiary.pureDark : themeColors.tertiary.pure
-        const secondaryColor = isDark ? themeColors.secondary.pureDark : themeColors.secondary.pure
+        const mainColor = appColorTokens.tertiary.pure;
+        const secondaryColor = appColorTokens.secondary.pure;
         return {
-          track: isDark ? `${themeColors.tertiary.bgDark}40` : `${themeColors.tertiary.bg}80`,
+          track: `${appColorTokens.tertiary.bg}40`,
           bar: mainColor,
           gradient: `linear-gradient(90deg, ${secondaryColor}, ${mainColor})`,
-          accentGradient: `linear-gradient(90deg, ${mainColor}, ${accentColor.pure})`,
-        }
+          accentGradient: `linear-gradient(90deg, ${mainColor}, ${appColorTokens.accent.pure})`,
+        };
       }
       case "accent": {
-        const mainColor = isDark ? semanticColors.accent.pureDark : semanticColors.accent.pure
-        const primaryColor = isDark ? themeColors.primary.pureDark : themeColors.primary.pure
+        const mainColor = appColorTokens.accent.pure;
+        const primaryColor = appColorTokens.primary.pure;
         return {
-          track: isDark ? `${semanticColors.accent.bgDark}40` : `${semanticColors.accent.bg}80`,
+          track: `${appColorTokens.accent.bg}40`,
           bar: mainColor,
           gradient: `linear-gradient(90deg, ${primaryColor}, ${mainColor})`,
           accentGradient: `linear-gradient(90deg, ${mainColor}, ${primaryColor})`,
-        }
+        };
       }
       case "success": {
-        const mainColor = isDark ? semanticColors.success.pureDark : semanticColors.success.pure
-        const accentColor = isDark ? semanticColors.accent.pureDark : semanticColors.accent.pure
+        const mainColor = appColorTokens.success.pure;
+        // const accentColor = appColorTokens.accent.pure; // Replaced direct use
         return {
-          track: isDark ? `${semanticColors.success.bgDark}40` : `${semanticColors.success.bg}80`,
+          track: `${appColorTokens.success.bg}40`,
           bar: mainColor,
-          gradient: `linear-gradient(90deg, ${accentColor}, ${mainColor})`,
-          accentGradient: `linear-gradient(90deg, ${mainColor}, ${accentColor})`,
-        }
+          gradient: `linear-gradient(90deg, ${appColorTokens.accent.pure}, ${mainColor})`,
+          accentGradient: `linear-gradient(90deg, ${mainColor}, ${appColorTokens.accent.pure})`,
+        };
       }
       case "warning": {
-        const mainColor = isDark ? semanticColors.warning.pureDark : semanticColors.warning.pure
-        const dangerColor = isDark ? semanticColors.danger.pureDark : semanticColors.danger.pure
+        const mainColor = appColorTokens.warning.pure;
+        const dangerColor = appColorTokens.danger.pure;
         return {
-          track: isDark ? `${semanticColors.warning.bgDark}40` : `${semanticColors.warning.bg}80`,
+          track: `${appColorTokens.warning.bg}40`,
           bar: mainColor,
           gradient: `linear-gradient(90deg, ${dangerColor}, ${mainColor})`,
-          accentGradient: `linear-gradient(90deg, ${mainColor}, ${accentColor.pure})`,
-        }
+          accentGradient: `linear-gradient(90deg, ${mainColor}, ${appColorTokens.accent.pure})`,
+        };
       }
       case "danger": {
-        const mainColor = isDark ? semanticColors.danger.pureDark : semanticColors.danger.pure
-        const warningColor = isDark ? semanticColors.warning.pureDark : semanticColors.warning.pure
+        const mainColor = appColorTokens.danger.pure;
+        const warningColor = appColorTokens.warning.pure;
         return {
-          track: isDark ? `${semanticColors.danger.bgDark}40` : `${semanticColors.danger.bg}80`,
+          track: `${appColorTokens.danger.bg}40`,
           bar: mainColor,
           gradient: `linear-gradient(90deg, ${mainColor}, ${warningColor})`,
-          accentGradient: `linear-gradient(90deg, ${mainColor}, ${accentColor.pure})`,
-        }
+          accentGradient: `linear-gradient(90deg, ${mainColor}, ${appColorTokens.accent.pure})`,
+        };
       }
       case "neutral": {
-        const darkColor = isDark ? colors.neutral.gray[400] : colors.neutral.gray[600]
-        const lightColor = isDark ? colors.neutral.gray[600] : colors.neutral.gray[400]
+        // const darkColor = isDark ? colors.neutral.gray[400] : colors.neutral.gray[600] // Removed
+        // const lightColor = isDark ? colors.neutral.gray[600] : colors.neutral.gray[400] // Removed
         return {
-          track: isDark ? `${colors.neutral.gray[700]}40` : `${colors.neutral.gray[200]}80`,
-          bar: darkColor,
-          gradient: `linear-gradient(90deg, ${darkColor}, ${lightColor})`,
-          accentGradient: `linear-gradient(90deg, ${darkColor}, ${accentColor.pure})`,
-        }
+          track: `${appColorTokens.neutral.bg}40`,
+          bar: appColorTokens.neutral.text, // Using neutral text for the bar
+          gradient: `linear-gradient(90deg, ${appColorTokens.neutral.text}, ${appColorTokens.neutral.bgShade})`,
+          accentGradient: `linear-gradient(90deg, ${appColorTokens.neutral.text}, ${appColorTokens.accent.pure})`,
+        };
       }
       case "termometro": {
-        const dangerColor = isDark ? semanticColors.danger.pureDark : semanticColors.danger.pure
-        const warningColor = isDark ? semanticColors.warning.pureDark : semanticColors.warning.pure
-        const successColor = isDark ? semanticColors.success.pureDark : semanticColors.success.pure
+        const dangerColor = appColorTokens.danger.pure;
+        const warningColor = appColorTokens.warning.pure;
+        const successColor = appColorTokens.success.pure;
         return {
-          track: isDark ? `${colors.neutral.gray[700]}40` : `${colors.neutral.gray[200]}80`,
-          bar: warningColor, // Color base (no se usa directamente)
+          track: `${appColorTokens.neutral.bg}40`, // Neutral track for thermometer
+          bar: warningColor, // Color base (no se usa directamente para el degradado principal)
           gradient: `linear-gradient(90deg, ${dangerColor}, ${warningColor}, ${successColor})`,
-          accentGradient: `linear-gradient(90deg, ${dangerColor}, ${accentColor.pure}, ${successColor})`,
-        }
+          accentGradient: `linear-gradient(90deg, ${dangerColor}, ${appColorTokens.accent.pure}, ${successColor})`,
+        };
       }
       default: {
-        const mainColor = isDark ? themeColors.primary.pureDark : themeColors.primary.pure
-        const secondColor = isDark ? themeColors.secondary.pureDark : themeColors.secondary.pure
+        // Fallback to primary
+        const mainColor = appColorTokens.primary.pure;
+        const secondColor = appColorTokens.secondary.pure;
         return {
-          track: isDark ? `${themeColors.primary.bgDark}40` : `${themeColors.primary.bg}80`,
+          track: `${appColorTokens.primary.bg}40`,
           bar: mainColor,
           gradient: `linear-gradient(90deg, ${mainColor}, ${secondColor})`,
-          accentGradient: `linear-gradient(90deg, ${mainColor}, ${accentColor.pure})`,
-        }
+          accentGradient: `linear-gradient(90deg, ${mainColor}, ${appColorTokens.accent.pure})`,
+        };
       }
     }
-  }
+  };
 
-  const baseColors = getBaseColors()
+  const baseColors = getBaseColors();
 
   return {
     trackColor: baseColors.track,
@@ -151,5 +152,5 @@ export function generateProgressTokens(
     accentGradient: baseColors.accentGradient,
     borderRadius: "9999px", // Siempre redondeado
     transition: "width 0.3s ease-in-out",
-  }
+  };
 }

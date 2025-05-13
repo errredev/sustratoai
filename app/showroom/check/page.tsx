@@ -29,7 +29,7 @@ export default function CheckShowroom() {
   return (
     <PageBackground variant="gradient">
       <div className="container mx-auto py-8 space-y-8">
-        <ProCard border="bottom" className="p-6">
+        <ProCard border="none" className="p-6">
           <ProCard.Header>
             <ProCard.Title fontType="heading" size="3xl">
               Custom Check Showroom

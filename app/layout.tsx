@@ -1,33 +1,56 @@
-import type React from "react";
+// --- layout.tsx (MODIFICADO LIGERAMENTE O DEJAR COMO ESTÁ SI AuthLayoutWrapper SE ENCARGA) ---
+import React, { Suspense } from "react";
 import "./globals.css";
 import type { Metadata } from "next";
-import { Navbar } from "@/components/ui/navbar";
-import { SolidNavbarWrapper } from "@/components/ui/solid-navbar-wrapper";
+// Navbar y SolidNavbarWrapper NO SE IMPORTAN AQUÍ si AuthLayoutWrapper los maneja
 import { Providers } from "./providers";
 import { FontThemeProvider } from "./font-provider";
 import { getAllFontVariables } from "@/lib/fonts";
-import { AuthLayoutWrapper } from "./auth-layout-wrapper";
+import { AuthLayoutWrapper } from "./auth-layout-wrapper"; // Este es el clave
+import { AuthProvider } from "./auth-provider";
+import { SustratoLoadingLogo } from "@/components/ui/sustrato-loading-logo"; // Import the logo
 
 export const metadata: Metadata = {
-  title: "Sustrato.ai",
-  description: "Plataforma de investigación cualitativa",
-  generator: "v0.dev",
+  /* ... */
 };
+
+// Simple component for the loading fallback
+const GlobalLoadingIndicator = () => (
+  <div className="fixed inset-0 z-50 flex h-screen w-screen items-center justify-center bg-background/80 backdrop-blur-sm">
+    <SustratoLoadingLogo
+      size={96}
+      variant="spin-pulse"
+      speed="normal"
+      breathingEffect
+      colorTransition
+    />{" "}
+    {/* Customize as needed */}
+  </div>
+);
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Usar la función centralizada para obtener todas las variables de fuentes
   const fontVariables = getAllFontVariables();
 
   return (
     <html lang="es" suppressHydrationWarning className={fontVariables}>
-      <body>
+      {/* El body debería permitir que los hijos determinen su altura y el scroll */}
+      {/* Añade 'h-full' si quieres que html y body usen toda la altura disponible */}
+      {/* y 'flex flex-col' en #__next si el layout principal es flex */}
+      <body className="h-full">
         <Providers>
           <FontThemeProvider>
-            <AuthLayoutWrapper>{children}</AuthLayoutWrapper>
+            {/* AuthLayoutWrapper ahora es responsable de la estructura principal (Navbar + Contenido) */}
+            <AuthProvider>
+              <AuthLayoutWrapper>
+                <Suspense fallback={<GlobalLoadingIndicator />}>
+                  {children}
+                </Suspense>
+              </AuthLayoutWrapper>
+            </AuthProvider>
           </FontThemeProvider>
         </Providers>
       </body>

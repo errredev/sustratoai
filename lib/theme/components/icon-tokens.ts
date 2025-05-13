@@ -1,9 +1,7 @@
-import type { ColorScheme, Mode } from "../color-tokens"
-import colors from "../colors"
-import tinycolor from "tinycolor2"
+import type { AppColorTokens, ColorShade, Mode } from "../ColorToken"; // ÚNICA importación necesaria para los tokens
 
 // Tipos para los tokens de iconos
-export type IconSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl"
+export type IconSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 export type IconColor =
   | "default"
   | "primary"
@@ -14,131 +12,61 @@ export type IconColor =
   | "warning"
   | "danger"
   | "neutral"
-  | "white"
+  | "white";
 
 export type IconColorToken = {
-  pure: string
-  text: string
-  dark: string
-  bg: string
-}
+  pure: string;
+  text: string;
+  shade: string; // 'shade' es la variante principal para tonos más oscuros/matizados
+  bg: string;
+};
 
 export type IconTokens = {
-  colors: Record<IconColor, IconColorToken>
-}
+  colors: Record<IconColor, IconColorToken>;
+};
 
 /**
- * Asegura que un color tenga suficiente contraste contra un fondo
- * @param color Color a ajustar
- * @param background Color de fondo
- * @param minRatio Ratio mínimo de contraste (WCAG recomienda 4.5:1)
- * @returns Color ajustado con suficiente contraste
+ * Genera los tokens para iconos utilizando AppColorTokens.
+ * Se confía en que AppColorTokens ya proporciona los colores correctos para el modo (claro/oscuro)
+ * y que estos colores ya tienen el contraste adecuado.
+ * La función 'ensureContrast' y 'tinycolor' se eliminan.
+ * Las referencias a 'colorScheme', 'colors.themes', 'colors.semantic' se eliminan.
  */
-function ensureContrast(color: string, background: string, minRatio = 4.5): string {
-  let tc = tinycolor(color)
-  if (tinycolor.readability(tc, background) >= minRatio) {
-    return tc.toHexString()
-  }
-  const bgIsDark = tinycolor(background).isDark()
-  let step = 0
-  while (tinycolor.readability(tc, background) < minRatio && step < 20) {
-    tc = bgIsDark ? tc.lighten(5) : tc.darken(5)
-    step++
-  }
-  return tc.toHexString()
-}
+export function generateIconTokens(appTokens: AppColorTokens, mode: Mode): IconTokens {
+  // 'mode' se recibe por consistencia, pero AppColorTokens ya es consciente del modo.
 
-/**
- * Genera los tokens para iconos
- */
-export function generateIconTokens(colorScheme: ColorScheme, mode: Mode): IconTokens {
-  const isDark = mode === "dark"
-  const themeColors = colors.themes[colorScheme]
-  const semanticColors = colors.semantic
+  // Función auxiliar para generar IconColorToken a partir de una paleta ColorShade de AppColorTokens
+  const generateColorTokenFromPalette = (colorPalette: ColorShade): IconColorToken => {
+    // Decidimos qué variante 'Shade' de la paleta se usará para la propiedad 'shade' del IconColorToken.
+    // Usaremos 'textShade' como el 'shade' principal del icono.
+    // Podría ser 'pureShade' si el diseño específico del icono o del tema lo requiere para ciertos colores.
+    return {
+      pure: colorPalette.pure,
+      text: colorPalette.text,
+      shade: colorPalette.textShade, // Asignamos la variante 'textShade' a la propiedad 'shade'
+      bg: colorPalette.bg,
+    };
+  };
 
-  // Fondo oscuro sobre el que contrastaremos en modo oscuro
-  const darkBackground = colors.neutral.gray[900] || "#000"
-
-  // Función para generar tokens de color con contraste asegurado en modo oscuro
-  const generateColorToken = (colorObj: any): IconColorToken => {
-    // Valores base
-    const baseToken = {
-      pure: isDark ? colorObj.pureDark || colorObj.pure : colorObj.pure,
-      text: isDark ? colorObj.textDark || colorObj.text : colorObj.text,
-      dark: isDark
-        ? colorObj.darkDark || colorObj.dark || colorObj.pureDark || colorObj.pure
-        : colorObj.dark || colorObj.pure,
-      bg: isDark ? colorObj.bgDark || colorObj.bg : colorObj.bg,
-    }
-
-    // Si estamos en modo oscuro, aseguramos el contraste
-    if (isDark) {
-      return {
-        pure: ensureContrast(baseToken.pure, darkBackground),
-        text: ensureContrast(baseToken.text, darkBackground),
-        dark: ensureContrast(baseToken.dark, darkBackground),
-        bg: ensureContrast(baseToken.bg, darkBackground),
-      }
-    }
-
-    return baseToken
-  }
-
-  // Generamos los tokens de color para cada variante
-  const defaultToken = isDark
-    ? {
-        pure: ensureContrast(colors.neutral.gray[300], darkBackground),
-        text: ensureContrast(colors.neutral.gray[400], darkBackground),
-        dark: ensureContrast(colors.neutral.gray[200], darkBackground),
-        bg: ensureContrast(colors.neutral.gray[700], darkBackground),
-      }
-    : {
-        pure: colors.neutral.gray[700],
-        text: colors.neutral.gray[600],
-        dark: colors.neutral.gray[800],
-        bg: colors.neutral.gray[200],
-      }
-
-  const neutralToken = isDark
-    ? {
-        pure: ensureContrast(colors.neutral.gray[400], darkBackground),
-        text: ensureContrast(colors.neutral.gray[500], darkBackground),
-        dark: ensureContrast(colors.neutral.gray[300], darkBackground),
-        bg: ensureContrast(colors.neutral.gray[700], darkBackground),
-      }
-    : {
-        pure: colors.neutral.gray[600],
-        text: colors.neutral.gray[500],
-        dark: colors.neutral.gray[700],
-        bg: colors.neutral.gray[200],
-      }
-
-  const whiteToken = isDark
-    ? {
-        pure: ensureContrast(colors.neutral.gray[100], darkBackground),
-        text: ensureContrast(colors.neutral.gray[200], darkBackground),
-        dark: ensureContrast(colors.neutral.gray[50], darkBackground),
-        bg: ensureContrast(colors.neutral.gray[800], darkBackground),
-      }
-    : {
-        pure: colors.neutral.white,
-        text: colors.neutral.gray[100],
-        dark: colors.neutral.gray[50],
-        bg: colors.neutral.gray[50],
-      }
+  // El token 'default' se genera consistentemente usando la paleta neutral de appTokens.
+  // Esto significa que 'default' y 'neutral' serán funcionalmente idénticos
+  // a menos que se introduzca una lógica de derivación específica para 'default' en el futuro.
+  const defaultToken: IconColorToken = generateColorTokenFromPalette(appTokens.neutral);
+  const neutralToken: IconColorToken = generateColorTokenFromPalette(appTokens.neutral);
+  const whiteToken: IconColorToken = generateColorTokenFromPalette(appTokens.white);
 
   return {
     colors: {
       default: defaultToken,
-      primary: generateColorToken(themeColors.primary),
-      secondary: generateColorToken(themeColors.secondary),
-      tertiary: generateColorToken(themeColors.tertiary),
-      accent: generateColorToken(semanticColors.accent),
-      success: generateColorToken(semanticColors.success),
-      warning: generateColorToken(semanticColors.warning),
-      danger: generateColorToken(semanticColors.danger),
+      primary: generateColorTokenFromPalette(appTokens.primary),
+      secondary: generateColorTokenFromPalette(appTokens.secondary),
+      tertiary: generateColorTokenFromPalette(appTokens.tertiary),
+      accent: generateColorTokenFromPalette(appTokens.accent), // Asumiendo que accent es parte de AppColorTokens.theme o AppColorTokens.semantic
+      success: generateColorTokenFromPalette(appTokens.success),
+      warning: generateColorTokenFromPalette(appTokens.warning),
+      danger: generateColorTokenFromPalette(appTokens.danger),
       neutral: neutralToken,
       white: whiteToken,
     },
-  }
+  };
 }

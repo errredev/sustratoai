@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { ProCard } from "@/components/ui/pro-card";
 import { useTheme } from "@/app/theme-provider";
+import { Header } from "@radix-ui/react-accordion";
 
 export default function ProgressShowroom() {
   const { colorScheme } = useTheme();
@@ -56,10 +57,12 @@ export default function ProgressShowroom() {
         </Text>
 
         <ProCard className="mb-8 p-6">
-          <Header>
-            <Title fontType="heading">Progreso Interactivo</Title>
-          </Header>
-          <Content>
+          <ProCard.Header>
+            <ProCard.Title fontType="heading">
+              Progreso Interactivo
+            </ProCard.Title>
+          </ProCard.Header>
+          <ProCard.Content>
             <Progress
               value={progress}
               max={100}
@@ -72,16 +75,18 @@ export default function ProgressShowroom() {
               {isRunning ? "Pausar" : progress > 0 ? "Continuar" : "Iniciar"}{" "}
               Progreso
             </Button>
-          </Content>
+          </ProCard.Content>
         </ProCard>
 
         <Divider className="my-8" />
 
         <ProCard className="mb-8 p-6">
-          <Header>
-            <Title fontType="heading">Termómetro (Rojo a Verde)</Title>
-          </Header>
-          <Content>
+          <ProCard.Header>
+            <ProCard.Title fontType="heading">
+              Termómetro (Rojo a Verde)
+            </ProCard.Title>
+          </ProCard.Header>
+          <ProCard.Content>
             <div className="space-y-6">
               <div>
                 <Text as="p" size="sm" className="mb-2">
@@ -118,16 +123,16 @@ export default function ProgressShowroom() {
                 <Progress value={75} variant="termometro" degradadoAccent />
               </div>
             </div>
-          </Content>
+          </ProCard.Content>
         </ProCard>
 
         <Divider className="my-8" />
 
         <ProCard className="mb-8 p-6">
-          <Header>
-            <Title fontType="heading">Degradados</Title>
-          </Header>
-          <Content>
+          <ProCard.Header>
+            <ProCard.Title fontType="heading">Degradados</ProCard.Title>
+          </ProCard.Header>
+          <ProCard.Content>
             <div className="space-y-6">
               <div>
                 <Text as="p" size="sm" className="mb-2">
@@ -164,16 +169,18 @@ export default function ProgressShowroom() {
                 <Progress value={70} variant="success" degradadoAccent />
               </div>
             </div>
-          </Content>
+          </ProCard.Content>
         </ProCard>
 
         <Divider className="my-8" />
 
         <ProCard className="mb-8 p-6">
-          <Header>
-            <Title fontType="heading">Variantes de Color</Title>
-          </Header>
-          <Content>
+          <ProCard.Header>
+            <ProCard.Title fontType="heading">
+              Variantes de Color
+            </ProCard.Title>
+          </ProCard.Header>
+          <ProCard.Content>
             <div className="space-y-6">
               <div>
                 <Text as="p" size="sm" className="mb-2">
@@ -231,16 +238,16 @@ export default function ProgressShowroom() {
                 <Progress value={70} variant="neutral" />
               </div>
             </div>
-          </Content>
+          </ProCard.Content>
         </ProCard>
 
         <Divider className="my-8" />
 
         <ProCard className="mb-8 p-6">
-          <Header>
-            <Title fontType="heading">Tamaños</Title>
-          </Header>
-          <Content>
+          <ProCard.Header>
+            <ProCard.Title fontType="heading">Tamaños</ProCard.Title>
+          </ProCard.Header>
+          <ProCard.Content>
             <div className="space-y-6">
               <div>
                 <Text as="p" size="sm" className="mb-2">
@@ -277,16 +284,18 @@ export default function ProgressShowroom() {
                 <Progress value={70} size="xl" />
               </div>
             </div>
-          </Content>
+          </ProCard.Content>
         </ProCard>
 
         <Divider className="my-8" />
 
         <ProCard className="mb-8 p-6">
-          <Header>
-            <Title fontType="heading">Progreso Indeterminado</Title>
-          </Header>
-          <Content>
+          <ProCard.Header>
+            <ProCard.Title fontType="heading">
+              Progreso Indeterminado
+            </ProCard.Title>
+          </ProCard.Header>
+          <ProCard.Content>
             <div className="space-y-6">
               <div>
                 <Text as="p" size="sm" className="mb-2">
@@ -316,16 +325,16 @@ export default function ProgressShowroom() {
                 <Progress indeterminate variant="danger" />
               </div>
             </div>
-          </Content>
+          </ProCard.Content>
         </ProCard>
 
         <Divider className="my-8" />
 
         <ProCard className="mb-8 p-6">
-          <Header>
-            <Title fontType="heading">Sin Animación</Title>
-          </Header>
-          <Content>
+          <ProCard.Header>
+            <ProCard.Title fontType="heading">Sin Animación</ProCard.Title>
+          </ProCard.Header>
+          <ProCard.Content>
             <div className="space-y-6">
               <div>
                 <Text as="p" size="sm" className="mb-2">
@@ -341,7 +350,7 @@ export default function ProgressShowroom() {
                 <Progress indeterminate animated={false} />
               </div>
             </div>
-          </Content>
+          </ProCard.Content>
         </ProCard>
       </div>
     </PageBackground>

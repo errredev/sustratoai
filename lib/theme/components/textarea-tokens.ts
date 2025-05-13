@@ -1,5 +1,5 @@
-import type { ColorToken } from "../color-tokens";
-import type { SizeToken } from "../size-tokens";
+import type { AppColorTokens, ColorShade, Mode } from "../ColorToken";
+import tinycolor from "tinycolor2";
 
 export type TextareaVariant =
   | "default"
@@ -15,33 +15,33 @@ export type TextareaVariant =
 export type TextareaSize = "sm" | "md" | "lg";
 
 export interface TextareaVariantTokens {
-  background: ColorToken;
-  border: ColorToken;
-  text: ColorToken;
-  placeholder: ColorToken;
-  iconColor: ColorToken;
-  disabledBackground: ColorToken;
-  disabledBorder: ColorToken;
-  disabledText: ColorToken;
-  errorBackground: ColorToken;
-  errorBorder: ColorToken;
-  errorText: ColorToken;
-  errorRing: ColorToken;
-  successBackground: ColorToken;
-  successBorder: ColorToken;
-  successText: ColorToken;
-  successRing: ColorToken;
-  warningText: ColorToken;
-  focusBorder: ColorToken;
-  focusRing: ColorToken;
-  hoverBorder: ColorToken;
-  editingBackground: ColorToken;
-  optionSelectedBackground: ColorToken;
-  optionSelectedText: ColorToken;
-  optionHoverBackground: ColorToken;
-  optionText: ColorToken;
-  dropdownBackground: ColorToken;
-  dropdownBorder: ColorToken;
+  background: string;
+  border: string;
+  text: string;
+  placeholder: string;
+  iconColor: string;
+  disabledBackground: string;
+  disabledBorder: string;
+  disabledText: string;
+  errorBackground: string;
+  errorBorder: string;
+  errorText: string;
+  errorRing: string;
+  successBackground: string;
+  successBorder: string;
+  successText: string;
+  successRing: string;
+  warningText: string;
+  focusBorder: string;
+  focusRing: string;
+  hoverBorder: string;
+  editingBackground: string;
+  optionSelectedBackground: string;
+  optionSelectedText: string;
+  optionHoverBackground: string;
+  optionText: string;
+  dropdownBackground: string;
+  dropdownBorder: string;
 }
 
 export interface TextareaSizeTokens {
@@ -58,323 +58,152 @@ export interface TextareaTokens {
   sizes: Record<TextareaSize, TextareaSizeTokens>;
 }
 
-export const textareaTokens: TextareaTokens = {
-  variants: {
-    default: {
-      background: "neutral.background",
-      border: "neutral.border",
-      text: "neutral.text",
-      placeholder: "neutral.muted",
-      iconColor: "neutral.text",
-      disabledBackground: "neutral.background",
-      disabledBorder: "neutral.border",
-      disabledText: "neutral.muted",
-      errorBackground: "danger.background",
-      errorBorder: "danger.border",
-      errorText: "danger.text",
-      errorRing: "danger.ring",
-      successBackground: "success.background",
-      successBorder: "success.border",
-      successText: "success.text",
-      successRing: "success.ring",
-      warningText: "warning.text",
-      focusBorder: "primary.border",
-      focusRing: "primary.ring",
-      hoverBorder: "neutral.borderHover",
-      editingBackground: "tertiary.background",
-      optionSelectedBackground: "primary.background",
-      optionSelectedText: "primary.text",
-      optionHoverBackground: "neutral.backgroundHover",
-      optionText: "neutral.text",
-      dropdownBackground: "neutral.background",
-      dropdownBorder: "neutral.border",
+export function generateTextareaTokens(
+  appColorTokens: AppColorTokens,
+  mode: Mode
+): TextareaTokens {
+  const {
+    primary,
+    secondary,
+    tertiary,
+    neutral,
+    danger,
+    success,
+    warning,
+    accent,
+    white,
+  } = appColorTokens;
+
+  const info = accent;
+
+  // Determinar colores de texto apropiados según el modo
+  const textColor = neutral.text;
+  const placeholderColor = tinycolor(textColor).setAlpha(0.6).toRgbString();
+
+  // Usar el color primary para los iconos, similar a select e input
+  const mainIconColor =
+    mode === "dark"
+      ? tinycolor(primary.text).setAlpha(0.9).toRgbString()
+      : tinycolor(primary.pure).setAlpha(0.9).toRgbString();
+
+  // Color de fondo según el modo
+  const backgroundColorByMode = mode === "dark" ? neutral.bg : white.bg;
+
+  const disabledBackground = neutral.bgShade;
+  const disabledBorder = tinycolor(neutral.pure).setAlpha(0.4).toRgbString();
+  const disabledText = tinycolor(textColor).setAlpha(0.5).toRgbString();
+
+  const editingBackground = tinycolor(tertiary.bg ? tertiary.bg : neutral.bg)
+    .setAlpha(mode === "dark" ? 0.3 : 0.5)
+    .toRgbString();
+
+  const createColoredVariant = (
+    shade: ColorShade,
+    shadeForFocusRing?: ColorShade
+  ) => {
+    const focusRingColor = shadeForFocusRing
+      ? shadeForFocusRing.pure
+      : shade.pure;
+
+    // Ajuste del color del icono según la variante
+    const variantIconColor =
+      mode === "dark"
+        ? tinycolor(shade.text).setAlpha(0.9).toRgbString()
+        : tinycolor(shade.pure).setAlpha(0.9).toRgbString();
+
+    // Ajuste del color del borde al pasar el ratón según el modo
+    const variantHoverBorder =
+      mode === "dark"
+        ? tinycolor(shade.pure).lighten(10).toString()
+        : shade.bgShade;
+
+    return {
+      background: backgroundColorByMode,
+      border: shade.pure,
+      text: textColor,
+      placeholder: placeholderColor,
+      iconColor: variantIconColor,
+      disabledBackground,
+      disabledBorder,
+      disabledText,
+      errorBackground: tinycolor(danger.bg)
+        .setAlpha(mode === "dark" ? 0.3 : 0.5)
+        .toRgbString(),
+      errorBorder: danger.pure,
+      errorText: danger.text,
+      errorRing: tinycolor(danger.pure).setAlpha(0.2).toRgbString(),
+      successBackground: tinycolor(success.bg)
+        .setAlpha(mode === "dark" ? 0.3 : 0.5)
+        .toRgbString(),
+      successBorder: success.pure,
+      successText: success.text,
+      successRing: tinycolor(success.pure).setAlpha(0.2).toRgbString(),
+      warningText: warning.text,
+      focusBorder: shade.pure,
+      focusRing: tinycolor(focusRingColor).setAlpha(0.2).toRgbString(),
+      hoverBorder: variantHoverBorder,
+      editingBackground,
+      optionSelectedBackground: primary.bg,
+      optionSelectedText: primary.contrastText,
+      optionHoverBackground: neutral.bg,
+      optionText: neutral.text,
+      dropdownBackground: mode === "dark" ? neutral.bg : white.bg,
+      dropdownBorder: mode === "dark" ? neutral.bgShade : neutral.pure,
+    };
+  };
+
+  const defaultVariantTokens = {
+    ...createColoredVariant(neutral, primary),
+    border: neutral.pure,
+    hoverBorder:
+      mode === "dark"
+        ? tinycolor(neutral.pure).lighten(10).toString()
+        : neutral.bgShade,
+    iconColor: mainIconColor,
+  };
+
+  return {
+    variants: {
+      default: defaultVariantTokens,
+      neutral: createColoredVariant(neutral),
+      white: {
+        ...createColoredVariant(neutral),
+        background: mode === "dark" ? neutral.bg : white.pure,
+        dropdownBackground: mode === "dark" ? neutral.bg : white.pure,
+      },
+      tertiary: createColoredVariant(tertiary),
+      primary: createColoredVariant(primary),
+      secondary: createColoredVariant(secondary),
+      success: createColoredVariant(success),
+      warning: createColoredVariant(warning),
+      danger: createColoredVariant(danger),
+      info: createColoredVariant(info),
     },
-    neutral: {
-      background: "neutral.background",
-      border: "neutral.border",
-      text: "neutral.text",
-      placeholder: "neutral.muted",
-      iconColor: "neutral.text",
-      disabledBackground: "neutral.background",
-      disabledBorder: "neutral.border",
-      disabledText: "neutral.muted",
-      errorBackground: "danger.background",
-      errorBorder: "danger.border",
-      errorText: "danger.text",
-      errorRing: "danger.ring",
-      successBackground: "success.background",
-      successBorder: "success.border",
-      successText: "success.text",
-      successRing: "success.ring",
-      warningText: "warning.text",
-      focusBorder: "neutral.border",
-      focusRing: "neutral.ring",
-      hoverBorder: "neutral.borderHover",
-      editingBackground: "tertiary.background",
-      optionSelectedBackground: "neutral.backgroundHover",
-      optionSelectedText: "neutral.text",
-      optionHoverBackground: "neutral.backgroundHover",
-      optionText: "neutral.text",
-      dropdownBackground: "neutral.background",
-      dropdownBorder: "neutral.border",
+    sizes: {
+      sm: {
+        height: "h-auto",
+        minHeight: "min-h-[70px]",
+        fontSize: "text-sm",
+        paddingX: "px-3",
+        paddingY: "py-1.5",
+        dropdownMaxHeight: "max-h-[200px]",
+      },
+      md: {
+        height: "h-auto",
+        minHeight: "min-h-[80px]",
+        fontSize: "text-base",
+        paddingX: "px-4",
+        paddingY: "py-2",
+        dropdownMaxHeight: "max-h-[300px]",
+      },
+      lg: {
+        height: "h-auto",
+        minHeight: "min-h-[100px]",
+        fontSize: "text-lg",
+        paddingX: "px-4",
+        paddingY: "py-3",
+        dropdownMaxHeight: "max-h-[400px]",
+      },
     },
-    white: {
-      background: "white",
-      border: "neutral.border",
-      text: "neutral.text",
-      placeholder: "neutral.muted",
-      iconColor: "neutral.text",
-      disabledBackground: "neutral.background",
-      disabledBorder: "neutral.border",
-      disabledText: "neutral.muted",
-      errorBackground: "danger.background",
-      errorBorder: "danger.border",
-      errorText: "danger.text",
-      errorRing: "danger.ring",
-      successBackground: "success.background",
-      successBorder: "success.border",
-      successText: "success.text",
-      successRing: "success.ring",
-      warningText: "warning.text",
-      focusBorder: "neutral.border",
-      focusRing: "neutral.ring",
-      hoverBorder: "neutral.borderHover",
-      editingBackground: "tertiary.background",
-      optionSelectedBackground: "neutral.backgroundHover",
-      optionSelectedText: "neutral.text",
-      optionHoverBackground: "neutral.backgroundHover",
-      optionText: "neutral.text",
-      dropdownBackground: "white",
-      dropdownBorder: "neutral.border",
-    },
-    tertiary: {
-      background: "tertiary.background",
-      border: "tertiary.border",
-      text: "tertiary.text",
-      placeholder: "tertiary.muted",
-      iconColor: "tertiary.text",
-      disabledBackground: "tertiary.background",
-      disabledBorder: "tertiary.border",
-      disabledText: "tertiary.muted",
-      errorBackground: "danger.background",
-      errorBorder: "danger.border",
-      errorText: "danger.text",
-      errorRing: "danger.ring",
-      successBackground: "success.background",
-      successBorder: "success.border",
-      successText: "success.text",
-      successRing: "success.ring",
-      warningText: "warning.text",
-      focusBorder: "tertiary.border",
-      focusRing: "tertiary.ring",
-      hoverBorder: "tertiary.borderHover",
-      editingBackground: "tertiary.background",
-      optionSelectedBackground: "tertiary.backgroundHover",
-      optionSelectedText: "tertiary.text",
-      optionHoverBackground: "tertiary.backgroundHover",
-      optionText: "tertiary.text",
-      dropdownBackground: "tertiary.background",
-      dropdownBorder: "tertiary.border",
-    },
-    primary: {
-      background: "primary.background",
-      border: "primary.border",
-      text: "primary.text",
-      placeholder: "primary.muted",
-      iconColor: "primary.text",
-      disabledBackground: "primary.background",
-      disabledBorder: "primary.border",
-      disabledText: "primary.muted",
-      errorBackground: "danger.background",
-      errorBorder: "danger.border",
-      errorText: "danger.text",
-      errorRing: "danger.ring",
-      successBackground: "success.background",
-      successBorder: "success.border",
-      successText: "success.text",
-      successRing: "success.ring",
-      warningText: "warning.text",
-      focusBorder: "primary.border",
-      focusRing: "primary.ring",
-      hoverBorder: "primary.borderHover",
-      editingBackground: "tertiary.background",
-      optionSelectedBackground: "primary.backgroundHover",
-      optionSelectedText: "primary.text",
-      optionHoverBackground: "primary.backgroundHover",
-      optionText: "primary.text",
-      dropdownBackground: "primary.background",
-      dropdownBorder: "primary.border",
-    },
-    secondary: {
-      background: "secondary.background",
-      border: "secondary.border",
-      text: "secondary.text",
-      placeholder: "secondary.muted",
-      iconColor: "secondary.text",
-      disabledBackground: "secondary.background",
-      disabledBorder: "secondary.border",
-      disabledText: "secondary.muted",
-      errorBackground: "danger.background",
-      errorBorder: "danger.border",
-      errorText: "danger.text",
-      errorRing: "danger.ring",
-      successBackground: "success.background",
-      successBorder: "success.border",
-      successText: "success.text",
-      successRing: "success.ring",
-      warningText: "warning.text",
-      focusBorder: "secondary.border",
-      focusRing: "secondary.ring",
-      hoverBorder: "secondary.borderHover",
-      editingBackground: "tertiary.background",
-      optionSelectedBackground: "secondary.backgroundHover",
-      optionSelectedText: "secondary.text",
-      optionHoverBackground: "secondary.backgroundHover",
-      optionText: "secondary.text",
-      dropdownBackground: "secondary.background",
-      dropdownBorder: "secondary.border",
-    },
-    success: {
-      background: "success.background",
-      border: "success.border",
-      text: "success.text",
-      placeholder: "success.muted",
-      iconColor: "success.text",
-      disabledBackground: "success.background",
-      disabledBorder: "success.border",
-      disabledText: "success.muted",
-      errorBackground: "danger.background",
-      errorBorder: "danger.border",
-      errorText: "danger.text",
-      errorRing: "danger.ring",
-      successBackground: "success.background",
-      successBorder: "success.border",
-      successText: "success.text",
-      successRing: "success.ring",
-      warningText: "warning.text",
-      focusBorder: "success.border",
-      focusRing: "success.ring",
-      hoverBorder: "success.borderHover",
-      editingBackground: "tertiary.background",
-      optionSelectedBackground: "success.backgroundHover",
-      optionSelectedText: "success.text",
-      optionHoverBackground: "success.backgroundHover",
-      optionText: "success.text",
-      dropdownBackground: "success.background",
-      dropdownBorder: "success.border",
-    },
-    warning: {
-      background: "warning.background",
-      border: "warning.border",
-      text: "warning.text",
-      placeholder: "warning.muted",
-      iconColor: "warning.text",
-      disabledBackground: "warning.background",
-      disabledBorder: "warning.border",
-      disabledText: "warning.muted",
-      errorBackground: "danger.background",
-      errorBorder: "danger.border",
-      errorText: "danger.text",
-      errorRing: "danger.ring",
-      successBackground: "success.background",
-      successBorder: "success.border",
-      successText: "success.text",
-      successRing: "success.ring",
-      warningText: "warning.text",
-      focusBorder: "warning.border",
-      focusRing: "warning.ring",
-      hoverBorder: "warning.borderHover",
-      editingBackground: "tertiary.background",
-      optionSelectedBackground: "warning.backgroundHover",
-      optionSelectedText: "warning.text",
-      optionHoverBackground: "warning.backgroundHover",
-      optionText: "warning.text",
-      dropdownBackground: "warning.background",
-      dropdownBorder: "warning.border",
-    },
-    danger: {
-      background: "danger.background",
-      border: "danger.border",
-      text: "danger.text",
-      placeholder: "danger.muted",
-      iconColor: "danger.text",
-      disabledBackground: "danger.background",
-      disabledBorder: "danger.border",
-      disabledText: "danger.muted",
-      errorBackground: "danger.background",
-      errorBorder: "danger.border",
-      errorText: "danger.text",
-      errorRing: "danger.ring",
-      successBackground: "success.background",
-      successBorder: "success.border",
-      successText: "success.text",
-      successRing: "success.ring",
-      warningText: "warning.text",
-      focusBorder: "danger.border",
-      focusRing: "danger.ring",
-      hoverBorder: "danger.borderHover",
-      editingBackground: "tertiary.background",
-      optionSelectedBackground: "danger.backgroundHover",
-      optionSelectedText: "danger.text",
-      optionHoverBackground: "danger.backgroundHover",
-      optionText: "danger.text",
-      dropdownBackground: "danger.background",
-      dropdownBorder: "danger.border",
-    },
-    info: {
-      background: "info.background",
-      border: "info.border",
-      text: "info.text",
-      placeholder: "info.muted",
-      iconColor: "info.text",
-      disabledBackground: "info.background",
-      disabledBorder: "info.border",
-      disabledText: "info.muted",
-      errorBackground: "danger.background",
-      errorBorder: "danger.border",
-      errorText: "danger.text",
-      errorRing: "danger.ring",
-      successBackground: "success.background",
-      successBorder: "success.border",
-      successText: "success.text",
-      successRing: "success.ring",
-      warningText: "warning.text",
-      focusBorder: "info.border",
-      focusRing: "info.ring",
-      hoverBorder: "info.borderHover",
-      editingBackground: "tertiary.background",
-      optionSelectedBackground: "info.backgroundHover",
-      optionSelectedText: "info.text",
-      optionHoverBackground: "info.backgroundHover",
-      optionText: "info.text",
-      dropdownBackground: "info.background",
-      dropdownBorder: "info.border",
-    },
-  },
-  sizes: {
-    sm: {
-      height: "h-8",
-      minHeight: "min-h-[80px]",
-      fontSize: "text-sm",
-      paddingX: "px-3",
-      paddingY: "py-1.5",
-      dropdownMaxHeight: "max-h-[200px]",
-    },
-    md: {
-      height: "h-10",
-      minHeight: "min-h-[100px]",
-      fontSize: "text-base",
-      paddingX: "px-4",
-      paddingY: "py-2",
-      dropdownMaxHeight: "max-h-[300px]",
-    },
-    lg: {
-      height: "h-12",
-      minHeight: "min-h-[120px]",
-      fontSize: "text-lg",
-      paddingX: "px-4",
-      paddingY: "py-3",
-      dropdownMaxHeight: "max-h-[400px]",
-    },
-  },
-};
+  };
+}

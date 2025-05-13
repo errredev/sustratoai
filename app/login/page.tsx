@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/auth-provider";
 import { CustomButton } from "@/components/ui/custom-button";
@@ -8,19 +9,31 @@ import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/ui/form-field";
 import { Text } from "@/components/ui/text";
 import { ProCard } from "@/components/ui/pro-card";
-import { Mail, Lock, ArrowRight, LogIn } from "lucide-react";
+import { Mail, Lock, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { SustratoLogoWithFixedText } from "@/components/ui/sustrato-logo-with-fixed-text";
 import { SustratoPageBackground } from "@/components/ui/sustrato-page-background";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, user, authInitialized } = useAuth();
+  
+  // Si el usuario ya está autenticado, redirigir a la página principal o a la página guardada en redirectTo
+  useEffect(() => {
+    if (authInitialized && user && searchParams) {
+      const redirectTo = searchParams.get('redirectTo') || '/';
+      console.log(`🔄 Usuario ya autenticado, redirigiendo a ${redirectTo}`);
+      router.push(redirectTo);
+    }
+  }, [user, authInitialized, router, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Iniciando proceso de login");
 
     if (!email || !password) {
       toast.error("Por favor, completa todos los campos");
@@ -34,17 +47,48 @@ export default function LoginPage() {
 
       if (!success) {
         toast.error(error?.message || "Error al iniciar sesión");
+        setLoading(false);
         return;
       }
 
       toast.success("Inicio de sesión exitoso");
+      
+      // Redirigir a la página original o al home
+      const redirectTo = searchParams ? (searchParams.get('redirectTo') || '/') : '/';
+      console.log(`🔄 Login exitoso, redirigiendo a ${redirectTo}`);
+      
+      // No desactivamos loading para evitar parpadeos durante la redirección
+      router.push(redirectTo);
     } catch (error) {
       console.error("Error durante el inicio de sesión:", error);
       toast.error("Ocurrió un error inesperado");
-    } finally {
       setLoading(false);
     }
   };
+
+  // Si ya está autenticado, mostrar un mensaje de redirección
+  if (authInitialized && user) {
+    return (
+      <SustratoPageBackground variant="ambient" bubbles={false}>
+        <div className="flex items-center justify-center min-h-screen p-4">
+          <div className="text-center">
+            <SustratoLogoWithFixedText
+              size={60}
+              variant="vertical"
+              speed="normal"
+              initialTheme="blue"
+            />
+            <Text variant="heading" color="primary" className="mt-4">
+              Ya has iniciado sesión
+            </Text>
+            <Text variant="default" color="neutral" className="mt-2">
+              Redirigiendo a tu página...
+            </Text>
+          </div>
+        </div>
+      </SustratoPageBackground>
+    );
+  }
 
   return (
     <SustratoPageBackground variant="ambient" bubbles={true}>
@@ -67,7 +111,7 @@ export default function LoginPage() {
                   <div className="bg-white/30 dark:bg-gray-800/30 p-4 rounded-lg">
                     <Text
                       variant="heading"
-                      size="md"
+                      
                       color="tertiary"
                       className="mb-2"
                     >
@@ -117,13 +161,13 @@ export default function LoginPage() {
                 <Text
                   variant="default"
                   color="neutral"
-                  colorVariant="muted"
+                  colorVariant="text"
                   className="mb-6"
                 >
                   Ingresa tus credenciales para acceder a la plataforma
                 </Text>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4" action="javascript:void(0)">
                   <FormField label="Correo electrónico" htmlFor="email">
                     <Input
                       id="email"
@@ -170,6 +214,14 @@ export default function LoginPage() {
                       loadingText="Iniciando sesión..."
                       color="primary"
                       leftIcon={<LogIn />}
+                      disabled={loading}
+                      onClick={(e) => {
+                        // Simplificado para evitar posibles problemas
+                        e.preventDefault();
+                        if (!loading) {
+                          handleSubmit(e as any);
+                        }
+                      }}
                     >
                       Iniciar sesión
                     </CustomButton>
@@ -180,7 +232,7 @@ export default function LoginPage() {
                       variant="default"
                       size="sm"
                       color="neutral"
-                      colorVariant="muted"
+                      colorVariant="text"
                     >
                       ¿No tienes una cuenta?{" "}
                       <Link

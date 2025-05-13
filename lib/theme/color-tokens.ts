@@ -19,23 +19,11 @@ import {
   generateNavbarTokens,
   type NavbarTokens,
 } from "./components/nav-tokens";
-import { generateIconTokens, type IconTokens } from "./components/icon-tokens";
-import {
-  generateInputTokens,
-  type InputTokens,
-} from "./components/input-tokens";
-import {
-  generateSelectTokens,
-  type SelectTokens,
-} from "./components/select-tokens";
-import {
-  generateButtonTokens,
-  type ButtonTokens,
-} from "./components/button-tokens";
-import {
-  generateTableTokens,
-  type TableTokens,
-} from "./components/table-tokens";
+
+
+
+
+import { coerce } from "zod";
 
 // Tipos base para los tokens de color
 export type ColorToken = string;
@@ -163,25 +151,14 @@ export type ComponentTokens = {
   };
 
   // Divider tokens
-  divider: DividerTokens;
 
   // Navbar tokens
   navbar: NavbarTokens;
 
   // Icon tokens
-  icon: IconTokens;
 
-  // Input tokens
-  input: InputTokens;
 
-  // Select tokens
-  select: SelectTokens;
 
-  // Button tokens
-  button: ButtonTokens;
-
-  // Table tokens
-  table: TableTokens;
 };
 
 // Estructura completa de tokens de color
@@ -430,21 +407,11 @@ function generateComponentTokens(
     minimal: { background: "", backgroundImage: "" },
   } as ComponentTokens["pageBackground"];
 
-  const dividerTokens = generateDividerTokens(colorScheme, mode);
   const navbarTokens = generateNavbarTokens(colorScheme, mode);
-  const iconTokens = generateIconTokens(colorScheme, mode);
 
   // Corregir la llamada a generateInputTokens para que use solo 2 argumentos
-  const inputTokens = generateInputTokens(colorScheme, mode);
+  
 
-  const selectTokens = generateSelectTokens(colorScheme, mode);
-  const buttonTokens = generateButtonTokens(colorScheme, mode);
-  const tableTokens = generateTableTokens(
-    colorScheme,
-    mode,
-    semanticTokens, // generateTableTokens espera semanticTokens
-    modeTokens // y modeTokens
-  );
 
   return {
     // Componentes refactorizados usan placeholders
@@ -454,13 +421,10 @@ function generateComponentTokens(
 
     // Componentes legacy
     themeBackground: themeBackgroundTokens,
-    divider: dividerTokens,
+
     navbar: navbarTokens,
-    icon: iconTokens,
-    input: inputTokens,
-    select: selectTokens,
-    button: buttonTokens,
-    table: tableTokens,
+
+
   };
 }
 

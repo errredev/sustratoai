@@ -5,13 +5,14 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useColorTokens } from "@/hooks/use-color-tokens";
+import { useTheme } from "@/app/theme-provider";
 import { useRipple } from "@/components/ripple/RippleProvider";
-import type {
-  ButtonColor,
-  ButtonRounded,
-  ButtonSize,
-  ButtonVariant,
+import {
+  generateButtonTokens,
+  type ButtonColor,
+  type ButtonRounded,
+  type ButtonSize,
+  type ButtonVariant,
 } from "@/lib/theme/components/button-tokens";
 
 // Definimos las propiedades del botón
@@ -111,9 +112,12 @@ const CustomButton = React.forwardRef<HTMLButtonElement, CustomButtonProps>(
     },
     ref
   ) => {
-    // Obtenemos los tokens de color
-    const { component } = useColorTokens();
-    const buttonTokens = component.button;
+    const { appColorTokens, mode } = useTheme();
+
+    const buttonTokens = React.useMemo(() => {
+      if (!appColorTokens) return null;
+      return generateButtonTokens(appColorTokens, mode);
+    }, [appColorTokens, mode]);
 
     // Obtenemos el hook de ripple
     const triggerRipple = useRipple();
@@ -165,20 +169,69 @@ const CustomButton = React.forwardRef<HTMLButtonElement, CustomButtonProps>(
     // Manejador de clic para el efecto ripple
     const handleClick = React.useCallback(
       (e: React.MouseEvent<HTMLButtonElement>) => {
-        if (disabled || loading || disableRipple) return;
+        if (
+          disabled ||
+          loading ||
+          disableRipple ||
+          !buttonTokens ||
+          !appColorTokens
+        )
+          return;
 
-        // Obtener el color del ripple desde los tokens sin añadir transparencia
-        const rippleColor = buttonTokens.colors[color].rippleColor;
+        let finalRippleColor: string;
+
+        if (
+          variant === "ghost" ||
+          variant === "outline" ||
+          variant === "subtle"
+        ) {
+          switch (color) {
+            case "primary":
+              finalRippleColor = appColorTokens.primary.pure;
+              break;
+            case "secondary":
+              finalRippleColor = appColorTokens.secondary.pure;
+              break;
+            case "tertiary":
+              finalRippleColor = appColorTokens.tertiary.pure;
+              break;
+            case "accent":
+              finalRippleColor = appColorTokens.accent.pure;
+              break;
+            case "success":
+              finalRippleColor = appColorTokens.success.pure;
+              break;
+            case "warning":
+              finalRippleColor = appColorTokens.warning.pure;
+              break;
+            case "danger":
+              finalRippleColor = appColorTokens.danger.pure;
+              break;
+            case "default": // Para el color "default" del botón, usamos neutral.pure
+              finalRippleColor = appColorTokens.neutral.pure;
+              break;
+            default:
+              // Si 'color' es un ButtonColor que no se manejó explícitamente (no debería pasar
+              // ya que todos los ButtonColor están en el switch), o si hay un tipo inesperado,
+              // usamos un fallback seguro.
+              finalRippleColor = appColorTokens.primary.pure; // Fallback seguro
+              break;
+          }
+        } else {
+          // Para 'solid' y otras variantes (como 'link', si tuviera ripple)
+          // Aquí 'color' es definitivamente un ButtonColor válido.
+          finalRippleColor = buttonTokens.colors[color].rippleColor;
+        }
 
         // Calcular la escala del ripple basada en el tamaño del botón
         const buttonRect = buttonRef.current?.getBoundingClientRect();
         const maxDimension = buttonRect
           ? Math.max(buttonRect.width, buttonRect.height)
           : 100;
-        const scale = maxDimension / 8; // Ajustar según sea necesario
+        const scale = (maxDimension / 8) * 0.6; // Reducido en un 40% respecto al original (maxDimension / 8)
 
         // Activar el efecto ripple
-        triggerRipple(e.nativeEvent, rippleColor, scale);
+        triggerRipple(e, finalRippleColor, scale);
 
         // Llamar al manejador de clic original si existe
         if (onClick) {
@@ -189,12 +242,36 @@ const CustomButton = React.forwardRef<HTMLButtonElement, CustomButtonProps>(
         disabled,
         loading,
         disableRipple,
-        color,
         buttonTokens,
+        appColorTokens,
+        color,
+        variant,
         triggerRipple,
         onClick,
       ]
     );
+
+    // Si los tokens no están listos, renderizar un botón deshabilitado simple o null
+    if (!buttonTokens) {
+      return (
+        <button
+          ref={ref}
+          className={cn(
+            "inline-flex items-center justify-center whitespace-nowrap font-medium",
+            "px-3 py-2 text-sm rounded-md", // Estilos mínimos para un placeholder
+            "bg-gray-200 text-gray-500 cursor-not-allowed opacity-50",
+            fullWidth ? "w-full" : "",
+            className
+          )}
+          disabled
+          {...props}
+        >
+          {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          {loading && loadingText ? loadingText : children}
+          {!loading && !loadingText ? children : null}
+        </button>
+      );
+    }
 
     // Obtenemos los estilos base del botón
     const baseStyles = buttonTokens.base;

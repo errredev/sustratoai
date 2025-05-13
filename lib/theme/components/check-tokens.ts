@@ -1,4 +1,5 @@
-import { colors } from "@/lib/theme/colors"
+import { colors } from "@/lib/theme/colors";
+import type { AppColorTokens } from "../ColorToken";
 
 export type CheckVariant =
   | "primary"
@@ -8,103 +9,101 @@ export type CheckVariant =
   | "success"
   | "warning"
   | "danger"
-  | "neutral"
-export type CheckSize = "xs" | "sm" | "md" | "lg" | "xl"
-export type CheckVisualVariant = "default" | "outline" | "subtle" | "solid"
+  | "neutral";
+export type CheckSize = "xs" | "sm" | "md" | "lg" | "xl";
+export type CheckVisualVariant = "default" | "outline" | "subtle" | "solid";
 
-interface CheckTokens {
+export interface CheckTokens {
   // Colores base
-  background: string
-  border: string
-  check: string
-  text: string
+  background: string;
+  border: string;
+  check: string;
+  text: string;
 
   // Estados
   hover: {
-    background: string
-    border: string
-  }
+    background: string;
+    border: string;
+  };
   focus: {
-    outline: string
-  }
+    outline: string;
+  };
   active: {
-    background: string
-    border: string
-  }
+    background: string;
+    border: string;
+  };
   checked: {
-    background: string
-    border: string
-    check: string
-  }
+    background: string;
+    border: string;
+    check: string;
+  };
   disabled: {
-    background: string
-    border: string
-    check: string
-    text: string
-    opacity: number
-  }
+    background: string;
+    border: string;
+    check: string;
+    text: string;
+    opacity: number;
+  };
 
   // Tamaños
   size: {
-    box: string
-    checkThickness: number
-    borderRadius: string
-    fontSize: string
-    padding: string
-  }
+    box: string;
+    checkThickness: number;
+    borderRadius: string;
+    fontSize: string;
+    padding: string;
+  };
 }
 
 export function generateCheckTokens(
-  colorScheme: string,
-  mode: "light" | "dark",
+  appColorTokens: AppColorTokens,
   size: CheckSize = "md",
   variant: CheckVariant = "primary",
-  visualVariant: CheckVisualVariant = "default",
+  visualVariant: CheckVisualVariant = "default"
 ): CheckTokens {
-  // Obtener colores del tema
-  const themeColors = colors.themes[colorScheme] || colors.themes.blue
-  const semanticColors = colors.semantic
-  const neutralColors = colors.neutral
-  const isDark = mode === "dark"
+  const sizeTokens = getSizeTokens(size);
 
-  // Determinar tamaños
-  const sizeTokens = getSizeTokens(size)
-
-  // Generar tokens según la variante
   if (variant === "neutral") {
-    return generateNeutralTokens(neutralColors, isDark, visualVariant, sizeTokens)
+    return generateNeutralTokens(
+      appColorTokens.neutral,
+      visualVariant,
+      sizeTokens
+    );
   } else {
+    const baseColorTokenSet = getColorForVariant(variant, appColorTokens);
     return generateColorTokens(
-      getColorForVariant(variant, themeColors, semanticColors),
-      isDark,
+      baseColorTokenSet,
       visualVariant,
       sizeTokens,
-      neutralColors,
-      themeColors,
-      variant,
-    )
+      appColorTokens.neutral,
+      appColorTokens,
+      variant
+    );
   }
 }
 
 // Función para obtener el color base según la variante
-function getColorForVariant(variant: CheckVariant, themeColors: any, semanticColors: any) {
+function getColorForVariant(
+  variant: CheckVariant,
+  appColorTokens: AppColorTokens
+) {
   switch (variant) {
     case "primary":
-      return themeColors.primary
+      return appColorTokens.primary;
     case "secondary":
-      return themeColors.secondary
+      return appColorTokens.secondary;
     case "tertiary":
-      return themeColors.tertiary
+      return appColorTokens.tertiary;
     case "accent":
-      return themeColors.accent
+      return appColorTokens.accent;
     case "success":
-      return semanticColors.success
+      return appColorTokens.success;
     case "warning":
-      return semanticColors.warning
+      return appColorTokens.warning;
     case "danger":
-      return semanticColors.danger
+      return appColorTokens.danger;
     default:
-      return themeColors.primary // Fallback seguro
+      return appColorTokens.primary;
   }
 }
 
@@ -118,7 +117,7 @@ function getSizeTokens(size: CheckSize) {
         borderRadius: "3px",
         fontSize: "0.75rem",
         padding: "0.25rem",
-      }
+      };
     case "sm":
       return {
         box: "18px",
@@ -126,7 +125,7 @@ function getSizeTokens(size: CheckSize) {
         borderRadius: "4px",
         fontSize: "0.875rem",
         padding: "0.375rem",
-      }
+      };
     case "lg":
       return {
         box: "24px",
@@ -134,7 +133,7 @@ function getSizeTokens(size: CheckSize) {
         borderRadius: "6px",
         fontSize: "1.125rem",
         padding: "0.625rem",
-      }
+      };
     case "xl":
       return {
         box: "28px",
@@ -142,7 +141,7 @@ function getSizeTokens(size: CheckSize) {
         borderRadius: "7px",
         fontSize: "1.25rem",
         padding: "0.75rem",
-      }
+      };
     default: // md
       return {
         box: "20px",
@@ -150,71 +149,67 @@ function getSizeTokens(size: CheckSize) {
         borderRadius: "5px",
         fontSize: "1rem",
         padding: "0.5rem",
-      }
+      };
   }
 }
 
 // Función para generar tokens para la variante neutral
 function generateNeutralTokens(
-  neutralColors: any,
-  isDark: boolean,
+  neutralTokenSet: AppColorTokens["neutral"],
   visualVariant: CheckVisualVariant,
-  sizeTokens: any,
+  sizeTokens: any
 ): CheckTokens {
-  // Colores para la variante neutral
-  let background: string
-  let border: string
-  let check: string
-  let checkedBackground: string
-  let checkedBorder: string
+  let background: string;
+  let border: string;
+  let check: string;
+  let checkedBackground: string;
+  let checkedBorder: string;
 
-  // Usar colores más contrastantes para el check
-  const checkColor = isDark ? neutralColors.gray[50] : neutralColors.gray[900]
+  const checkColor = neutralTokenSet.contrastText;
 
   switch (visualVariant) {
     case "outline":
-      background = "transparent"
-      border = isDark ? neutralColors.gray[400] : neutralColors.gray[500]
-      check = checkColor
-      checkedBackground = "transparent"
-      checkedBorder = isDark ? neutralColors.gray[300] : neutralColors.gray[600]
-      break
+      background = "transparent";
+      border = neutralTokenSet.bgShade;
+      check = checkColor;
+      checkedBackground = "transparent";
+      checkedBorder = neutralTokenSet.text;
+      break;
     case "subtle":
-      background = isDark ? `${neutralColors.gray[700]}40` : `${neutralColors.gray[300]}40`
-      border = isDark ? neutralColors.gray[600] : neutralColors.gray[400]
-      check = checkColor
-      checkedBackground = isDark ? `${neutralColors.gray[600]}80` : `${neutralColors.gray[400]}80`
-      checkedBorder = isDark ? neutralColors.gray[500] : neutralColors.gray[500]
-      break
+      background = `${neutralTokenSet.bg}40`;
+      border = neutralTokenSet.bgShade;
+      check = checkColor;
+      checkedBackground = `${neutralTokenSet.bg}80`;
+      checkedBorder = neutralTokenSet.text;
+      break;
     case "solid":
-      background = isDark ? neutralColors.gray[700] : neutralColors.gray[300]
-      border = isDark ? neutralColors.gray[600] : neutralColors.gray[400]
-      check = checkColor
-      checkedBackground = isDark ? neutralColors.gray[600] : neutralColors.gray[400]
-      checkedBorder = isDark ? neutralColors.gray[500] : neutralColors.gray[500]
-      break
+      background = neutralTokenSet.bg;
+      border = neutralTokenSet.bgShade;
+      check = checkColor;
+      checkedBackground = neutralTokenSet.bgShade;
+      checkedBorder = neutralTokenSet.text;
+      break;
     default: // default
-      // Fondo blanco para default en modo claro, y un gris oscuro en modo oscuro
-      background = isDark ? neutralColors.gray[800] : "#ffffff"
-      border = isDark ? neutralColors.gray[500] : neutralColors.gray[400]
-      check = checkColor
-      checkedBackground = isDark ? neutralColors.gray[700] : "#ffffff"
-      checkedBorder = isDark ? neutralColors.gray[400] : neutralColors.gray[500]
-      break
+      background = "#ffffff";
+      border = neutralTokenSet.bgShade;
+      check = checkColor;
+      checkedBackground = "#ffffff";
+      checkedBorder = neutralTokenSet.text;
+      break;
   }
 
   // Hover, focus y active para neutral
-  const hoverBackground = isDark ? `${neutralColors.gray[600]}40` : `${neutralColors.gray[400]}40`
-  const hoverBorder = isDark ? neutralColors.gray[400] : neutralColors.gray[500]
-  const focusOutline = isDark ? `${neutralColors.gray[400]}60` : `${neutralColors.gray[500]}60`
-  const activeBackground = isDark ? `${neutralColors.gray[600]}60` : `${neutralColors.gray[400]}60`
-  const activeBorder = isDark ? neutralColors.gray[300] : neutralColors.gray[600]
+  const hoverBackground = `${neutralTokenSet.bg}60`;
+  const hoverBorder = neutralTokenSet.text;
+  const focusOutline = `${neutralTokenSet.pure}60`;
+  const activeBackground = `${neutralTokenSet.bg}80`;
+  const activeBorder = neutralTokenSet.contrastText;
 
   return {
     background,
     border,
-    check: isDark ? "#ffffff" : "#000000",
-    text: isDark ? neutralColors.gray[100] : neutralColors.gray[900],
+    check: neutralTokenSet.contrastText,
+    text: neutralTokenSet.text,
 
     hover: {
       background: hoverBackground,
@@ -233,105 +228,111 @@ function generateNeutralTokens(
     checked: {
       background: checkedBackground,
       border: checkedBorder,
-      check: visualVariant === "solid" ? (isDark ? "#ffffff" : "#000000") : check,
+      check:
+        visualVariant === "solid" ? neutralTokenSet.contrastText : checkColor,
     },
 
     disabled: {
-      background: isDark ? `${neutralColors.gray[800]}80` : `${neutralColors.gray[200]}80`,
-      border: isDark ? `${neutralColors.gray[700]}80` : `${neutralColors.gray[300]}80`,
-      check: isDark ? `${neutralColors.gray[500]}80` : `${neutralColors.gray[500]}80`,
-      text: isDark ? `${neutralColors.gray[500]}80` : `${neutralColors.gray[500]}80`,
+      background: `${neutralTokenSet.bg}30`,
+      border: `${neutralTokenSet.bgShade}50`,
+      check: `${neutralTokenSet.text}50`,
+      text: `${neutralTokenSet.text}50`,
       opacity: 0.6,
     },
 
     size: sizeTokens,
-  }
+  };
 }
 
 // Función para generar tokens para variantes de color
 function generateColorTokens(
-  baseColor: any,
-  isDark: boolean,
+  baseColorTokenSet: AppColorTokens[keyof AppColorTokens] & {
+    pure: string;
+    bg: string;
+    contrastText: string;
+    text: string;
+    bgShade: string;
+  },
   visualVariant: CheckVisualVariant,
   sizeTokens: any,
-  neutralColors: any,
-  themeColors: any,
-  variant: CheckVariant,
+  neutralTokenSet: AppColorTokens["neutral"],
+  appColorTokens: AppColorTokens,
+  variant: CheckVariant
 ): CheckTokens {
-  // Verificar que baseColor tenga las propiedades necesarias
-  if (!baseColor || !baseColor.pure) {
-    // Fallback seguro si baseColor no tiene las propiedades esperadas
-    return generateNeutralTokens(neutralColors, isDark, visualVariant, sizeTokens)
+  if (!baseColorTokenSet || !baseColorTokenSet.pure) {
+    return generateNeutralTokens(neutralTokenSet, visualVariant, sizeTokens);
   }
 
-  // Colores para las variantes de color
-  let background: string
-  let border: string
-  let check: string
-  let checkedBackground: string
-  let checkedBorder: string
+  let background: string;
+  let border: string;
+  let check: string;
+  let checkedBackground: string;
+  let checkedBorder: string;
 
-  // Para la variante default, usamos el color secondary para el check si estamos en primary
   const useSecondaryCheck =
-    visualVariant === "default" && variant === "primary" && themeColors.secondary && themeColors.secondary.pure
+    visualVariant === "default" &&
+    variant === "primary" &&
+    appColorTokens.secondary &&
+    appColorTokens.secondary.pure;
 
-  // Determinar el color del check
-  const checkColor = useSecondaryCheck
-    ? themeColors.secondary.pure
-    : isDark
-      ? "#ffffff"
-      : baseColor.dark || baseColor.pure
+  const defaultCheckColor = baseColorTokenSet.contrastText;
+  const checkColorOnWhite = baseColorTokenSet.pure;
 
   switch (visualVariant) {
     case "outline":
-      background = "transparent"
-      border = baseColor.pure
-      check = checkColor
-      checkedBackground = "transparent"
-      checkedBorder = baseColor.pure
-      break
+      background = "transparent";
+      border = baseColorTokenSet.pure;
+      check = useSecondaryCheck
+        ? appColorTokens.secondary.pure
+        : checkColorOnWhite;
+      checkedBackground = "transparent";
+      checkedBorder = baseColorTokenSet.pure;
+      break;
     case "subtle":
-      background = `${baseColor.pure}20`
-      border = `${baseColor.pure}60`
-      check = checkColor
-      checkedBackground = `${baseColor.pure}40`
-      checkedBorder = baseColor.pure
-      break
+      background = `${baseColorTokenSet.pure}20`;
+      border = `${baseColorTokenSet.pure}60`;
+      check = useSecondaryCheck
+        ? appColorTokens.secondary.pure
+        : checkColorOnWhite;
+      checkedBackground = `${baseColorTokenSet.pure}40`;
+      checkedBorder = baseColorTokenSet.pure;
+      break;
     case "solid":
-      background = baseColor.light || `${baseColor.pure}40`
-      border = baseColor.pure
-      check = isDark ? "#ffffff" : useSecondaryCheck ? themeColors.secondary.pure : "#000000"
-      checkedBackground = baseColor.pure
-      checkedBorder = baseColor.pure
-      break
-    default: // default
-      // Fondo blanco para default en modo claro, y un gris oscuro en modo oscuro
-      background = isDark ? neutralColors.gray[800] : "#ffffff"
-      border = isDark ? baseColor.light || `${baseColor.pure}40` : baseColor.pure
-      check = checkColor
-      checkedBackground = isDark ? neutralColors.gray[800] : "#ffffff"
-      checkedBorder = baseColor.pure
-      break
+      background = baseColorTokenSet.bg;
+      border = baseColorTokenSet.pure;
+      check = baseColorTokenSet.contrastText;
+      checkedBackground = baseColorTokenSet.pure;
+      checkedBorder = baseColorTokenSet.pure;
+      break;
+    default: // default (typically white background, colored border/check)
+      background = "#ffffff";
+      border = baseColorTokenSet.pure;
+      check = useSecondaryCheck
+        ? appColorTokens.secondary.pure
+        : checkColorOnWhite;
+      checkedBackground = "#ffffff";
+      checkedBorder = baseColorTokenSet.pure;
+      break;
   }
 
   return {
     background,
     border,
-    check: isDark ? "#ffffff" : "#000000",
-    text: isDark ? neutralColors.gray[100] : neutralColors.gray[900],
+    check: defaultCheckColor,
+    text: neutralTokenSet.text,
 
     hover: {
-      background: `${baseColor.pure}20`,
-      border: baseColor.pure,
+      background: `${baseColorTokenSet.pure}20`,
+      border: baseColorTokenSet.pure,
     },
 
     focus: {
-      outline: `${baseColor.pure}60`,
+      outline: `${baseColorTokenSet.pure}60`,
     },
 
     active: {
-      background: `${baseColor.pure}30`,
-      border: baseColor.dark || baseColor.pure,
+      background: `${baseColorTokenSet.pure}30`,
+      border: baseColorTokenSet.bgShade,
     },
 
     checked: {
@@ -339,22 +340,20 @@ function generateColorTokens(
       border: checkedBorder,
       check:
         visualVariant === "solid"
-          ? isDark
-            ? "#ffffff"
-            : useSecondaryCheck
-              ? themeColors.secondary.pure
-              : "#000000"
-          : check,
+          ? baseColorTokenSet.contrastText
+          : useSecondaryCheck
+          ? appColorTokens.secondary.pure
+          : checkColorOnWhite,
     },
 
     disabled: {
-      background: isDark ? `${neutralColors.gray[800]}80` : `${neutralColors.gray[200]}80`,
-      border: isDark ? `${neutralColors.gray[700]}80` : `${neutralColors.gray[300]}80`,
-      check: isDark ? `${neutralColors.gray[500]}80` : `${neutralColors.gray[500]}80`,
-      text: isDark ? `${neutralColors.gray[500]}80` : `${neutralColors.gray[500]}80`,
+      background: `${neutralTokenSet.bg}30`,
+      border: `${neutralTokenSet.bgShade}50`,
+      check: `${neutralTokenSet.text}50`,
+      text: `${neutralTokenSet.text}50`,
       opacity: 0.6,
     },
 
     size: sizeTokens,
-  }
+  };
 }

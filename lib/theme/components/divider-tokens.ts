@@ -1,69 +1,105 @@
-import type { ColorScheme, Mode } from "../color-tokens"
-import colors from "../colors"
 
-export type DividerVariant = "gradient" | "solid" | "subtle"
-export type DividerSize = "xs" | "sm" | "md" | "lg" | "xl"
+import type { AppColorTokens } from "../ColorToken";
+
+export type DividerVariant = "gradient" | "solid" | "subtle";
+export type DividerSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 export interface DividerTokens {
   // Variantes de divider
   variants: {
     gradient: {
-      backgroundImage: string
-    }
+      backgroundImage: string;
+    };
     solid: {
-      background: string
-    }
+      background: string;
+    };
     subtle: {
-      background: string
-    }
-  }
+      background: string;
+    };
+  };
   // Tamaños predefinidos
   sizes: {
     xs: {
-      height: string
-      width: string
-      borderRadius: string
-    }
+      height: string;
+      width: string;
+      borderRadius: string;
+    };
     sm: {
-      height: string
-      width: string
-      borderRadius: string
-    }
+      height: string;
+      width: string;
+      borderRadius: string;
+    };
     md: {
-      height: string
-      width: string
-      borderRadius: string
-    }
+      height: string;
+      width: string;
+      borderRadius: string;
+    };
     lg: {
-      height: string
-      width: string
-      borderRadius: string
-    }
+      height: string;
+      width: string;
+      borderRadius: string;
+    };
     xl: {
-      height: string
-      width: string
-      borderRadius: string
-    }
+      height: string;
+      width: string;
+      borderRadius: string;
+    };
+  };
+}
+
+// Helper function to convert hex to RGBA and handle potential errors
+function hexToRgba(hex: string, alpha: number): string {
+  const hexValue = hex.startsWith("#") ? hex.slice(1) : hex;
+
+  const fullHex =
+    hexValue.length === 3
+      ? hexValue
+          .split("")
+          .map((char) => char + char)
+          .join("")
+      : hexValue;
+
+  if (fullHex.length !== 6) {
+    console.warn(
+      `[DividerTokens/hexToRgba] Invalid hex color format: "${hex}". Falling back to black with alpha.`
+    );
+    return `rgba(0, 0, 0, ${alpha})`;
   }
+
+  const r = parseInt(fullHex.slice(0, 2), 16);
+  const g = parseInt(fullHex.slice(2, 4), 16);
+  const b = parseInt(fullHex.slice(4, 6), 16);
+
+  if (isNaN(r) || isNaN(g) || isNaN(b)) {
+    console.warn(
+      `[DividerTokens/hexToRgba] Could not parse hex color: "${hex}". Falling back to black with alpha.`
+    );
+    return `rgba(0, 0, 0, ${alpha})`;
+  }
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 /**
  * Genera los tokens para el componente Divider
  */
-export function generateDividerTokens(colorScheme: ColorScheme, mode: Mode): DividerTokens {
-  const isDark = mode === "dark"
-  const themeColors = colors.themes[colorScheme]
+export function generateDividerTokens(
+  appColorTokens: AppColorTokens
+): DividerTokens {
+  // Ya no se necesita themeKey ni buscar en colors.themes directamente,
+  // appColorTokens ya tiene los colores del tema y modo correctos.
 
   // Colores para el gradiente
-  const primaryColor = isDark ? themeColors.primary.pureDark : themeColors.primary.pure
-  const accentColor = isDark ? colors.semantic.accent.pureDark : colors.semantic.accent.pure
-  const secondaryColor = isDark ? themeColors.secondary.pureDark : themeColors.secondary.pure
+  const primaryColor = appColorTokens.primary.pure;
+  const secondaryColor = appColorTokens.secondary.pure;
+  const accentColor = appColorTokens.accent.pure; // appColorTokens.accent ya está resuelto para el modo
 
-  // Colores para variantes sólidas y sutiles
-  const solidColor = isDark ? themeColors.primary.pureDark : themeColors.primary.pure
-  const subtleColor = isDark
-    ? `rgba(${Number.parseInt(themeColors.primary.pureDark.slice(1, 3), 16)}, ${Number.parseInt(themeColors.primary.pureDark.slice(3, 5), 16)}, ${Number.parseInt(themeColors.primary.pureDark.slice(5, 7), 16)}, 0.3)`
-    : `rgba(${Number.parseInt(themeColors.primary.pure.slice(1, 3), 16)}, ${Number.parseInt(themeColors.primary.pure.slice(3, 5), 16)}, ${Number.parseInt(themeColors.primary.pure.slice(5, 7), 16)}, 0.3)`
+  // Color para la variante sólida
+  const solidColor = appColorTokens.primary.pure;
+
+  // Color para la variante sutil (calculado como RGBA del primario del tema/modo activo)
+  const subtleBaseColor = appColorTokens.primary.pure;
+  const subtleColor = hexToRgba(subtleBaseColor, 0.3);
 
   return {
     variants: {
@@ -104,5 +140,5 @@ export function generateDividerTokens(colorScheme: ColorScheme, mode: Mode): Div
         borderRadius: "2.5px",
       },
     },
-  }
+  };
 }

@@ -9,7 +9,19 @@ import { Text } from "@/components/ui/text";
 import { ProCard } from "@/components/ui/pro-card";
 import { CustomButton } from "@/components/ui/custom-button";
 import { CustomCheck } from "@/components/ui/custom-check";
-import { Mail, User, Edit, Globe, Building, Send, Save } from "lucide-react";
+import {
+  Mail,
+  User,
+  Edit,
+  Globe,
+  Building,
+  Send,
+  Save,
+  Star,
+  Heart,
+  Settings,
+  AlertCircle,
+} from "lucide-react";
 
 export default function ShowroomForm() {
   const [name, setName] = useState("");
@@ -130,6 +142,120 @@ export default function ShowroomForm() {
               success={emailSuccess}
             />
           </FormField>
+
+          {/* Ejemplos de inputs con diferentes variantes de color */}
+          <Text
+            variant="heading"
+            size="lg"
+            color="primary"
+            className="mt-8 mb-4"
+          >
+            Inputs con diferentes variantes de color
+          </Text>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Primary (default)" htmlFor="primary-input">
+              <Input
+                leadingIcon={Star}
+                placeholder="Variante primary"
+                variant="primary"
+              />
+            </FormField>
+
+            <FormField label="Secondary" htmlFor="secondary-input">
+              <Input
+                leadingIcon={Heart}
+                placeholder="Variante secondary"
+                variant="secondary"
+              />
+            </FormField>
+
+            <FormField label="Tertiary" htmlFor="tertiary-input">
+              <Input
+                leadingIcon={Settings}
+                placeholder="Variante tertiary"
+                variant="tertiary"
+              />
+            </FormField>
+
+            <FormField label="Accent" htmlFor="accent-input">
+              <Input
+                leadingIcon={AlertCircle}
+                placeholder="Variante accent"
+                variant="accent"
+              />
+            </FormField>
+
+            <FormField label="Neutral" htmlFor="neutral-input">
+              <Input
+                leadingIcon={Building}
+                placeholder="Variante neutral"
+                variant="neutral"
+              />
+            </FormField>
+          </div>
+
+          {/* Ejemplos de selects con diferentes variantes de color */}
+          <Text
+            variant="heading"
+            size="lg"
+            color="primary"
+            className="mt-8 mb-4"
+          >
+            Selects con diferentes variantes de color
+          </Text>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Primary (default)" htmlFor="primary-select">
+              <SelectCustom
+                id="primary-select"
+                placeholder="Variante primary"
+                options={countryOptions}
+                leadingIcon={Star}
+                variant="primary"
+              />
+            </FormField>
+
+            <FormField label="Secondary" htmlFor="secondary-select">
+              <SelectCustom
+                id="secondary-select"
+                placeholder="Variante secondary"
+                options={countryOptions}
+                leadingIcon={Heart}
+                variant="secondary"
+              />
+            </FormField>
+
+            <FormField label="Tertiary" htmlFor="tertiary-select">
+              <SelectCustom
+                id="tertiary-select"
+                placeholder="Variante tertiary"
+                options={countryOptions}
+                leadingIcon={Settings}
+                variant="tertiary"
+              />
+            </FormField>
+
+            <FormField label="Accent" htmlFor="accent-select">
+              <SelectCustom
+                id="accent-select"
+                placeholder="Variante accent"
+                options={countryOptions}
+                leadingIcon={AlertCircle}
+                variant="accent"
+              />
+            </FormField>
+
+            <FormField label="Neutral" htmlFor="neutral-select">
+              <SelectCustom
+                id="neutral-select"
+                placeholder="Variante neutral"
+                options={countryOptions}
+                leadingIcon={Building}
+                variant="neutral"
+              />
+            </FormField>
+          </div>
 
           {/* Select normal */}
           <FormField label="País" htmlFor="country-select">
@@ -301,12 +427,7 @@ export default function ShowroomForm() {
         </ProCard.Content>
 
         <ProCard.Footer>
-          <Text
-            variant="default"
-            size="sm"
-            color="neutral"
-            colorVariant="muted"
-          >
+          <Text variant="default" size="sm" color="neutral">
             Todos los campos marcados con * son obligatorios
           </Text>
         </ProCard.Footer>

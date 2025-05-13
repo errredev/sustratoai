@@ -1,66 +1,95 @@
-import { colors, semantic } from "@/lib/theme/colors"
-import type { ColorScheme, Mode } from "@/lib/theme/color-tokens"
+import { colors, semantic } from "@/lib/theme/colors";
+import type { ColorScheme, Mode } from "@/lib/theme/color-tokens";
+import type { AppColorTokens } from "../ColorToken";
 
 export type BadgeVariant =
-  | "primary"
+  | "default"
   | "secondary"
-  | "tertiary"
-  | "accent"
+  | "destructive"
+  | "outline"
   | "success"
   | "warning"
-  | "danger"
-  | "neutral"
+  | "info"
+  | "neutral";
 
-export interface BadgeTokens {
-  background: string
-  textColor: string
-  textColorVariant: string
+export interface BadgeTokenSet {
+  background: string;
+  subtleBackgroundColor: string;
+  contrastTextColor: string;
+  regularTextColor: string;
+  borderColor: string;
+  subtleBorderColor: string;
 }
 
-export function generateBadgeTokens(colorScheme: ColorScheme, mode: Mode) {
-  const isDark = mode === "dark"
-  const themeColors = colors.themes[colorScheme]
+export type BadgeTokens = Record<BadgeVariant, BadgeTokenSet>;
 
+export function generateBadgeTokens(
+  appColorTokens: AppColorTokens
+): BadgeTokens {
   return {
-    primary: {
-      background: isDark ? themeColors.primary.bgDark : themeColors.primary.bg,
-      textColor: "primary",
-      textColorVariant: isDark ? "textDark" : "text",
+    default: {
+      background: appColorTokens.primary.pure,
+      subtleBackgroundColor: appColorTokens.primary.bg,
+      contrastTextColor: appColorTokens.primary.contrastText,
+      regularTextColor: appColorTokens.primary.text,
+      borderColor: "transparent",
+      subtleBorderColor: appColorTokens.primary.bgShade,
     },
     secondary: {
-      background: isDark ? themeColors.secondary.bgDark : themeColors.secondary.bg,
-      textColor: "secondary",
-      textColorVariant: isDark ? "textDark" : "text",
+      background: appColorTokens.secondary.pure,
+      subtleBackgroundColor: appColorTokens.secondary.bg,
+      contrastTextColor: appColorTokens.secondary.contrastText,
+      regularTextColor: appColorTokens.secondary.text,
+      borderColor: "transparent",
+      subtleBorderColor: appColorTokens.secondary.bgShade,
     },
-    tertiary: {
-      background: isDark ? themeColors.tertiary.bgDark : themeColors.tertiary.bg,
-      textColor: "tertiary",
-      textColorVariant: isDark ? "textDark" : "text",
+    destructive: {
+      background: appColorTokens.danger.pure,
+      subtleBackgroundColor: appColorTokens.danger.bg,
+      contrastTextColor: appColorTokens.danger.contrastText,
+      regularTextColor: appColorTokens.danger.text,
+      borderColor: "transparent",
+      subtleBorderColor: appColorTokens.danger.bgShade,
     },
-    accent: {
-      background: isDark ? semantic.accent.bgDark : semantic.accent.bg,
-      textColor: "accent",
-      textColorVariant: isDark ? "textDark" : "text",
+    outline: {
+      background: "transparent",
+      subtleBackgroundColor: "transparent",
+      contrastTextColor: appColorTokens.neutral.text,
+      regularTextColor: appColorTokens.neutral.text,
+      borderColor: appColorTokens.neutral.text,
+      subtleBorderColor: appColorTokens.neutral.bgShade,
     },
     success: {
-      background: isDark ? semantic.success.bgDark : semantic.success.bg,
-      textColor: "success",
-      textColorVariant: isDark ? "textDark" : "text",
+      background: appColorTokens.success.pure,
+      subtleBackgroundColor: appColorTokens.success.bg,
+      contrastTextColor: appColorTokens.success.contrastText,
+      regularTextColor: appColorTokens.success.text,
+      borderColor: "transparent",
+      subtleBorderColor: appColorTokens.success.bgShade,
     },
     warning: {
-      background: isDark ? semantic.warning.bgDark : semantic.warning.bg,
-      textColor: "warning",
-      textColorVariant: isDark ? "textDark" : "text",
+      background: appColorTokens.warning.pure,
+      subtleBackgroundColor: appColorTokens.warning.bg,
+      contrastTextColor: appColorTokens.warning.contrastText,
+      regularTextColor: appColorTokens.warning.text,
+      borderColor: "transparent",
+      subtleBorderColor: appColorTokens.warning.bgShade,
     },
-    danger: {
-      background: isDark ? semantic.danger.bgDark : semantic.danger.bg,
-      textColor: "danger",
-      textColorVariant: isDark ? "textDark" : "text",
+    info: {
+      background: appColorTokens.accent.pure,
+      subtleBackgroundColor: appColorTokens.accent.bg,
+      contrastTextColor: appColorTokens.accent.contrastText,
+      regularTextColor: appColorTokens.accent.text,
+      borderColor: "transparent",
+      subtleBorderColor: appColorTokens.accent.bgShade,
     },
     neutral: {
-      background: isDark ? colors.neutral.gray[800] : colors.neutral.gray[200],
-      textColor: "neutral",
-      textColorVariant: isDark ? "white" : "black",
+      background: appColorTokens.neutral.bg,
+      subtleBackgroundColor: appColorTokens.neutral.bg,
+      contrastTextColor: appColorTokens.neutral.text,
+      regularTextColor: appColorTokens.neutral.text,
+      borderColor: "transparent",
+      subtleBorderColor: appColorTokens.neutral.bgShade,
     },
-  }
+  };
 }

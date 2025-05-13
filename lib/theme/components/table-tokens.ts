@@ -1,18 +1,12 @@
 // --- START OF FILE Copia de table-tokens.txt (CON CORRECCIÓN DE ERRORES DE LINTER) ---
 
 import tinycolor from "tinycolor2";
-import type { ColorScheme, Mode } from "../color-tokens";
-import type {
-  SemanticTokens,
-  ModeTokens,
-  ProCardVariant,
-} from "../color-tokens";
-import loadedColors from "../colors";
+import type { AppColorTokens } from "../ColorToken";
+import type { ProCardVariant } from "../color-tokens";
 
 export type CellVariant = ProCardVariant;
 
 export interface TableTokens {
-  // ... (interfaz sin cambios) ...
   container: {
     backgroundColor: string;
     borderColor: string;
@@ -87,10 +81,16 @@ export interface TableTokens {
     };
   };
   tooltip: {
-    backgroundColor: string;
-    foregroundColor: string;
-    borderColor: string;
-    borderColorLongContent: string;
+    default: {
+      backgroundColor: string;
+      foregroundColor: string;
+      borderColor: string;
+    };
+    longContent: {
+      backgroundColor: string;
+      foregroundColor: string;
+      borderColor: string;
+    };
   };
   expander: {
     circleBackground: string;
@@ -102,78 +102,67 @@ export interface TableTokens {
 }
 
 export function generateTableTokens(
-  colorScheme: ColorScheme,
-  mode: Mode,
-  semanticTokensFromHook: SemanticTokens,
-  modeColors: ModeTokens // Este es el tipo que no tiene 'card', 'popover', etc.
+  appColorTokens: AppColorTokens
 ): TableTokens {
-  const isDark = mode === "dark";
-  const currentThemeColors = loadedColors.themes[colorScheme];
-  const semanticBaseColors = loadedColors.semantic;
-  const neutralBaseColors = loadedColors.neutral;
-
-  const generateVariantStyle = (variant: CellVariant) => {
-    // ... (sin cambios en esta función interna)
+  const generateVariantStyle = (
+    variant: CellVariant,
+    currentAppColorTokens: AppColorTokens
+  ) => {
     let backgroundColor: string,
       foregroundColor: string,
       hoverBackgroundColor: string,
       borderColor: string | undefined = undefined;
 
-    const colorSetMap = {
-      primary: currentThemeColors.primary,
-      secondary: currentThemeColors.secondary,
-      tertiary: currentThemeColors.tertiary,
-      accent: semanticBaseColors.accent,
-      success: semanticBaseColors.success,
-      warning: semanticBaseColors.warning,
-      danger: semanticBaseColors.danger,
-    };
+    const {
+      primary,
+      secondary,
+      tertiary,
+      accent,
+      success,
+      warning,
+      danger,
+      neutral,
+      white,
+    } = currentAppColorTokens;
 
-    if (variant in colorSetMap) {
-      const cSet = colorSetMap[variant as keyof typeof colorSetMap];
-      backgroundColor = isDark ? cSet.bgDark : cSet.bg;
-      foregroundColor = isDark ? cSet.textDark : cSet.text;
-      hoverBackgroundColor = isDark
-        ? tinycolor(cSet.bgDark).darken(5).toString()
-        : tinycolor(cSet.bg).darken(10).toString();
-
-      borderColor = isDark ? cSet.pure : cSet.pureDark;
-    } else if (variant === "white") {
-      backgroundColor = isDark
-        ? neutralBaseColors.gray[800]
-        : neutralBaseColors.white;
-      foregroundColor = isDark
-        ? neutralBaseColors.gray[200]
-        : neutralBaseColors.gray[800];
-      hoverBackgroundColor = isDark
-        ? neutralBaseColors.gray[700]
-        : neutralBaseColors.gray[100];
-      borderColor = isDark
-        ? neutralBaseColors.gray[600]
-        : neutralBaseColors.gray[300];
+    if (variant === "white") {
+      const tokenSet = white;
+      backgroundColor = tokenSet.bg;
+      foregroundColor = tokenSet.text;
+      hoverBackgroundColor = tokenSet.bgShade || tokenSet.bg;
+      borderColor = tokenSet.pure;
     } else if (variant === "neutral") {
-      backgroundColor = isDark
-        ? neutralBaseColors.gray[700]
-        : neutralBaseColors.gray[50];
-      foregroundColor = isDark
-        ? neutralBaseColors.gray[200]
-        : neutralBaseColors.gray[700];
-      hoverBackgroundColor = isDark
-        ? neutralBaseColors.gray[600]
-        : neutralBaseColors.gray[100];
-      borderColor = isDark
-        ? neutralBaseColors.gray[500]
-        : neutralBaseColors.gray[200];
+      const tokenSet = neutral;
+      backgroundColor = tokenSet.bg;
+      foregroundColor = tokenSet.text;
+      hoverBackgroundColor = tokenSet.bgShade || tokenSet.bg;
+      borderColor = tokenSet.bgShade;
+    } else if (currentAppColorTokens[variant as keyof AppColorTokens]) {
+      const tokenSet = currentAppColorTokens[
+        variant as keyof typeof currentAppColorTokens
+      ] as typeof primary;
+      if (
+        tokenSet &&
+        typeof tokenSet === "object" &&
+        "bg" in tokenSet &&
+        "text" in tokenSet &&
+        "pure" in tokenSet
+      ) {
+        backgroundColor = tokenSet.bg;
+        foregroundColor = tokenSet.text;
+        hoverBackgroundColor = tokenSet.bgShade || tokenSet.bg;
+        borderColor = tokenSet.pure;
+      } else {
+        backgroundColor = neutral.bg;
+        foregroundColor = neutral.text;
+        hoverBackgroundColor = neutral.bgShade;
+        borderColor = neutral.bgShade;
+      }
     } else {
-      backgroundColor = isDark
-        ? neutralBaseColors.gray[800]
-        : neutralBaseColors.white;
-      foregroundColor = isDark
-        ? neutralBaseColors.gray[200]
-        : neutralBaseColors.gray[800];
-      hoverBackgroundColor = isDark
-        ? neutralBaseColors.gray[700]
-        : neutralBaseColors.gray[200];
+      backgroundColor = neutral.bg;
+      foregroundColor = neutral.text;
+      hoverBackgroundColor = neutral.bgShade;
+      borderColor = neutral.bgShade;
     }
     return {
       backgroundColor,
@@ -196,36 +185,32 @@ export function generateTableTokens(
     "white",
   ];
   allCellVariants.forEach((variant) => {
-    cellVariantTokens[variant] = generateVariantStyle(variant);
+    cellVariantTokens[variant] = generateVariantStyle(variant, appColorTokens);
   });
 
-  const containerBackgroundColor = modeColors.background;
-  const containerBorderColor = modeColors.border;
+  const containerBackgroundColor = appColorTokens.neutral.bg;
+  const containerBorderColor = appColorTokens.neutral.bgShade;
 
-  const headerBackgroundColor = isDark
-    ? currentThemeColors.primary.pureDark
-    : currentThemeColors.primary.pure;
-  const headerForegroundColor = neutralBaseColors.white;
-  const headerBorderColor = modeColors.border;
+  const headerBackgroundColor = appColorTokens.primary.pure;
+  const headerForegroundColor = appColorTokens.primary.contrastText;
+  const headerBorderColor = appColorTokens.neutral.bgShade;
   const sortIconColor = tinycolor(headerForegroundColor)
     .setAlpha(0.7)
     .toString();
   const sortIconHoverColor = headerForegroundColor;
-  const resizeHandleColor = tinycolor(semanticTokensFromHook.primary.background)
-    .setAlpha(0.3)
-    .toString();
-
-  const rowDefaultBackgroundColor = modeColors.background;
-  const rowDefaultForegroundColor = modeColors.foreground;
-  const rowDefaultBorderColor = tinycolor(modeColors.border)
+  const resizeHandleColor = tinycolor(appColorTokens.primary.bg)
     .setAlpha(0.5)
     .toString();
-  const rowDefaultHoverBackgroundColor = isDark
-    ? neutralBaseColors.gray[700]
-    : neutralBaseColors.gray[100]; // Cambiado a gray[100] para modo claro para un hover más sutil que gray[300]
+
+  const rowDefaultBackgroundColor = appColorTokens.neutral.bg;
+  const rowDefaultForegroundColor = appColorTokens.neutral.text;
+  const rowDefaultBorderColor = tinycolor(appColorTokens.neutral.bgShade)
+    .setAlpha(0.5)
+    .toString();
+  const rowDefaultHoverBackgroundColor = appColorTokens.neutral.bgShade;
 
   const generateRowStatusStyles = (statusKey: CellVariant) => {
-    const variantStyle = generateVariantStyle(statusKey);
+    const variantStyle = generateVariantStyle(statusKey, appColorTokens);
     return {
       backgroundColor: variantStyle.backgroundColor,
       foregroundColor: variantStyle.foregroundColor,
@@ -245,34 +230,32 @@ export function generateTableTokens(
     },
   };
 
-  const subRowBackgroundColor = tinycolor(modeColors.muted)
-    .setAlpha(isDark ? 0.25 : 0.4)
+  const subRowBackgroundColor = tinycolor(appColorTokens.neutral.bg)
+    .setAlpha(0.3)
     .toString();
-  const subRowIndentBorderColor =
-    semanticTokensFromHook.primary.border ||
-    semanticTokensFromHook.primary.background;
+  const subRowIndentBorderColor = appColorTokens.primary.pure;
 
-  const cellGeneralBorderColor = tinycolor(modeColors.border)
+  const cellGeneralBorderColor = tinycolor(appColorTokens.neutral.bgShade)
     .setAlpha(0.7)
     .toString();
-  const cellDefaultForegroundColor = modeColors.foreground;
+  const cellDefaultForegroundColor = appColorTokens.neutral.text;
 
-  // --- CORRECCIÓN PARA TOKENS DE TOOLBAR Y TOOLTIP ---
-  const columnSelectorBackgroundColor = modeColors.muted; // Volver a usar modeColors.muted
-  const columnSelectorForegroundColor = modeColors.foreground; // Usar modeColors.foreground
+  const columnSelectorBackgroundColor = appColorTokens.neutral.bg;
+  const columnSelectorForegroundColor = appColorTokens.neutral.text;
 
-  const tooltipBackgroundColor = modeColors.background; // Usar modeColors.background para el tooltip
-  const tooltipForegroundColor = modeColors.foreground; // Usar modeColors.foreground
-  const tooltipBorderColor = modeColors.border;
-  const tooltipBorderColorLongContent = semanticBaseColors.accent.pure;
+  const tooltipDefaultBackgroundColor = appColorTokens.neutral.bgShade;
+  const tooltipDefaultForegroundColor = appColorTokens.neutral.contrastText;
+  const tooltipDefaultBorderColor = appColorTokens.neutral.text;
 
-  const expanderCircleBg = currentThemeColors.primary.pure;
-  const expanderIconColor = neutralBaseColors.white;
-  const expanderCircleBorder = neutralBaseColors.white;
-  // Consideración: Si primary.text es muy oscuro (como #1f4487), podría no ser ideal para un fondo.
-  // primary.pureDark (#2E5EB9) podría ser una mejor alternativa si primary.text no funciona bien.
-  const expanderExpandedCircleBg = currentThemeColors.primary.pureDark; // Manteniendo tu sugerencia, pero con advertencia.
-  // Alternativa: currentThemeColors.primary.pureDark;
+  const tooltipLongContentBackgroundColor = "#ffffff";
+  const tooltipLongContentForegroundColor = appColorTokens.primary.text;
+  const tooltipLongContentBorderColor = appColorTokens.accent.pure;
+
+  const expanderCircleBg = appColorTokens.primary.pure;
+  const expanderIconColor = appColorTokens.primary.contrastText;
+  const expanderCircleBorder = appColorTokens.primary.contrastText;
+  const expanderExpandedCircleBg =
+    appColorTokens.primary.bgShade || appColorTokens.primary.bg;
 
   const expanderTokens = {
     circleBackground: expanderCircleBg,
@@ -318,10 +301,16 @@ export function generateTableTokens(
       },
     },
     tooltip: {
-      backgroundColor: tooltipBackgroundColor,
-      foregroundColor: tooltipForegroundColor,
-      borderColor: tooltipBorderColor,
-      borderColorLongContent: tooltipBorderColorLongContent,
+      default: {
+        backgroundColor: tooltipDefaultBackgroundColor,
+        foregroundColor: tooltipDefaultForegroundColor,
+        borderColor: tooltipDefaultBorderColor,
+      },
+      longContent: {
+        backgroundColor: tooltipLongContentBackgroundColor,
+        foregroundColor: tooltipLongContentForegroundColor,
+        borderColor: tooltipLongContentBorderColor,
+      },
     },
     expander: expanderTokens,
   };

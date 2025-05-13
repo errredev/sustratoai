@@ -21,7 +21,7 @@ export type ProCardVariant =
   | "danger"
   | "neutral"
   | "white";
-
+//test
 /**
  * Estructura de los tokens de color simplificados que consumirán los componentes refactorizados.
  * Proporciona un acceso directo a las paletas principales del tema activo.

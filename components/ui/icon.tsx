@@ -2,18 +2,24 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
-import { useColorTokens } from "@/hooks/use-color-tokens";
-import type { IconColor, IconSize } from "@/lib/theme/components/icon-tokens";
+// import { useColorTokens } from "@/hooks/use-color-tokens"; // Eliminado
+import { useTheme } from "@/app/theme-provider"; // Añadido
+import {
+  generateIconTokens, // Añadido
+  type IconColor,
+  type IconSize,
+  type IconColorToken, // Asegurarse que IconColorToken (con 'shade') está exportado
+} from "@/lib/theme/components/icon-tokens"; // Ruta actualizada si es necesario
 
 // Propiedades para el componente Icon
 export interface IconProps {
   color?: IconColor;
-  colorVariant?: "pure" | "text" | "dark" | "bg";
+  colorVariant?: "pure" | "text" | "shade" | "bg"; // 'dark' reemplazado por 'shade'
   size?: IconSize;
   className?: string;
   gradient?: boolean;
   gradientWith?: IconColor;
-  gradientColorVariant?: "pure" | "text" | "dark" | "bg";
+  gradientColorVariant?: "pure" | "text" | "shade" | "bg"; // 'dark' reemplazado por 'shade'
   strokeOnly?: boolean;
   inverseStroke?: boolean;
   children?: React.ReactNode;
@@ -21,23 +27,31 @@ export interface IconProps {
 
 /**
  * Componente Icon
- * Renderiza un icono de Lucide con estilos consistentes basados en el sistema de tokens
+ * Renderiza un icono con estilos consistentes basados en el sistema de tokens
  */
 export function Icon({
   color = "default",
-  colorVariant = "text",
+  colorVariant = "text", // colorVariant ahora es "pure" | "text" | "shade" | "bg"
   size = "md",
   className,
   gradient = false,
   gradientWith = "accent",
-  gradientColorVariant = "text",
+  gradientColorVariant = "text", // gradientColorVariant ahora es "pure" | "text" | "shade" | "bg"
   strokeOnly = false,
   inverseStroke,
   children,
   ...props
 }: IconProps) {
-  const { component } = useColorTokens();
-  const iconTokens = component.icon;
+  // const { component } = useColorTokens(); // Eliminado
+  // const legacyIconTokens = component.icon; // Eliminado
+
+  const { appColorTokens, mode } = useTheme(); // Añadido
+
+  const iconComponentTokens = React.useMemo(() => { // Añadido
+    if (!appColorTokens) return null;
+    // generateIconTokens ahora usa AppColorTokens y devuelve la estructura con 'shade'
+    return generateIconTokens(appColorTokens, mode);
+  }, [appColorTokens, mode]);
 
   // Si gradient=true y inverseStroke no está definido, lo establecemos como true
   // Esto hace que el gradiente inverso sea el comportamiento predeterminado
@@ -54,11 +68,17 @@ export function Icon({
   };
 
   // Obtener el color del token correspondiente
-  const getIconColor = () => {
-    if (!iconTokens?.colors) return "currentColor";
-    const token = iconTokens.colors[color];
-    return token ? token[colorVariant] || token.text : "currentColor";
+  const getColorValue = (
+    targetColor: IconColor,
+    variant: "pure" | "text" | "shade" | "bg"
+  ): string => {
+    if (!iconComponentTokens?.colors) return "currentColor";
+    const tokenSet = iconComponentTokens.colors[targetColor];
+    // La propiedad 'variant' ("pure", "text", "shade", "bg") debe existir en IconColorToken
+    return tokenSet ? tokenSet[variant] || tokenSet.text : "currentColor";
   };
+
+  const finalIconColor = getColorValue(color, colorVariant);
 
   // Crear un ID único para el gradiente
   const gradientId = React.useId();
@@ -66,21 +86,26 @@ export function Icon({
   const inverseGradientId = React.useId();
 
   // Obtener colores para el gradiente
-  // Para iconos con relleno, usamos "bg" que es más claro como color base
-  // Para iconos de solo contorno (strokeOnly), usamos "pure" como color base
-  const baseColor = strokeOnly
-    ? iconTokens?.colors?.[color]?.pure || "currentColor"
-    : iconTokens?.colors?.[color]?.bg || "currentColor";
+  let baseGradientColor = "currentColor";
+  let secondGradientColor = "currentColor";
 
-  // Para el color secundario usamos la variante especificada (por defecto "text")
-  const secondColor =
-    iconTokens?.colors?.[gradientWith]?.[gradientColorVariant] ||
-    "currentColor";
+  if (iconComponentTokens?.colors) {
+    const mainColorSet = iconComponentTokens.colors[color];
+    if (mainColorSet) {
+      baseGradientColor = strokeOnly // Corregido: 'baseColor' a 'baseGradientColor'
+        ? mainColorSet.pure
+        : mainColorSet.bg;
+    }
+    // Para el color secundario usamos la variante especificada
+    // getColorValue ya maneja la variante "pure", "text", "shade", "bg"
+    secondGradientColor = getColorValue(gradientWith, gradientColorVariant);
+  }
+
 
   // Crear un gradiente si se solicita
   const getIconStyle = () => {
     if (!gradient) {
-      return { color: getIconColor() };
+      return { color: finalIconColor }; // Usar finalIconColor
     }
 
     if (strokeOnly) {
@@ -99,7 +124,7 @@ export function Icon({
 
     return {
       fill: `url(#${gradientId})`,
-      stroke: `url(#${gradientId})`,
+      stroke: `url(#${gradientId})`, // Stroke usa el mismo gradiente que fill
     };
   };
 
@@ -110,11 +135,10 @@ export function Icon({
           <defs>
             {/* Gradiente para relleno */}
             <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={baseColor} />
-              <stop offset="100%" stopColor={secondColor} />
+              <stop offset="0%" stopColor={baseGradientColor} />
+              <stop offset="100%" stopColor={secondGradientColor} />
             </linearGradient>
-
-            {/* Gradiente solo para borde - para strokeOnly usamos pure en lugar de bg */}
+            {/* Gradiente para el contorno (stroke) si es diferente */}
             <linearGradient
               id={strokeGradientId}
               x1="0%"
@@ -122,41 +146,33 @@ export function Icon({
               x2="100%"
               y2="100%"
             >
-              <stop
-                offset="0%"
-                stopColor={iconTokens?.colors?.[color]?.pure || "currentColor"}
-              />
-              <stop offset="100%" stopColor={secondColor} />
+              <stop offset="0%" stopColor={baseGradientColor} />
+              <stop offset="100%" stopColor={secondGradientColor} />
             </linearGradient>
-
-            {/* Gradiente inverso para borde cuando se usa inverseStroke */}
+            {/* Gradiente inverso para el contorno (stroke) */}
             <linearGradient
               id={inverseGradientId}
-              x1="100%"
-              y1="100%"
-              x2="0%"
-              y2="0%"
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="100%"
             >
-              <stop offset="0%" stopColor={baseColor} />
-              <stop offset="100%" stopColor={secondColor} />
+              <stop offset="0%" stopColor={secondGradientColor} /> {/* Invertido */}
+              <stop offset="100%" stopColor={baseGradientColor} /> {/* Invertido */}
             </linearGradient>
           </defs>
         </svg>
       )}
-      {React.isValidElement(children)
-        ? React.cloneElement(children as React.ReactElement<any>, {
-            className: cn(
-              sizeClasses[size],
-              className,
-              (children as React.ReactElement<any>).props.className
-            ),
-            style: {
-              ...getIconStyle(),
-              ...(children as React.ReactElement<any>).props.style,
-            },
-            ...props,
-          })
-        : children}
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child)) {
+          return React.cloneElement(child as React.ReactElement<any>, {
+            className: cn(sizeClasses[size], className),
+            style: getIconStyle(),
+            ...props, // Pasar el resto de las props al icono hijo (ej. Lucide icon)
+          });
+        }
+        return child;
+      })}
     </>
   );
 }

@@ -1,286 +1,256 @@
-import colors from "../colors"
-import type { ColorScheme, Mode } from "../color-tokens"
-import tinycolor from "tinycolor2"
+import colors from "../colors";
+import tinycolor from "tinycolor2";
+import type { AppColorTokens, ColorShade, Mode } from "../ColorToken";
 
-export type SelectSize = "sm" | "md" | "lg"
-export type SelectVariant = "default" | "primary" | "secondary" | "tertiary" | "accent" | "neutral"
+export type SelectSize = "sm" | "md" | "lg";
+export type SelectVariant =
+  | "default"
+  | "primary"
+  | "secondary"
+  | "tertiary"
+  | "accent"
+  | "neutral";
 
 export type SelectTokens = {
   variants: Record<
     SelectVariant,
     {
-      background: string
-      border: string
-      text: string
-      placeholder: string
-      focusBorder: string
-      focusRing: string
-      hoverBorder: string
-      errorBorder: string
-      errorRing: string
-      errorBackground: string
-      successBorder: string
-      successRing: string
-      successText: string
-      successBackground: string
-      iconColor: string
-      disabledBackground: string
-      disabledBorder: string
-      disabledText: string
-      editingBackground: string
+      background: string;
+      border: string;
+      text: string;
+      placeholder: string;
+      focusBorder: string;
+      focusRing: string;
+      hoverBorder: string;
+      errorBorder: string;
+      errorRing: string;
+      errorBackground: string;
+      successBorder: string;
+      successRing: string;
+      successText: string;
+      successBackground: string;
+      iconColor: string;
+      disabledBackground: string;
+      disabledBorder: string;
+      disabledText: string;
+      editingBackground: string;
       // Dropdown específicos
-      dropdownBackground: string
-      dropdownBorder: string
-      optionHoverBackground: string
-      optionSelectedBackground: string
-      optionSelectedText: string
-      optionText: string
+      dropdownBackground: string;
+      dropdownBorder: string;
+      optionHoverBackground: string;
+      optionSelectedBackground: string;
+      optionSelectedText: string;
+      optionText: string;
       // Nuevo token para el fondo del botón del chevron
-      chevronButtonBackground: string
+      chevronButtonBackground: string;
     }
-  >
+  >;
   sizes: Record<
     SelectSize,
     {
-      height: string
-      fontSize: string
-      paddingX: string
-      paddingY: string
-      iconSize: string
-      iconPadding: string
+      height: string;
+      fontSize: string;
+      paddingX: string;
+      paddingY: string;
+      iconSize: string;
+      iconPadding: string;
       // Dropdown específicos
-      optionPaddingX: string
-      optionPaddingY: string
-      dropdownMaxHeight: string
+      optionPaddingX: string;
+      optionPaddingY: string;
+      dropdownMaxHeight: string;
     }
-  >
-}
+  >;
+};
 
-export function generateSelectTokens(colorScheme: ColorScheme, mode: Mode): SelectTokens {
-  const isDark = mode === "dark"
-  const theme = colors.themes[colorScheme]
-  const semantic = colors.semantic
-  const neutral = colors.neutral
+export function generateSelectTokens(
+  appColorTokens: AppColorTokens,
+  mode: Mode
+): SelectTokens {
+  // Usamos neutral.text directamente, que ya está definido correctamente según el modo
+  const textColor = appColorTokens.neutral.text;
+  const placeholderTextColor = tinycolor(textColor).setAlpha(0.6).toRgbString();
 
-  // Función para generar variantes - exactamente igual que en input-tokens.ts
-  const generateVariant = (baseColor: {
-    pure: string
-    pureDark: string
-    text: string
-    textDark: string
-    bg: string
-    bgDark: string
-  }) => {
+  // Definir color de icono por defecto basado en primary
+  const defaultIconColor =
+    mode === "dark"
+      ? tinycolor(appColorTokens.primary.text).setAlpha(0.9).toRgbString()
+      : tinycolor(appColorTokens.primary.pure).setAlpha(0.9).toRgbString();
+
+  // Función para generar variantes
+  const generateVariant = (baseColor: ColorShade) => {
     // Para el borde normal, usamos gris en lugar del color de la variante
-    const borderColor = isDark ? neutral.gray[600] : neutral.gray[300]
-    const focusBorderColor = isDark ? baseColor.pureDark : baseColor.pure
-    const focusRingColor = isDark
-      ? tinycolor(baseColor.pureDark).setAlpha(0.2).toRgbString()
-      : tinycolor(baseColor.pure).setAlpha(0.2).toRgbString()
+    const borderColor = appColorTokens.neutral.pure;
+    const focusBorderColor = baseColor.pure;
+    const focusRingColor = tinycolor(baseColor.pure)
+      .setAlpha(0.2)
+      .toRgbString();
 
     // Fondos con degradado sutil para estados especiales
-    const errorBgColor = isDark
-      ? tinycolor(semantic.danger.bgDark || "#3B1A1A")
-          .setAlpha(0.3)
-          .toRgbString()
-      : tinycolor(semantic.danger.bg || "#FEF2F2")
-          .setAlpha(0.5)
-          .toRgbString()
+    const errorBgColor = tinycolor(appColorTokens.danger.bg)
+      .setAlpha(mode === "dark" ? 0.3 : 0.5)
+      .toRgbString();
 
-    const successBgColor = isDark
-      ? tinycolor(semantic.success.bgDark || "#132E1F")
-          .setAlpha(0.3)
-          .toRgbString()
-      : tinycolor(semantic.success.bg || "#F0FDF4")
-          .setAlpha(0.5)
-          .toRgbString()
+    const successBgColor = tinycolor(appColorTokens.success.bg)
+      .setAlpha(mode === "dark" ? 0.3 : 0.5)
+      .toRgbString();
 
-    const editingBgColor = isDark
-      ? tinycolor(theme.tertiary.bgDark || "#1F2937")
-          .setAlpha(0.3)
-          .toRgbString()
-      : tinycolor(theme.tertiary.bg || "#F3F4F6")
-          .setAlpha(0.5)
-          .toRgbString()
+    const editingBgColor = tinycolor(appColorTokens.tertiary.bg)
+      .setAlpha(mode === "dark" ? 0.3 : 0.5)
+      .toRgbString();
 
     // Colores específicos para el dropdown
-    const dropdownBgColor = isDark ? neutral.gray[800] : neutral.white
-    const optionHoverBgColor = isDark
-      ? tinycolor(baseColor.pureDark).setAlpha(0.15).toRgbString()
-      : tinycolor(baseColor.pure).setAlpha(0.15).toRgbString()
-    const optionSelectedBgColor = isDark
-      ? tinycolor(baseColor.pureDark).setAlpha(0.25).toRgbString()
-      : tinycolor(baseColor.pure).setAlpha(0.25).toRgbString()
-    const optionSelectedTextColor = isDark ? baseColor.pureDark : baseColor.pure
+    const dropdownBgColor =
+      mode === "dark" ? appColorTokens.neutral.bg : appColorTokens.white.bg;
+    const optionHoverBgColor = tinycolor(baseColor.pure)
+      .setAlpha(0.15)
+      .toRgbString();
+    const optionSelectedBgColor = tinycolor(baseColor.pure)
+      .setAlpha(0.25)
+      .toRgbString();
+    const optionSelectedTextColor = baseColor.pure;
+
+    // Color del icono según la variante y el modo
+    const variantIconColor =
+      mode === "dark"
+        ? tinycolor(baseColor.text).setAlpha(0.9).toRgbString()
+        : tinycolor(baseColor.pure).setAlpha(0.9).toRgbString();
 
     // Nuevo color para el fondo del botón del chevron con mejor contraste
-    const chevronButtonBgColor = isDark
-      ? tinycolor(baseColor.pureDark).setAlpha(0.2).toRgbString()
-      : tinycolor(baseColor.bg).darken(5).toRgbString()
+    const chevronButtonBgColor =
+      mode === "dark"
+        ? tinycolor(baseColor.pure).setAlpha(0.2).toRgbString()
+        : tinycolor(baseColor.bg).darken(5).toRgbString();
 
     return {
-      background: isDark ? neutral.gray[800] : neutral.white,
+      background:
+        mode === "dark" ? appColorTokens.neutral.bg : appColorTokens.white.bg,
       border: borderColor,
-      text: isDark ? neutral.gray[100] : neutral.gray[900],
-      placeholder: isDark ? neutral.gray[500] : neutral.gray[400],
+      text: textColor,
+      placeholder: placeholderTextColor,
       focusBorder: focusBorderColor,
       focusRing: focusRingColor,
-      hoverBorder: isDark
-        ? tinycolor(baseColor.pureDark).lighten(10).toString()
-        : tinycolor(baseColor.pure).darken(10).toString(),
-      errorBorder: isDark ? semantic.danger.pureDark : semantic.danger.pure,
-      errorRing: isDark
-        ? tinycolor(semantic.danger.pureDark).setAlpha(0.2).toRgbString()
-        : tinycolor(semantic.danger.pure).setAlpha(0.2).toRgbString(),
+      hoverBorder:
+        mode === "dark"
+          ? tinycolor(baseColor.pure).lighten(10).toString()
+          : tinycolor(baseColor.pure).darken(10).toString(),
+      errorBorder: appColorTokens.danger.pure,
+      errorRing: tinycolor(appColorTokens.danger.pure)
+        .setAlpha(0.2)
+        .toRgbString(),
       errorBackground: errorBgColor,
-      successBorder: isDark ? semantic.success.pureDark : semantic.success.pure,
-      successRing: isDark
-        ? tinycolor(semantic.success.pureDark).setAlpha(0.2).toRgbString()
-        : tinycolor(semantic.success.pure).setAlpha(0.2).toRgbString(),
-      successText: isDark ? semantic.success.textDark : semantic.success.text,
+      successBorder: appColorTokens.success.pure,
+      successRing: tinycolor(appColorTokens.success.pure)
+        .setAlpha(0.2)
+        .toRgbString(),
+      successText: appColorTokens.success.text,
       successBackground: successBgColor,
-      iconColor: isDark ? neutral.gray[400] : neutral.gray[500],
-      disabledBackground: isDark ? neutral.gray[700] : neutral.gray[100],
-      disabledBorder: isDark ? neutral.gray[600] : neutral.gray[300],
-      disabledText: isDark ? neutral.gray[500] : neutral.gray[400],
+      iconColor: variantIconColor,
+      disabledBackground: appColorTokens.neutral.bgShade,
+      disabledBorder: tinycolor(appColorTokens.neutral.pure)
+        .setAlpha(0.4)
+        .toRgbString(),
+      disabledText: tinycolor(appColorTokens.neutral.text)
+        .setAlpha(0.5)
+        .toRgbString(),
       editingBackground: editingBgColor,
       // Dropdown específicos
       dropdownBackground: dropdownBgColor,
-      dropdownBorder: isDark ? neutral.gray[700] : neutral.gray[200],
+      dropdownBorder:
+        mode === "dark"
+          ? appColorTokens.neutral.bgShade
+          : appColorTokens.neutral.pure,
       optionHoverBackground: optionHoverBgColor,
       optionSelectedBackground: optionSelectedBgColor,
       optionSelectedText: optionSelectedTextColor,
-      optionText: isDark ? neutral.gray[100] : neutral.gray[900],
+      optionText: appColorTokens.neutral.text,
       // Nuevo token para el fondo del botón del chevron
       chevronButtonBackground: chevronButtonBgColor,
-    }
-  }
+    };
+  };
 
   // Generar fondo de edición para el tema terciario
-  const tertiaryEditingBg = isDark
-    ? tinycolor(theme.tertiary.bgDark || "#1F2937")
-        .setAlpha(0.3)
-        .toRgbString()
-    : tinycolor(theme.tertiary.bg || "#F3F4F6")
-        .setAlpha(0.5)
-        .toRgbString()
+  const tertiaryEditingBg = tinycolor(appColorTokens.tertiary.bg)
+    .setAlpha(mode === "dark" ? 0.3 : 0.5)
+    .toRgbString();
 
   // Fondos con degradado sutil para estados especiales
-  const errorBgColor = isDark
-    ? tinycolor(semantic.danger.bgDark || "#3B1A1A")
-        .setAlpha(0.3)
-        .toRgbString()
-    : tinycolor(semantic.danger.bg || "#FEF2F2")
-        .setAlpha(0.5)
-        .toRgbString()
+  const errorBgColor = tinycolor(appColorTokens.danger.bg)
+    .setAlpha(mode === "dark" ? 0.3 : 0.5)
+    .toRgbString();
 
-  const successBgColor = isDark
-    ? tinycolor(semantic.success.bgDark || "#132E1F")
-        .setAlpha(0.3)
-        .toRgbString()
-    : tinycolor(semantic.success.bg || "#F0FDF4")
-        .setAlpha(0.5)
-        .toRgbString()
+  const successBgColor = tinycolor(appColorTokens.success.bg)
+    .setAlpha(mode === "dark" ? 0.3 : 0.5)
+    .toRgbString();
 
   // Colores específicos para el dropdown en variante default
-  const defaultOptionHoverBgColor = isDark
-    ? tinycolor(theme.primary.pureDark).setAlpha(0.15).toRgbString()
-    : tinycolor(theme.primary.pure).setAlpha(0.15).toRgbString()
-
-  const defaultOptionSelectedBgColor = isDark
-    ? tinycolor(theme.primary.pureDark).setAlpha(0.25).toRgbString()
-    : tinycolor(theme.primary.pure).setAlpha(0.25).toRgbString()
-  const defaultOptionSelectedTextColor = isDark ? theme.primary.pureDark : theme.primary.pure
+  const defaultOptionHoverBgColor = tinycolor(appColorTokens.primary.pure)
+    .setAlpha(0.15)
+    .toRgbString();
+  const defaultOptionSelectedBgColor = tinycolor(appColorTokens.primary.pure)
+    .setAlpha(0.25)
+    .toRgbString();
+  const defaultOptionSelectedTextColor = appColorTokens.primary.pure;
 
   // Nuevo token para el fondo del botón del chevron con mejor contraste
-  const defaultChevronButtonBgColor = isDark
-    ? tinycolor(theme.primary.pureDark).setAlpha(0.2).toRgbString()
-    : tinycolor(theme.primary.bg).darken(5).toRgbString()
+  const defaultChevronButtonBgColor =
+    mode === "dark"
+      ? tinycolor(appColorTokens.primary.pure).setAlpha(0.2).toRgbString()
+      : tinycolor(appColorTokens.primary.bg).darken(5).toRgbString();
 
   return {
     variants: {
       default: {
-        background: isDark ? neutral.gray[800] : neutral.white,
-        // Asegurarnos de que el borde normal siempre sea gris
-        border: isDark ? neutral.gray[600] : neutral.gray[300],
-        text: isDark ? neutral.gray[100] : neutral.gray[900],
-        placeholder: isDark ? neutral.gray[500] : neutral.gray[400],
-        focusBorder: isDark ? theme.primary.pureDark : theme.primary.pure,
-        focusRing: isDark
-          ? tinycolor(theme.primary.pureDark).setAlpha(0.2).toRgbString()
-          : tinycolor(theme.primary.pure).setAlpha(0.2).toRgbString(),
-        hoverBorder: isDark ? neutral.gray[500] : neutral.gray[400],
-        errorBorder: isDark ? semantic.danger.pureDark : semantic.danger.pure,
-        errorRing: isDark
-          ? tinycolor(semantic.danger.pureDark).setAlpha(0.2).toRgbString()
-          : tinycolor(semantic.danger.pure).setAlpha(0.2).toRgbString(),
+        background:
+          mode === "dark" ? appColorTokens.neutral.bg : appColorTokens.white.bg,
+        border:
+          mode === "dark"
+            ? appColorTokens.neutral.pure
+            : appColorTokens.neutral.pure,
+        text: textColor,
+        placeholder: placeholderTextColor,
+        focusBorder: appColorTokens.primary.pure,
+        focusRing: tinycolor(appColorTokens.primary.pure)
+          .setAlpha(0.2)
+          .toRgbString(),
+        hoverBorder: appColorTokens.neutral.bgShade,
+        errorBorder: appColorTokens.danger.pure,
+        errorRing: tinycolor(appColorTokens.danger.pure)
+          .setAlpha(0.2)
+          .toRgbString(),
         errorBackground: errorBgColor,
-        successBorder: isDark ? semantic.success.pureDark : semantic.success.pure,
-        successRing: isDark
-          ? tinycolor(semantic.success.pureDark).setAlpha(0.2).toRgbString()
-          : tinycolor(semantic.success.pure).setAlpha(0.2).toRgbString(),
-        successText: isDark ? semantic.success.textDark : semantic.success.text,
+        successBorder: appColorTokens.success.pure,
+        successRing: tinycolor(appColorTokens.success.pure)
+          .setAlpha(0.2)
+          .toRgbString(),
+        successText: appColorTokens.success.text,
         successBackground: successBgColor,
-        iconColor: isDark ? neutral.gray[400] : neutral.gray[500],
-        disabledBackground: isDark ? neutral.gray[700] : neutral.gray[100],
-        disabledBorder: isDark ? neutral.gray[600] : neutral.gray[300],
-        disabledText: isDark ? neutral.gray[500] : neutral.gray[400],
+        iconColor: defaultIconColor,
+        disabledBackground: appColorTokens.neutral.bgShade,
+        disabledBorder: tinycolor(appColorTokens.neutral.pure)
+          .setAlpha(0.4)
+          .toRgbString(),
+        disabledText: tinycolor(appColorTokens.neutral.text)
+          .setAlpha(0.5)
+          .toRgbString(),
         editingBackground: tertiaryEditingBg,
-        // Dropdown específicos
-        dropdownBackground: isDark ? neutral.gray[800] : neutral.white,
-        dropdownBorder: isDark ? neutral.gray[700] : neutral.gray[200],
+        dropdownBackground:
+          mode === "dark" ? appColorTokens.neutral.bg : appColorTokens.white.bg,
+        dropdownBorder:
+          mode === "dark"
+            ? appColorTokens.neutral.bgShade
+            : appColorTokens.neutral.pure,
         optionHoverBackground: defaultOptionHoverBgColor,
         optionSelectedBackground: defaultOptionSelectedBgColor,
         optionSelectedText: defaultOptionSelectedTextColor,
-        optionText: isDark ? neutral.gray[100] : neutral.gray[900],
-        // Nuevo token para el fondo del botón del chevron
+        optionText: appColorTokens.neutral.text,
         chevronButtonBackground: defaultChevronButtonBgColor,
       },
-      primary: generateVariant(theme.primary),
-      secondary: generateVariant(theme.secondary),
-      tertiary: generateVariant(theme.tertiary),
-      accent: generateVariant(semantic.accent),
+      primary: generateVariant(appColorTokens.primary),
+      secondary: generateVariant(appColorTokens.secondary),
+      tertiary: generateVariant(appColorTokens.tertiary),
+      accent: generateVariant(appColorTokens.accent),
       neutral: {
-        background: isDark ? neutral.gray[800] : neutral.white,
-        border: isDark ? neutral.gray[600] : neutral.gray[300],
-        text: isDark ? neutral.gray[100] : neutral.gray[900],
-        placeholder: isDark ? neutral.gray[500] : neutral.gray[400],
-        focusBorder: isDark ? neutral.gray[400] : neutral.gray[600],
-        focusRing: isDark
-          ? tinycolor(neutral.gray[400]).setAlpha(0.2).toRgbString()
-          : tinycolor(neutral.gray[600]).setAlpha(0.2).toRgbString(),
-        hoverBorder: isDark ? neutral.gray[500] : neutral.gray[400],
-        errorBorder: isDark ? semantic.danger.pureDark : semantic.danger.pure,
-        errorRing: isDark
-          ? tinycolor(semantic.danger.pureDark).setAlpha(0.2).toRgbString()
-          : tinycolor(semantic.danger.pure).setAlpha(0.2).toRgbString(),
-        errorBackground: errorBgColor,
-        successBorder: isDark ? semantic.success.pureDark : semantic.success.pure,
-        successRing: isDark
-          ? tinycolor(semantic.success.pureDark).setAlpha(0.2).toRgbString()
-          : tinycolor(semantic.success.pure).setAlpha(0.2).toRgbString(),
-        successText: isDark ? semantic.success.textDark : semantic.success.text,
-        successBackground: successBgColor,
-        iconColor: isDark ? neutral.gray[400] : neutral.gray[500],
-        disabledBackground: isDark ? neutral.gray[700] : neutral.gray[100],
-        disabledBorder: isDark ? neutral.gray[600] : neutral.gray[300],
-        disabledText: isDark ? neutral.gray[500] : neutral.gray[400],
-        editingBackground: tertiaryEditingBg,
-        // Dropdown específicos
-        dropdownBackground: isDark ? neutral.gray[800] : neutral.white,
-        dropdownBorder: isDark ? neutral.gray[700] : neutral.gray[200],
-        optionHoverBackground: isDark
-          ? tinycolor(neutral.gray[700]).setAlpha(0.7).toRgbString()
-          : tinycolor(neutral.gray[200]).setAlpha(0.7).toRgbString(),
-        optionSelectedBackground: isDark
-          ? tinycolor(neutral.gray[600]).setAlpha(0.8).toRgbString()
-          : tinycolor(neutral.gray[300]).setAlpha(0.8).toRgbString(),
-        optionSelectedText: isDark ? neutral.gray[100] : neutral.gray[900],
-        optionText: isDark ? neutral.gray[100] : neutral.gray[900],
-        // Nuevo token para el fondo del botón del chevron en la variante neutral con mejor contraste
-        chevronButtonBackground: isDark
-          ? tinycolor(neutral.gray[600]).setAlpha(0.5).toRgbString()
-          : tinycolor(neutral.gray[200]).darken(5).toRgbString(),
+        ...generateVariant(appColorTokens.neutral),
       },
     },
     sizes: {
@@ -291,7 +261,6 @@ export function generateSelectTokens(colorScheme: ColorScheme, mode: Mode): Sele
         paddingY: "py-1",
         iconSize: "h-2.5 w-2.5",
         iconPadding: "pl-7 pr-2",
-        // Dropdown específicos
         optionPaddingX: "px-2",
         optionPaddingY: "py-1",
         dropdownMaxHeight: "max-h-40",
@@ -303,7 +272,6 @@ export function generateSelectTokens(colorScheme: ColorScheme, mode: Mode): Sele
         paddingY: "py-2",
         iconSize: "h-3.5 w-3.5",
         iconPadding: "pl-10 pr-3",
-        // Dropdown específicos
         optionPaddingX: "px-3",
         optionPaddingY: "py-2",
         dropdownMaxHeight: "max-h-60",
@@ -315,11 +283,10 @@ export function generateSelectTokens(colorScheme: ColorScheme, mode: Mode): Sele
         paddingY: "py-2.5",
         iconSize: "h-4 w-4",
         iconPadding: "pl-12 pr-4",
-        // Dropdown específicos
         optionPaddingX: "px-4",
         optionPaddingY: "py-2.5",
         dropdownMaxHeight: "max-h-72",
       },
     },
-  }
+  };
 }

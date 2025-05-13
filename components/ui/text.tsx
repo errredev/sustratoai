@@ -9,15 +9,33 @@ import {
   type TextTokens,
 } from "@/lib/theme/components/text-tokens";
 import { useMemo } from "react";
-import type {
-  TextVariant,
-  TextSize,
-  TextWeight,
-  TextAlign,
-  TextColor,
-  ColorVariant as OriginalColorVariant,
-  GradientType,
-} from "@/lib/theme/components/text-tokens";
+// import type {
+//   TextVariant,
+//   TextSize,
+//   TextWeight,
+//   TextAlign,
+//   TextColor,
+//   ColorVariant as OriginalColorVariant,
+//   GradientType,
+// } from "@/lib/theme/components/text-tokens";
+
+// Definiciones de tipo locales
+type TextVariant = keyof TextTokens["variants"];
+type TextColor = keyof TextTokens["colors"];
+type GradientType = keyof TextTokens["gradients"] | boolean;
+type TextSize =
+  | "xs"
+  | "sm"
+  | "base"
+  | "lg"
+  | "xl"
+  | "2xl"
+  | "3xl"
+  | "4xl"
+  | "5xl";
+type TextWeight = "normal" | "medium" | "semibold" | "bold";
+type TextAlign = "left" | "center" | "right" | "justify";
+type OriginalColorVariant = "pure" | "text" | "dark";
 
 // Tipo para la fuente del par a utilizar
 export type FontPairType = "heading" | "body";
@@ -91,7 +109,8 @@ export function Text({
   const styleDefaults = textTokens.variants[effectiveVariantForStyleDefaults];
   const colorVariantDefaultName = textTokens.variants[variant].color;
 
-  let finalColorName: TextColor = initialColor || colorVariantDefaultName;
+  let finalColorName: TextColor =
+    initialColor || (colorVariantDefaultName as TextColor);
   let finalGradient: GradientType | boolean = initialGradient;
   const finalColorVariant: ColorVariant = colorVariant || "text";
 
@@ -105,8 +124,8 @@ export function Text({
     }
   }
 
-  const finalSize = size || styleDefaults.size;
-  const finalWeight = weight || styleDefaults.weight;
+  const finalSize = size || (styleDefaults.size as TextSize);
+  const finalWeight = weight || (styleDefaults.weight as TextWeight);
 
   const determineFontType = (): FontPairType => {
     if (fontType) return fontType;

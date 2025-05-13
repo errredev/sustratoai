@@ -1,98 +1,176 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { cn } from "@/lib/utils"
-import { AlertCircle, CheckCircle } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useColorTokens } from "@/hooks/use-color-tokens"
-import type { InputSize, InputVariant } from "@/lib/theme/components/input-tokens"
-import { Icon } from "./icon"
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { AlertCircle, CheckCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "@/app/theme-provider";
+import type {
+  TextareaSize,
+  TextareaVariant,
+  TextareaTokens,
+} from "@/lib/theme/components/textarea-tokens";
+import { generateTextareaTokens } from "@/lib/theme/components/textarea-tokens";
+import { Icon } from "./icon";
 
-export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  error?: string
-  hint?: string
-  isEditing?: boolean
-  showCharacterCount?: boolean
-  size?: InputSize
-  variant?: InputVariant
-  isSuccess?: boolean
+export interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  error?: string;
+  hint?: string;
+  isEditing?: boolean;
+  showCharacterCount?: boolean;
+  size?: TextareaSize;
+  variant?: TextareaVariant;
+  isSuccess?: boolean;
 }
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   (
-    { className, error, hint, isEditing, showCharacterCount, size = "md", variant = "default", isSuccess, ...props },
-    ref,
+    {
+      className,
+      error,
+      hint,
+      isEditing,
+      showCharacterCount,
+      size = "md",
+      variant = "default",
+      isSuccess,
+      ...props
+    },
+    ref
   ) => {
-    const [charCount, setCharCount] = React.useState(props.value ? String(props.value).length : 0)
-    const { component } = useColorTokens()
-    const inputTokens = component.input
-    const variantTokens = inputTokens.variants[variant]
-    const sizeTokens = inputTokens.sizes[size]
+    const [charCount, setCharCount] = React.useState(
+      props.value ? String(props.value).length : 0
+    );
+    const { appColorTokens, mode } = useTheme();
+
+    const textareaTokens: TextareaTokens | null = React.useMemo(() => {
+      if (!appColorTokens || !mode) return null;
+      return generateTextareaTokens(appColorTokens, mode);
+    }, [appColorTokens, mode]);
+
+    if (!textareaTokens) {
+      return (
+        <div className="w-full">
+          <textarea
+            className={cn(
+              "flex w-full min-h-[80px] rounded-md px-3 py-2 transition-all",
+              "border border-gray-300 bg-gray-100 text-sm",
+              "placeholder:text-gray-400 disabled:cursor-not-allowed disabled:opacity-50",
+              className
+            )}
+            ref={ref}
+            disabled={props.disabled}
+            placeholder="Loading..."
+            {...props}
+          />
+        </div>
+      );
+    }
+
+    const variantTokens = textareaTokens.variants[variant];
+    const sizeTokens = textareaTokens.sizes[size];
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setCharCount(e.target.value.length)
-      props.onChange?.(e)
-    }
+      setCharCount(e.target.value.length);
+      props.onChange?.(e);
+    };
 
     React.useEffect(() => {
       if (props.value !== undefined) {
-        setCharCount(String(props.value).length)
+        setCharCount(String(props.value).length);
       }
-    }, [props.value])
+    }, [props.value]);
 
     const getCounterColor = () => {
-      if (!props.maxLength) return "text-muted-foreground"
-      if (charCount === props.maxLength) return "text-green-500"
-      if (charCount > props.maxLength) return "text-red-500"
-      if (charCount >= props.maxLength * 0.8) return "text-amber-500"
-      return "text-muted-foreground"
-    }
+      if (!props.maxLength) return variantTokens.placeholder;
+      if (charCount === props.maxLength) return variantTokens.successText;
+      if (charCount > props.maxLength) return variantTokens.errorText;
+      if (charCount >= props.maxLength * 0.8)
+        return variantTokens.warningText || variantTokens.placeholder;
+      return variantTokens.placeholder;
+    };
 
-    // Mapear tamaños de Input a tamaños de Icon
-    const mapInputSizeToIconSize = (inputSize: InputSize) => {
-      switch (inputSize) {
+    const mapTextareaSizeToIconSize = (textareaSize: TextareaSize) => {
+      switch (textareaSize) {
         case "sm":
-          return "xs"
+          return "xs";
         case "lg":
-          return "md"
+          return "md";
         default:
-          return "sm" // md input -> sm icon
+          return "sm";
       }
-    }
+    };
+    const iconSize = mapTextareaSizeToIconSize(size);
 
-    const iconSize = mapInputSizeToIconSize(size)
+    const currentBorderColor = error
+      ? variantTokens.errorBorder
+      : isSuccess
+      ? variantTokens.successBorder
+      : variantTokens.border;
 
-    // Obtener el color de fondo basado en el estado
-    const getBackgroundColor = () => {
-      if (props.disabled) return variantTokens.disabledBackground
-      if (error) return variantTokens.errorBackground
-      if (isSuccess) return variantTokens.successBackground
-      if (isEditing) return variantTokens.editingBackground
-      return variantTokens.background
-    }
+    const currentFocusBorderColor = error
+      ? variantTokens.errorBorder
+      : isSuccess
+      ? variantTokens.successBorder
+      : variantTokens.focusBorder;
+
+    const currentFocusRingColor = error
+      ? variantTokens.errorRing
+      : isSuccess
+      ? variantTokens.successRing
+      : variantTokens.focusRing;
+
+    const currentBackgroundColor = props.disabled
+      ? variantTokens.disabledBackground
+      : error
+      ? variantTokens.errorBackground
+      : isSuccess
+      ? variantTokens.successBackground
+      : isEditing
+      ? variantTokens.editingBackground
+      : variantTokens.background;
 
     return (
       <div className="w-full">
         <div className="relative w-full">
           <textarea
             className={cn(
-              "peer",
-              "flex w-full min-h-[80px] rounded-md px-3 py-2 transition-all",
-              "border shadow-sm",
-              "placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
-              "focus:outline-none focus:ring-4",
-              "shadow-[0_0_0_1px_rgba(176,190,217,0.2),0_1px_2px_rgba(176,190,217,0.2)]",
-              error
-                ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                : isSuccess
-                  ? "border-green-500 focus:border-green-500 focus:ring-green-500/20"
-                  : "border-[#d0d5dd] focus:border-primary focus:ring-primary/20",
+              "peer flex w-full rounded-md transition-all",
+              sizeTokens.minHeight,
+              sizeTokens.paddingX,
+              sizeTokens.paddingY,
               sizeTokens.fontSize,
-              className,
+              "border",
+              "placeholder:text-muted-foreground",
+              props.disabled &&
+                "disabled:cursor-not-allowed disabled:opacity-50",
+              className
             )}
             ref={ref}
             onChange={handleChange}
-            style={{ backgroundColor: getBackgroundColor() }}
+            style={{
+              backgroundColor: currentBackgroundColor,
+              color: props.disabled
+                ? variantTokens.disabledText
+                : variantTokens.text,
+              borderColor: currentBorderColor,
+              outline: "none",
+              boxShadow: "none",
+            }}
+            onFocus={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.borderColor = currentFocusBorderColor;
+              target.style.boxShadow = `0 0 0 4px ${currentFocusRingColor}`;
+              props.onFocus?.(e);
+            }}
+            onBlur={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.borderColor = currentBorderColor;
+              target.style.boxShadow = "none";
+              props.onBlur?.(e);
+            }}
+            placeholder={props.placeholder}
             {...props}
           />
 
@@ -106,7 +184,11 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.2 }}
               >
-                <Icon icon={AlertCircle} size={iconSize} color="danger" />
+                <div style={{ color: variantTokens.errorText }}>
+                  {React.createElement(AlertCircle, {
+                    size: iconSize === "xs" ? 12 : iconSize === "sm" ? 14 : 16,
+                  })}
+                </div>
               </motion.div>
             )}
             {isSuccess && !error && (
@@ -118,7 +200,11 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.2 }}
               >
-                <Icon icon={CheckCircle} size={iconSize} color="success" />
+                <div style={{ color: variantTokens.successText }}>
+                  {React.createElement(CheckCircle, {
+                    size: iconSize === "xs" ? 12 : iconSize === "sm" ? 14 : 16,
+                  })}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -129,25 +215,28 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             className={cn("text-xs")}
             style={{
               color: error
-                ? variantTokens.errorBorder
+                ? variantTokens.errorText
                 : isSuccess
-                  ? variantTokens.successText
-                  : variantTokens.placeholder,
+                ? variantTokens.successText
+                : variantTokens.placeholder,
             }}
           >
-            {error || hint}
+            {error ? error : hint}
           </div>
 
           {showCharacterCount && props.maxLength && (
-            <div className={cn("ml-auto text-xs", getCounterColor())}>
+            <div
+              className={cn("ml-auto text-xs", getCounterColor())}
+              style={{ color: getCounterColor() }}
+            >
               {charCount}/{props.maxLength}
             </div>
           )}
         </div>
       </div>
-    )
-  },
-)
+    );
+  }
+);
 
-Textarea.displayName = "Textarea"
-export { Textarea }
+Textarea.displayName = "Textarea";
+export { Textarea };
