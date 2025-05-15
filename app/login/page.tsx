@@ -75,7 +75,7 @@ export default function LoginPage() {
             <SustratoLogoWithFixedText
               size={60}
               variant="vertical"
-              speed="normal"
+              speed="fast"
               initialTheme="blue"
             />
             <Text variant="heading" color="primary" className="mt-4">
@@ -102,7 +102,7 @@ export default function LoginPage() {
                   <SustratoLogoWithFixedText
                     size={80}
                     variant="vertical"
-                    speed="slow"
+                    speed="fast"
                     initialTheme="blue"
                   />
                 </div>

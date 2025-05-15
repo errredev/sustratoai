@@ -94,7 +94,7 @@ export function SustratoLoadingLogo({
       bg: componentTokens?.colors?.accent?.bg || "#e0b7ff",
       pure: componentTokens?.colors?.accent?.pure || "#9333ea",
       text: componentTokens?.colors?.accent?.text || "#6b21a8",
-      dark: componentTokens?.colors?.accent?.dark || "#581c87",
+      dark: componentTokens?.colors?.accent.textShade || "#581c87",
     }),
     [componentTokens]
   );

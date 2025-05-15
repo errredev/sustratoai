@@ -1,302 +1,589 @@
-// --- START OF FILE proyecto-actions.ts ---
+// --- EN proyecto-actions.ts ---
+"use server";
 
-"use server"
+import { createSupabaseServerClient } from "@/lib/server";
+import { Database } from "@/lib/database.types";
 
-// Ya no usamos createServerComponentClient para evitar problemas con cookies()
-// import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-// import { cookies } from "next/headers";
-// Ruta de importación CORREGIDA (sin .ts)
-import { Database } from '@/lib/database.types';
-import { createServerClient } from "@supabase/ssr";
-import { createServerSupabaseClient } from "@/app/auth/session";
-import { cookies } from "next/headers";
-
-
-// Interfaz para el tipo de proyecto
-export interface Proyecto {
+// ========================================================================
+//  INICIO: DEFINICIONES DE INTERFACES Y TIPOS
+// ========================================================================
+export interface Project {
   id: string;
-  nombre: string;
-  codigo?: string;
-  descripcion?: string;
+  name: string;
+  code?: string | null;
+  description?: string | null;
+  institution_name?: string | null;
+  status?: string | null;
+  module_bibliography?: boolean | null;
+  module_interviews?: boolean | null;
+  module_planning?: boolean | null;
 }
 
-// Interfaz para el perfil de investigador (datos generales)
-export interface PerfilInvestigador {
-    user_id: string;
-    nombre?: string | null; 
-    apellido?: string | null;
-    institucion?: string | null;
-    telefono?: string | null;
-    notas?: string | null;
+export interface UserProfile {
+  user_id: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  primary_institution?: string | null;
+  contact_phone?: string | null;
+  general_notes?: string | null;
+  public_display_name?: string | null;
+  public_contact_email?: string | null;
+  preferred_language?: string | null;
+  pronouns?: string | null;
 }
 
+// Interfaz para los permisos de un rol
+export interface RolePermissions {
+  role_name?: string | null;
+  can_manage_master_data?: boolean | null;
+  can_create_batches?: boolean | null;
+  can_upload_files?: boolean | null;
+  can_bulk_edit_master_data?: boolean | null;
+}
 
-// Tipo para los resultados de las funciones
-type ResultadoOperacion<T> = 
+export interface UserProjectSetting extends Project {
+  project_role_id: string;
+  ui_theme: string | null;
+  ui_font_pair: string | null;
+  ui_is_dark_mode: boolean | null;
+  is_active_for_user: boolean;
+  contextual_notes?: string | null;
+  contact_email_for_project?: string | null;
+  permissions?: RolePermissions | null; // Permisos del rol del usuario en este proyecto
+}
+
+export interface UserDashboardData {
+  profile: UserProfile | null;
+  projects: UserProjectSetting[];
+}
+
+export type ResultadoOperacion<T> =
   | { success: true; data: T }
   | { error: string; success?: false };
+// ========================================================================
+//  FIN: DEFINICIONES DE INTERFACES Y TIPOS
+// ========================================================================
 
-/**
- * NOTA SOBRE LA ESTRUCTURA ACTUAL:
- * Refactorizado para usar la tabla 'proyecto_miembro'.
- * RLS simplificadas a USING (auth.role() = 'authenticated') para SELECT.
- * La lógica de filtrado específica del usuario está en las consultas de la aplicación.
- */
-
-/**
- * Obtiene los proyectos asociados a un usuario específico consultando la tabla de membresías.
- * Incluye depuración para verificar el contexto de autenticación en la DB.
- * Usa una estrategia de dos pasos para aislar errores de consulta.
- */
-export async function obtenerProyectosUsuario(userId: string): Promise<ResultadoOperacion<Proyecto[]>> {
-  // Generar un ID de operación para rastrear esta llamada específica
+export async function obtenerProyectosConSettingsUsuario(
+  userId: string
+): Promise<ResultadoOperacion<UserProjectSetting[]>> {
   const opId = Math.floor(Math.random() * 1000);
-  console.log(`📄 [PY:${opId}] Iniciando obtenerProyectosUsuario para: ${userId.substring(0, 8)}...`);
-  
+  console.log(
+    `📄 [PCSU:${opId}] Iniciando obtenerProyectosConSettingsUsuario para: ${userId.substring(
+      0,
+      8
+    )}...`
+  );
+
   try {
-    // Verificar que se ha proporcionado un userId válido
-    if (!userId || userId.trim() === '') {
-      console.error(`❌ [PY:${opId}] Error: userId no válido`);
-      return { error: 'Se requiere un ID de usuario válido' };
+    if (!userId || userId.trim() === "") {
+      return { error: "Se requiere un ID de usuario válido" };
     }
-    
-    console.log(`🔍 [PY:${opId}] Creando cliente Supabase para servidor...`);
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createSupabaseServerClient();
 
-    // ***** INICIO: VERIFICACIÓN DIRECTA DE AUTH EN DB *****
-    console.log(`🔑 [PY:${opId}] Verificando contexto de autenticación en DB...`);
-    // Llamar a la función RPC para verificar el contexto de autenticación
-    const { data: authContextResult, error: rpcError } = await supabase
-      .rpc('get_current_auth_context'); 
-
+    // Verificación de Auth RPC (la mantendremos por ahora para seguridad)
+    const { data: authContextResult, error: rpcError } = await supabase.rpc(
+      "get_current_auth_context"
+    );
     if (rpcError) {
-      console.error(`❌ [PY:${opId}] Error al llamar RPC get_current_auth_context:`, rpcError);
-      // Verificar si es un error de permisos o autenticación
-      if (rpcError.code === '42501' || rpcError.message?.includes('permission denied')) {
-        console.error(`❌ [PY:${opId}] ERROR DE PERMISOS: El cliente no tiene permisos suficientes`);
-        return { error: `Error de permisos: No autorizado para ejecutar esta función` };
-      }
-      return { error: `Error al verificar contexto DB: ${rpcError.message}` };
+      return { error: `RPC Error: ${rpcError.message}` };
     }
 
-    // Verificación de la respuesta de la RPC (esperamos un array con un objeto)
-    if (!authContextResult) {
-      console.error(`❌ [PY:${opId}] RPC retornó resultado nulo`);
-      return { error: "La verificación de autenticación retornó un resultado nulo" };
+    if (
+      !authContextResult ||
+      !Array.isArray(authContextResult) ||
+      authContextResult.length === 0
+    ) {
+      return { error: "RPC Auth context no válido" };
     }
-    
-    if (!Array.isArray(authContextResult)) {
-      console.error(`❌ [PY:${opId}] RPC retornó un tipo inesperado:`, typeof authContextResult);
-      return { error: `Formato inesperado: ${typeof authContextResult}` };
-    }
-    
-    if (authContextResult.length === 0) {
-      console.error(`❌ [PY:${opId}] RPC retornó array vacío`);
-      return { error: "No se encontró contexto de autenticación" };
-    }
-    
-    // Validar estructura del objeto de contexto
+
     const authContext = authContextResult[0];
-    if (!authContext || typeof authContext !== 'object') {
-        console.error(`❌ [PY:${opId}] RPC retornó un objeto inválido:`, authContext);
-        return { error: "Formato inválido del contexto de autenticación" };
-    }
-    
-    if (!('current_uid' in authContext) || !('current_role' in authContext)) {
-        console.error(`❌ [PY:${opId}] RPC retornó objeto sin propiedades requeridas:`, Object.keys(authContext));
-        return { error: "Faltan propiedades requeridas en el contexto de autenticación" };
-    }
-
-    // Extraer y validar valores del contexto
-    const { current_uid, current_role } = authContext as { current_uid: string | null, current_role: string | null };
-    console.log(`🔑 [PY:${opId}] Contexto DB: UID=${current_uid?.substring(0, 8) || 'null'}, ROLE=${current_role}`);
-
-    // Comprobar si tenemos el rol correcto
-    if (current_role !== 'authenticated') {
-        console.error(`❌ [PY:${opId}] ERROR DE ROL: Se requiere 'authenticated', pero se obtuvo '${current_role}'`);
-        return { error: `No autorizado: rol '${current_role}' insuficiente` };
-    }
-    
-    // Verificar coincidencia de usuario
-    if (current_uid !== userId) {
-         console.warn(`⚠️ [PY:${opId}] DISCREPANCIA DE USUARIO: Cliente pide ${userId.substring(0, 8)}, pero la DB ve ${current_uid?.substring(0, 8) || 'null'}`);
-         // Intentamos usar el UID de la DB si está disponible, para respetar RLS
-         if (current_uid) {
-           console.log(`🔄 [PY:${opId}] Usando UID de DB para consulta: ${current_uid.substring(0, 8)}...`);
-           userId = current_uid; // Usar el ID que la DB reconoce
-         }
+    if (
+      !authContext ||
+      typeof authContext !== "object" ||
+      !("current_uid" in authContext) ||
+      !("current_role" in authContext)
+    ) {
+      return { error: "RPC Auth context formato inválido" };
     }
 
-    console.log(`✅ [PY:${opId}] Contexto de DB validado correctamente`);
-    // ***** FIN: VERIFICACIÓN DIRECTA DE AUTH EN DB *****
+    const { current_uid, current_role } = authContext as {
+      current_uid: string | null;
+      current_role: string | null;
+    };
+    if (current_role !== "authenticated") {
+      return { error: `Rol no autenticado: ${current_role}` };
+    }
+    if (current_uid !== userId && current_uid) {
+      userId = current_uid;
+    }
+    console.log(`✅ [PCSU:${opId}] Contexto de DB validado correctamente`);
 
-    // PASO 1: Obtener las membresías del usuario
-    console.log(`🔍 [PY:${opId}] Paso 1: Consultando membresías para usuario ${userId.substring(0, 8)}...`);
     const { data: membresias, error: errorMembresias } = await supabase
-      .from('proyecto_miembro')
-      .select('proyecto_id') 
-      .eq('user_id', userId);
+      .from("project_members")
+      .select(
+        `
+        project_role_id, 
+        is_active_for_user,
+        ui_theme,
+        ui_font_pair,
+        ui_is_dark_mode,
+        contextual_notes,
+        contact_email_for_project,
+        joined_at,
+        updated_at,
+        projects (
+          id,
+          name,
+          code,
+          description,
+          institution_name,
+          status,
+          module_bibliography,
+          module_interviews,
+          module_planning
+        ),
+        project_roles (
+          role_name,
+          can_manage_master_data,
+          can_create_batches,
+          can_upload_files,
+          can_bulk_edit_master_data
+        )
+      `
+      )
+      .eq("user_id", userId);
 
     if (errorMembresias) {
-      console.error(`❌ [PY:${opId}] Error en Paso 1 (membresías):`, errorMembresias);
-      
-      // Verificar si es un problema de RLS o permisos
-      if (errorMembresias.code === '42501' || errorMembresias.message?.includes('permission denied')) {
-        console.error(`❌ [PY:${opId}] ERROR DE PERMISOS en tabla proyecto_miembro`);
-        return { error: `Sin acceso a tabla proyecto_miembro: ${errorMembresias.message}` };
-      }
-      
-      return { error: `Error al obtener membresías: ${errorMembresias.message}` };
+      console.error(
+        `❌ [PCSU:${opId}] Error al obtener membresías:`,
+        errorMembresias
+      );
+      return {
+        error: `Error al obtener membresías: ${errorMembresias.message}`,
+      };
     }
 
     if (!membresias || membresias.length === 0) {
-      console.log(`ℹ️ [PY:${opId}] No se encontraron membresías para el usuario ${userId.substring(0, 8)}...`);
+      console.log(
+        `ℹ️ [PCSU:${opId}] No se encontraron membresías para el usuario.`
+      );
       return { success: true, data: [] };
     }
-    
-    console.log(`✅ [PY:${opId}] Paso 1 completado: ${membresias.length} membresías encontradas`);
 
-    const proyectoIds = membresias.map(m => m.proyecto_id);
-    console.log(`🔍 [PY:${opId}] Paso 2: Consultando ${proyectoIds.length} proyectos: ${proyectoIds.slice(0, 3).join(', ')}${proyectoIds.length > 3 ? '...' : ''}`);
+    // Tipo intermedio que acepta null para usar en map
+    type ProyectoSettingOrNull = UserProjectSetting | null;
 
-    const { data: proyectosData, error: errorProyectos } = await supabase
-      .from('proyectos')
-      .select('id, nombre, codigo, descripcion')
-      .in('id', proyectoIds);
+    const proyectosConSettings: UserProjectSetting[] = membresias
+      .map((m): ProyectoSettingOrNull => {
+        const proyectoBase = m.projects as Project | null;
+        if (!proyectoBase || !proyectoBase.id) {
+          return null;
+        }
 
-    if (errorProyectos) {
-      console.error(`❌ [PY:${opId}] Error en Paso 2 (proyectos):`, errorProyectos);
-      
-      // Verificar si es un problema de RLS o permisos
-      if (errorProyectos.code === '42501' || errorProyectos.message?.includes('permission denied')) {
-        console.error(`❌ [PY:${opId}] ERROR DE PERMISOS en tabla proyectos`);
-        return { error: `Sin acceso a tabla proyectos: ${errorProyectos.message}` };
-      }
-      
-      return { error: `Error al obtener detalles de proyectos: ${errorProyectos.message}` };
-    }
-    
-    if (!proyectosData || proyectosData.length === 0) {
-      console.log(`ℹ️ [PY:${opId}] No se encontraron proyectos para los IDs proporcionados`);
-      return { success: true, data: [] };
-    }
-    
-    console.log(`✅ [PY:${opId}] Paso 2 completado: ${proyectosData.length} proyectos encontrados`);
+        // Extraer datos de permisos del rol
+        const rolePermissionsData = m.project_roles as RolePermissions | null;
 
-    // Mapeo a la interfaz Proyecto
-    const proyectos = proyectosData.map(p => ({
-      id: String(p.id), // Asegurar que id sea string
-      nombre: p.nombre,
-      codigo: p.codigo || "",
-      descripcion: p.descripcion || ""
-    }));
+        // Crear objeto de permisos (con valores por defecto si son null)
+        const permissions: RolePermissions | null = rolePermissionsData
+          ? {
+              role_name: rolePermissionsData.role_name ?? null,
+              can_manage_master_data:
+                rolePermissionsData.can_manage_master_data ?? false,
+              can_create_batches:
+                rolePermissionsData.can_create_batches ?? false,
+              can_upload_files: rolePermissionsData.can_upload_files ?? false,
+              can_bulk_edit_master_data:
+                rolePermissionsData.can_bulk_edit_master_data ?? false,
+            }
+          : null;
 
-    console.log(`🎉 [PY:${opId}] ÉXITO: ${proyectos.length} proyectos obtenidos para usuario ${userId.substring(0, 8)}...`);
-    // Registrar los nombres de los proyectos para depuración
-    proyectos.forEach((p, i) => {
-      console.log(`✅ [PY:${opId}] Proyecto ${i+1}: ID=${p.id}, Nombre="${p.nombre}", Código=${p.codigo || 'N/A'}`);
-    });
-    
-    return { success: true, data: proyectos };
+        return {
+          // Campos de Project
+          id: String(proyectoBase.id),
+          name: proyectoBase.name,
+          code: proyectoBase.code ?? null,
+          description: proyectoBase.description ?? null,
+          institution_name: proyectoBase.institution_name ?? null,
+          status: proyectoBase.status ?? null,
+          module_bibliography: proyectoBase.module_bibliography ?? null,
+          module_interviews: proyectoBase.module_interviews ?? null,
+          module_planning: proyectoBase.module_planning ?? null,
 
+          // Campos de UserProjectSetting (directos de project_members)
+          project_role_id: m.project_role_id!,
+          is_active_for_user: m.is_active_for_user ?? false,
+          ui_theme: m.ui_theme ?? null,
+          ui_font_pair: m.ui_font_pair ?? null,
+          ui_is_dark_mode: m.ui_is_dark_mode ?? false,
+          contextual_notes: m.contextual_notes ?? null,
+          contact_email_for_project: m.contact_email_for_project ?? null,
+
+          // Objeto de permisos del rol
+          permissions,
+        };
+      })
+      .filter((p): p is UserProjectSetting => p !== null);
+
+    console.log(
+      `🎉 [PCSU:${opId}] ÉXITO: ${proyectosConSettings.length} proyectos con settings obtenidos.`
+    );
+
+    // Log detallado para ver la estructura completa de datos
+    console.log(
+      `📊 [PCSU:${opId}] DETALLE DE DATOS OBTENIDOS:`,
+      JSON.stringify(
+        {
+          totalProyectos: proyectosConSettings.length,
+          proyectos: proyectosConSettings.map((p) => ({
+            id: p.id,
+            name: p.name,
+            code: p.code,
+            description: p.description,
+            institution_name: p.institution_name,
+            status: p.status,
+            module_bibliography: p.module_bibliography,
+            module_interviews: p.module_interviews,
+            module_planning: p.module_planning,
+            // Settings de UI
+            ui_theme: p.ui_theme,
+            ui_font_pair: p.ui_font_pair,
+            ui_is_dark_mode: p.ui_is_dark_mode,
+            // Permisos
+            permissions: p.permissions,
+            // Otros datos
+            project_role_id: p.project_role_id,
+            is_active_for_user: p.is_active_for_user,
+            contextual_notes: p.contextual_notes,
+            contact_email_for_project: p.contact_email_for_project,
+          })),
+        },
+        null,
+        2
+      )
+    );
+
+    return { success: true, data: proyectosConSettings };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Error desconocido";
-    console.error(`❌ [PY:${opId}] Excepción no controlada:`, error);
-    return { error: `Error interno del servidor: ${errorMessage}` };
+    console.error(`❌ [PCSU:${opId}] Excepción:`, error);
+    return { error: `Error interno: ${(error as Error).message}` };
   }
 }
 
-/**
- * Obtiene un proyecto por su ID.
- */
-export async function obtenerProyectoPorId(proyectoId: string): Promise<ResultadoOperacion<Proyecto | null>> {
+export async function cargarDatosDashboardUsuario(
+  userId: string
+): Promise<ResultadoOperacion<UserDashboardData>> {
+  const opId = Math.floor(Math.random() * 1000);
+  console.log(
+    `📄 [CDDU:${opId}] Iniciando cargarDatosDashboardUsuario para: ${userId.substring(
+      0,
+      8
+    )}...`
+  );
+
   try {
-    // Crear cliente Supabase usando las variables de entorno directamente
-    const supabase = await createServerSupabaseClient();
-    
-    console.log("Consultando proyecto con ID:", proyectoId);
+    const supabase = await createSupabaseServerClient();
+
+    // 1. Obtener perfil general del usuario
+    console.log(`🔍 [CDDU:${opId}] Obteniendo perfil general...`);
+    const { data: profileData, error: profileError } = await supabase
+      .from("users_profiles")
+      .select(
+        `
+          user_id, 
+          first_name, 
+          last_name, 
+          public_display_name,
+          public_contact_email,
+          primary_institution, 
+          contact_phone, 
+          general_notes,
+          preferred_language,
+          pronouns
+      `
+      )
+      .eq("user_id", userId)
+      .single();
+
+    if (profileError && profileError.code !== "PGRST116") {
+      console.error(`❌ [CDDU:${opId}] Error obteniendo perfil:`, profileError);
+      return { error: `Error obteniendo perfil: ${profileError.message}` };
+    }
+
+    // 2. Obtener proyectos con sus settings de membresía
+    console.log(`🔍 [CDDU:${opId}] Obteniendo proyectos con settings...`);
+    const proyectosSettingsResultado = await obtenerProyectosConSettingsUsuario(
+      userId
+    );
+
+    if (!proyectosSettingsResultado.success) {
+      console.error(
+        `❌ [CDDU:${opId}] Error obteniendo proyectos con settings:`,
+        proyectosSettingsResultado.error
+      );
+      return { error: proyectosSettingsResultado.error };
+    }
+
+    const dashboardData: UserDashboardData = {
+      profile: profileData as UserProfile | null,
+      projects: proyectosSettingsResultado.data,
+    };
+
+    console.log(
+      `🎉 [CDDU:${opId}] ÉXITO: Datos del dashboard cargados. Perfil: ${
+        profileData ? "OK" : "No encontrado"
+      }, Proyectos: ${dashboardData.projects.length}`
+    );
+
+    // Log detallado del perfil del usuario
+    console.log(
+      `👤 [CDDU:${opId}] DETALLE DEL PERFIL:`,
+      JSON.stringify(dashboardData.profile, null, 2)
+    );
+
+    // Resumen de temas y fuentes configurados por proyecto
+    console.log(`🎨 [CDDU:${opId}] CONFIGURACIONES DE UI POR PROYECTO:`);
+    dashboardData.projects.forEach((project) => {
+      console.log(`  - Proyecto "${project.name}" (${project.id.substring(
+        0,
+        8
+      )}...):
+        • Tema UI: ${project.ui_theme || "No configurado"}
+        • Par de Fuentes: ${project.ui_font_pair || "No configurado"}
+        • Modo Oscuro: ${
+          project.ui_is_dark_mode ? "Activado" : "Desactivado"
+        }`);
+    });
+
+    return { success: true, data: dashboardData };
+  } catch (error) {
+    console.error(`❌ [CDDU:${opId}] Excepción:`, error);
+    return { error: `Error interno: ${(error as Error).message}` };
+  }
+}
+
+// Otras funciones pueden implementarse según sea necesario
+export async function obtenerProyectoPorId(
+  proyectoId: string
+): Promise<ResultadoOperacion<Project | null>> {
+  const opId = Math.floor(Math.random() * 1000);
+  console.log(
+    `📄 [PPI:${opId}] Iniciando obtenerProyectoPorId para: ${proyectoId}`
+  );
+
+  try {
+    const supabase = await createSupabaseServerClient();
 
     const { data, error } = await supabase
-      .from("proyectos") 
-      .select("id, nombre, codigo, descripcion")
+      .from("projects")
+      .select(
+        "id, name, code, description, institution_name, status, module_bibliography, module_interviews, module_planning"
+      )
       .eq("id", proyectoId)
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        console.log(`Proyecto con ID ${proyectoId} no encontrado o no accesible por RLS.`);
-        return { success: true, data: null }; 
+      if (error.code === "PGRST116") {
+        return { success: true, data: null };
       }
-      console.error("Error al obtener proyecto por ID:", error);
-      return { error: `Error al obtener la información del proyecto: ${error.message}` };
+      return { error: `Error al obtener proyecto: ${error.message}` };
     }
-    
-    const proyectoFormateado: Proyecto = {
-      id: String(data.id), 
-      nombre: data.nombre,
-      codigo: data.codigo || "",
-      descripcion: data.descripcion || ""
-    };
 
+    const proyectoFormateado: Project = data as Project;
     return { success: true, data: proyectoFormateado };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Error desconocido";
-    console.error("Error inesperado en obtenerProyectoPorId:", error);
-    return { error: `Ocurrió un error inesperado: ${errorMessage}` };
+    return { error: `Error interno: ${(error as Error).message}` };
   }
 }
 
-/**
- * Obtiene los perfiles de los miembros de un proyecto específico.
- */
-export async function obtenerPerfilesMiembrosProyecto(proyectoId: string): Promise<ResultadoOperacion<PerfilInvestigador[]>> {
-    try {
-        // Crear cliente Supabase usando las variables de entorno directamente
-        const supabase = createServerClient<Database>(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          { cookies: cookies() }
-        );
-        console.log(`Consultando perfiles de miembros para proyecto ${proyectoId}`);
+export async function obtenerPerfilesMiembrosProyecto(
+  proyectoId: string
+): Promise<ResultadoOperacion<UserProfile[]>> {
+  const opId = Math.floor(Math.random() * 1000);
+  console.log(
+    `📄 [PMP:${opId}] Iniciando obtenerPerfilesMiembrosProyecto para: ${proyectoId}`
+  );
 
-        // Consulta proyecto_miembro y une con perfil_investigador
-        const { data: miembros, error } = await supabase
-            .from('proyecto_miembro')
-            .select(`
-                user_id,
-                rol_en_proyecto, 
-                perfil_investigador ( 
-                    user_id,
-                    nombre,
-                    apellido,
-                    institucion,
-                    telefono, 
-                    notas      
-                )
-            `) 
-            .eq('proyecto_id', proyectoId);
+  try {
+    const supabase = await createSupabaseServerClient();
 
-        if (error) {
-            console.error("Error al obtener miembros del proyecto:", error);
-            return { error: `Error al obtener miembros del proyecto: ${error.message}` };
-        }
-        if (!miembros) {
-            return { success: true, data: [] };
-        }
+    const { data: miembros, error } = await supabase
+      .from("project_members")
+      .select(
+        `
+          user_id,
+          project_role_id, 
+          users_profiles (
+              user_id,
+              first_name,
+              last_name,
+              primary_institution,
+              contact_phone,
+              general_notes,
+              public_display_name,
+              public_contact_email,
+              preferred_language,
+              pronouns
+          )
+      `
+      )
+      .eq("project_id", proyectoId);
 
-        // Extrae solo los datos del perfil, filtrando posibles nulos si RLS bloqueó algo
-        const perfiles = miembros
-            .map(m => m.perfil_investigador) 
-            .filter(p => p !== null && typeof p === 'object') as PerfilInvestigador[]; 
-        
-        console.log(`Se encontraron ${perfiles.length} perfiles para el proyecto ${proyectoId}`);
-        return { success: true, data: perfiles }; 
-
-    } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Error desconocido";
-        console.error("Error inesperado en obtenerPerfilesMiembrosProyecto:", error);
-        return { error: `Ocurrió un error inesperado al obtener los perfiles: ${errorMessage}` };
+    if (error) {
+      return {
+        error: `Error obteniendo miembros: ${(error as Error).message}`,
+      };
     }
+    if (!miembros) {
+      return { success: true, data: [] };
+    }
+
+    const perfiles: UserProfile[] = miembros
+      .map((m) => {
+        const perfilData = m.users_profiles;
+        if (
+          perfilData &&
+          typeof perfilData === "object" &&
+          "user_id" in perfilData
+        ) {
+          return perfilData as UserProfile;
+        }
+        return null;
+      })
+      .filter((p): p is UserProfile => p !== null);
+
+    console.log(
+      `🎉 [PMP:${opId}] ÉXITO: ${perfiles.length} perfiles encontrados para proyecto ${proyectoId}.`
+    );
+    return { success: true, data: perfiles };
+  } catch (error) {
+    return { error: `Error interno: ${(error as Error).message}` };
+  }
 }
 
-// --- END OF FILE proyecto-actions.ts ---
+// Nueva server action para actualizar preferencias UI de un proyecto para un usuario
+export async function actualizarPreferenciasUI(
+  userId: string,
+  proyectoId: string,
+  preferencias: {
+    ui_theme?: string | null;
+    ui_font_pair?: string | null;
+    ui_is_dark_mode?: boolean | null;
+  }
+): Promise<ResultadoOperacion<null>> {
+  const opId = Math.floor(Math.random() * 1000);
+  console.log(
+    `📄 [APU:${opId}] Iniciando actualizarPreferenciasUI para usuario: ${userId.substring(
+      0,
+      8
+    )}, proyecto: ${proyectoId.substring(0, 8)}`
+  );
+
+  try {
+    if (!userId || !proyectoId) {
+      return { error: "Se requiere ID de usuario y proyecto válidos" };
+    }
+
+    const supabase = await createSupabaseServerClient();
+
+    // Actualizar solo los campos proporcionados
+    const actualizaciones: any = {};
+    if (preferencias.ui_theme !== undefined)
+      actualizaciones.ui_theme = preferencias.ui_theme;
+    if (preferencias.ui_font_pair !== undefined)
+      actualizaciones.ui_font_pair = preferencias.ui_font_pair;
+    if (preferencias.ui_is_dark_mode !== undefined)
+      actualizaciones.ui_is_dark_mode = preferencias.ui_is_dark_mode;
+
+    // Solo proceder si hay algo que actualizar
+    if (Object.keys(actualizaciones).length === 0) {
+      console.log(`ℹ️ [APU:${opId}] No hay cambios que actualizar`);
+      return { success: true, data: null };
+    }
+
+    console.log(`📝 [APU:${opId}] Actualizando preferencias:`, actualizaciones);
+
+    const { error } = await supabase
+      .from("project_members")
+      .update(actualizaciones)
+      .eq("user_id", userId)
+      .eq("project_id", proyectoId);
+
+    if (error) {
+      console.error(
+        `❌ [APU:${opId}] Error al actualizar preferencias:`,
+        error
+      );
+      return { error: `Error al actualizar preferencias: ${error.message}` };
+    }
+
+    console.log(`✅ [APU:${opId}] Preferencias actualizadas exitosamente`);
+    return { success: true, data: null };
+  } catch (error) {
+    console.error(`❌ [APU:${opId}] Excepción:`, error);
+    return { error: `Error interno: ${(error as Error).message}` };
+  }
+}
+
+// Nueva server action para actualizar el proyecto activo
+export async function actualizarProyectoActivo(
+  userId: string,
+  proyectoId: string
+): Promise<ResultadoOperacion<null>> {
+  const opId = Math.floor(Math.random() * 1000);
+  console.log(
+    `📄 [APA:${opId}] Iniciando actualizarProyectoActivo para usuario: ${userId.substring(
+      0,
+      8
+    )}, proyecto: ${proyectoId.substring(0, 8)}`
+  );
+
+  try {
+    if (!userId || !proyectoId) {
+      return { error: "Se requiere ID de usuario y proyecto válidos" };
+    }
+
+    const supabase = await createSupabaseServerClient();
+
+    // Primero desactivamos todos los proyectos del usuario
+    console.log(
+      `🔄 [APA:${opId}] Desactivando todos los proyectos del usuario`
+    );
+    const { error: desactivarError } = await supabase
+      .from("project_members")
+      .update({ is_active_for_user: false })
+      .eq("user_id", userId);
+
+    if (desactivarError) {
+      console.error(
+        `❌ [APA:${opId}] Error al desactivar proyectos:`,
+        desactivarError
+      );
+      return {
+        error: `Error al desactivar proyectos: ${desactivarError.message}`,
+      };
+    }
+
+    // Luego activamos el proyecto seleccionado
+    console.log(`🔄 [APA:${opId}] Activando proyecto seleccionado`);
+    const { error: activarError } = await supabase
+      .from("project_members")
+      .update({ is_active_for_user: true })
+      .eq("user_id", userId)
+      .eq("project_id", proyectoId);
+
+    if (activarError) {
+      console.error(
+        `❌ [APA:${opId}] Error al activar proyecto:`,
+        activarError
+      );
+      return { error: `Error al activar proyecto: ${activarError.message}` };
+    }
+
+    console.log(`✅ [APA:${opId}] Proyecto activo actualizado exitosamente`);
+    return { success: true, data: null };
+  } catch (error) {
+    console.error(`❌ [APA:${opId}] Excepción:`, error);
+    return { error: `Error interno: ${(error as Error).message}` };
+  }
+}

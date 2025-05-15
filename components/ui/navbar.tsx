@@ -4,6 +4,7 @@ import type React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { UserAvatar } from "./user-avatar";
 import {
   ChevronDown,
   Menu,
@@ -20,7 +21,6 @@ import {
   LayoutDashboard,
   FileSpreadsheet,
   Layers,
-  LogOut,
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
@@ -34,10 +34,7 @@ import { useColorTokens } from "@/hooks/use-color-tokens";
 import { Text } from "@/components/ui/text";
 import { useTheme } from "@/app/theme-provider";
 import { Icon } from "@/components/ui/icon";
-import { useAuth } from "@/app/auth-provider";
-import { toast } from "sonner";
 
-// Variantes de animación para elementos del menú
 const menuItemVariants = {
   hidden: { opacity: 0, y: -5 },
   visible: { opacity: 1, y: 0 },
@@ -45,7 +42,6 @@ const menuItemVariants = {
   tap: { scale: 0.95 },
 };
 
-// Variantes para el submenú
 const submenuVariants = {
   hidden: { opacity: 0, height: 0, overflow: "hidden" },
   visible: {
@@ -59,14 +55,27 @@ const submenuVariants = {
   },
 };
 
-// Variantes para el ícono de flecha
 const arrowVariants = {
   closed: { rotate: 0 },
   open: { rotate: 180 },
 };
 
-// Escala para el ripple del navbar
 const NAVBAR_RIPPLE_SCALE = 9;
+
+interface NavSubItem {
+  label: string;
+  href: string;
+  icon: (isActive: boolean) => React.ReactElement;
+  disabled?: boolean;
+}
+
+interface NavItem {
+  label: string;
+  href: string;
+  icon: (isActive: boolean) => React.ReactElement;
+  submenu?: NavSubItem[];
+  disabled?: boolean;
+}
 
 export function Navbar() {
   const pathname = usePathname();
@@ -75,28 +84,23 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const ripple = useRipple();
   const { component } = useColorTokens();
-  const { mode, colorScheme } = useTheme();
-  const { logout } = useAuth();
+  const { mode } = useTheme();
 
-  // Usar directamente los tokens del navbar desde el sistema global
   const navTokens = component.navbar;
 
-  // Colores para el ripple - Actualizados para usar el color de fondo activo
   const MENU_RIPPLE_COLOR = navTokens.active.bg;
   const SUBMENU_RIPPLE_COLOR = navTokens.active.bg;
 
-  // Función para verificar si un submenu está activo
-  const isSubmenuActive = (item: any) => {
+  const isSubmenuActive = (item: NavItem) => {
     if (!item.submenu) return false;
     return item.submenu.some(
-      (subitem: any) =>
+      (subitem: NavSubItem) =>
         pathname === subitem.href ||
-        (subitem.href !== "/" && pathname.startsWith(subitem.href))
+        (subitem.href !== "/" && pathname && pathname.startsWith(subitem.href))
     );
   };
 
-  // Crear los elementos del menú con los colores correctos
-  const navItems = useMemo(
+  const navItems: NavItem[] = useMemo(
     () => [
       {
         label: "Inicio",
@@ -356,7 +360,6 @@ export function Navbar() {
         setOpenSubmenu(null);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -365,26 +368,19 @@ export function Navbar() {
 
   const toggleSubmenu = (label: string, e: React.MouseEvent) => {
     ripple(e.nativeEvent, MENU_RIPPLE_COLOR, NAVBAR_RIPPLE_SCALE);
-    if (openSubmenu === label) {
-      setOpenSubmenu(null);
-    } else {
-      setOpenSubmenu(label);
-    }
+    setOpenSubmenu(openSubmenu === label ? null : label);
   };
 
-  // Estilo para el gradiente de la barra inferior
   const gradientBarStyle = {
     background: `linear-gradient(to right, ${navTokens.gradientBar.start}, ${navTokens.gradientBar.middle}, ${navTokens.gradientBar.end})`,
   };
 
-  // Usar directamente el color de fondo del token
-  const backgroundColor = scrolled
+  const navBackgroundColor = scrolled
     ? navTokens.background.scrolled
     : navTokens.background.normal;
 
-  // Estilo para el fondo del navbar
   const navBackgroundStyle = {
-    backgroundColor,
+    backgroundColor: navBackgroundColor,
     boxShadow: scrolled ? navTokens.shadow : "none",
     borderBottom: scrolled
       ? `1px solid ${
@@ -392,17 +388,6 @@ export function Navbar() {
         }`
       : "none",
     backdropFilter: scrolled ? "blur(8px)" : "none",
-  };
-
-  // Manejar el cierre de sesión
-  const handleLogout = async () => {
-    try {
-      await logout();
-      toast.success("Sesión cerrada correctamente");
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error);
-      toast.error("Error al cerrar sesión");
-    }
   };
 
   return (
@@ -414,106 +399,58 @@ export function Navbar() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="container mx-auto px-4">
-          <div className="flex h-16 items-center justify-between">
+        {/* CAMBIO: Eliminado container mx-auto de aquí, se usa w-full con padding */}
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between"> {/* Distribuye los 3 bloques principales */}
+            
+            {/* Grupo 1: Branding (Logo y Marca) */}
             <motion.div
-              className="flex items-center"
+              className="flex items-center flex-shrink-0"
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
               <Link
                 href="/"
-                className="flex items-center"
+                className="flex items-center gap-2"
                 onMouseDown={(e) =>
                   ripple(e.nativeEvent, MENU_RIPPLE_COLOR, NAVBAR_RIPPLE_SCALE)
                 }
               >
-                <div className="flex items-center">
-                  <div className="flex flex-col">
-                    <div className="flex items-center">
-                      <SustratoLogo
-                        className="mr-2"
-                        size={28}
-                        primaryColor={navTokens.logo.primary}
-                        secondaryColor={navTokens.logo.secondary}
-                        accentColor={navTokens.logo.accent}
-                      />
-                      <div className="font-bold text-xl md:text-2xl">
-                        <span
-                          className="bg-clip-text text-transparent font-bold"
-                          style={{
-                            backgroundImage: navTokens.logo.titleGradient,
-                            fontFamily: "'Chau Philomene One', sans-serif", // Asegurar que siempre use esta fuente
-                          }}
-                        >
-                          Sustrato.ai
-                        </span>
-                      </div>
-                    </div>
-                    <Text
-                      size="xs"
-                      color="neutral"
-                      colorVariant="pure"
-                      className="ml-0.5 mt-0.5"
-                      style={{ marginLeft: "0.5rem" }}
+                <SustratoLogo
+                  size={40} // Aumentado el tamaño del logo
+                  className="flex-shrink-0"
+                  primaryColor={navTokens.logo?.primary}
+                  secondaryColor={navTokens.logo?.secondary}
+                  accentColor={navTokens.logo?.accent}
+                />
+                <div className="flex flex-col">
+                  <div className="font-bold text-xl md:text-2xl">
+                    <span
+                      className="bg-clip-text text-transparent font-bold"
+                      style={{
+                        backgroundImage: navTokens.logo?.titleGradient,
+                        fontFamily: "'Chau Philomene One', sans-serif",
+                      }}
                     >
-                      cultivando sinergias humano·AI
-                    </Text>
+                      Sustrato.ai
+                    </span>
                   </div>
+                  <Text
+                    size="xs"
+                    color="neutral"
+                    colorVariant="pure"
+                    className="mt-0.5"
+                  >
+                    cultivando sinergias humano·AI
+                  </Text>
                 </div>
               </Link>
             </motion.div>
 
-            {/* Mobile menu button */}
-            <div className="flex md:hidden items-center gap-2">
-              <FontThemeSwitcher />
-              <ThemeSwitcher />
-              <motion.div whileTap={{ scale: 0.9 }}>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  onMouseDown={(e) =>
-                    ripple(
-                      e.nativeEvent,
-                      MENU_RIPPLE_COLOR,
-                      NAVBAR_RIPPLE_SCALE
-                    )
-                  }
-                  aria-label="Toggle menu"
-                >
-                  {mobileMenuOpen ? (
-                    <Icon
-                      size="sm"
-                      gradient={true}
-                      strokeOnly={true}
-                      color="tertiary"
-                      colorVariant="bg"
-                      gradientWith="accent"
-                      gradientColorVariant="text"
-                    >
-                      <X />
-                    </Icon>
-                  ) : (
-                    <Icon
-                      size="sm"
-                      gradient={true}
-                      strokeOnly={true}
-                      color="tertiary"
-                      colorVariant="bg"
-                      gradientWith="accent"
-                      gradientColorVariant="text"
-                    >
-                      <Menu />
-                    </Icon>
-                  )}
-                </Button>
-              </motion.div>
-            </div>
-
-            {/* Desktop navigation */}
-            <div className="hidden md:flex md:items-center md:space-x-6">
+            {/* Grupo 2: Menús (Navegación Central) */}
+            {/* CAMBIO: No necesita flex-1 ni mx-auto si el padre es justify-between y los otros son shrink-0 */}
+            <div className="hidden md:flex items-center space-x-3 lg:space-x-5">
               {navItems.map((item, index) => (
                 <motion.div
                   key={item.href || item.label}
@@ -537,8 +474,8 @@ export function Navbar() {
                         className={cn(
                           "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
                           pathname === item.href || isSubmenuActive(item)
-                            ? "bg-opacity-100"
-                            : "hover:bg-opacity-100"
+                            ? "" 
+                            : "hover:bg-opacity-100" 
                         )}
                         style={{
                           backgroundColor:
@@ -549,7 +486,7 @@ export function Navbar() {
                         whileHover={{
                           backgroundColor:
                             pathname === item.href || isSubmenuActive(item)
-                              ? navTokens.active.bg
+                              ? navTokens.active.bg 
                               : navTokens.hover.bg,
                           scale: 1.05,
                           transition: { duration: 0.2 },
@@ -559,21 +496,20 @@ export function Navbar() {
                         {item.icon(
                           pathname === item.href || isSubmenuActive(item)
                         )}
-                        {/* Primer nivel: usar fuente de heading */}
                         <Text
                           color={
                             pathname === item.href || isSubmenuActive(item)
-                              ? "secondary"
-                              : "neutral"
+                              ? "primary"
+                              : "secondary"
                           }
                           colorVariant={
                             pathname === item.href || isSubmenuActive(item)
-                              ? "pure"
+                              ? "pure" 
                               : "text"
                           }
                           weight="medium"
                           size="sm"
-                          fontType="heading" // Especificar explícitamente que use la fuente de heading
+                          fontType="heading"
                         >
                           {item.label}
                         </Text>
@@ -602,10 +538,12 @@ export function Navbar() {
                       <AnimatePresence>
                         {openSubmenu === item.label && (
                           <motion.div
-                            className="absolute z-10 left-0 mt-2 w-56 origin-top-left rounded-md shadow-lg ring-1 focus:outline-none"
+                            className="absolute z-10 left-0 mt-2 w-56 origin-top-left rounded-md shadow-lg focus:outline-none"
                             style={{
                               backgroundColor: navTokens.submenu.background,
                               borderColor: navTokens.submenu.border,
+                              borderWidth: navTokens.submenu.border ? '1px' : '0',
+                              borderStyle: navTokens.submenu.border ? 'solid' : 'none',
                               boxShadow: navTokens.shadow,
                             }}
                             initial="hidden"
@@ -615,7 +553,7 @@ export function Navbar() {
                             data-submenu="content"
                           >
                             <div className="py-1">
-                              {item.submenu.map((subitem, subIndex) => (
+                              {item.submenu.map((subitem) => (
                                 <motion.div
                                   key={subitem.href}
                                   variants={menuItemVariants}
@@ -648,12 +586,11 @@ export function Navbar() {
                                     }
                                   >
                                     {subitem.icon(pathname === subitem.href)}
-                                    {/* Submenú: usar fuente de body y color tertiary */}
                                     <Text
                                       color={
                                         pathname === subitem.href
-                                          ? "secondary"
-                                          : "tertiary"
+                                          ? "primary"
+                                          : "secondary"
                                       }
                                       colorVariant={
                                         pathname === subitem.href
@@ -666,7 +603,7 @@ export function Navbar() {
                                           : "normal"
                                       }
                                       size="sm"
-                                      fontType="body" // Especificar explícitamente que use la fuente de body
+                                      fontType="body"
                                     >
                                       {subitem.label}
                                     </Text>
@@ -703,9 +640,7 @@ export function Navbar() {
                           cursor: item.disabled ? "not-allowed" : "pointer",
                         }}
                         onClick={(e) => {
-                          if (item.disabled) {
-                            e.preventDefault();
-                          }
+                          if (item.disabled) e.preventDefault();
                         }}
                         onMouseDown={(e) =>
                           ripple(
@@ -716,17 +651,16 @@ export function Navbar() {
                         }
                       >
                         {item.icon(pathname === item.href)}
-                        {/* Primer nivel: usar fuente de heading */}
                         <Text
                           color={
-                            pathname === item.href ? "secondary" : "neutral"
+                            pathname === item.href ? "primary" : "secondary"
                           }
                           colorVariant={
                             pathname === item.href ? "pure" : "text"
                           }
                           weight="medium"
-                          size="base"
-                          fontType="heading" // Especificar explícitamente que use la fuente de heading
+                          size="sm"
+                          fontType="heading"
                         >
                           {item.label}
                         </Text>
@@ -740,66 +674,47 @@ export function Navbar() {
                   )}
                 </motion.div>
               ))}
-              {/* Añadir FontThemeSwitcher y ThemeSwitcher aquí */}
-              <div className="flex items-center space-x-1">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: navItems.length * 0.05 }}
-                >
-                  <FontThemeSwitcher />
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{
-                    duration: 0.3,
-                    delay: navItems.length * 0.05 + 0.1,
-                  }}
-                >
-                  <ThemeSwitcher />
-                </motion.div>
-              </div>
             </div>
 
-            {/* Controles de la derecha */}
-            <div className="flex items-center gap-1 md:gap-2">
-              {/* Botón de cierre de sesión */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="mr-1"
-                onClick={handleLogout}
-                aria-label="Cerrar sesión"
-                onMouseDown={(e) =>
-                  ripple(e.nativeEvent, MENU_RIPPLE_COLOR, NAVBAR_RIPPLE_SCALE)
-                }
-              >
-                <Icon
-                  size="sm"
-                  color="tertiary"
-                  strokeOnly={true}
-                  colorVariant="text"
-                >
-                  <LogOut size={18} />
-                </Icon>
-              </Button>
+            {/* Grupo 3 y 4: Controles (Preferencias Visuales y User Avatar) y Menú Móvil */}
+            <div className="flex items-center flex-shrink-0">
+              {/* Controles de Tema y Usuario - Visibles en Desktop */}
+              <div className="hidden md:flex items-center gap-3 lg:gap-4">
+                <FontThemeSwitcher />
+                <ThemeSwitcher />
+                <UserAvatar />
+              </div>
 
-              {/* Botón de menú móvil */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative md:hidden"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
-                onMouseDown={(e) =>
-                  ripple(e.nativeEvent, MENU_RIPPLE_COLOR, NAVBAR_RIPPLE_SCALE)
-                }
-              >
-                <Icon size="sm" color="tertiary" colorVariant="text">
-                  {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-                </Icon>
-              </Button>
+              {/* Botón de Menú Móvil - Visible solo en Móvil */}
+              <div className="md:hidden ml-2">
+                <motion.div whileTap={{ scale: 0.9 }}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    onMouseDown={(e) =>
+                      ripple(
+                        e.nativeEvent,
+                        MENU_RIPPLE_COLOR,
+                        NAVBAR_RIPPLE_SCALE
+                      )
+                    }
+                    aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+                  >
+                    <Icon
+                      size="md"
+                      gradient={true}
+                      strokeOnly={true}
+                      color="tertiary"
+                      colorVariant="bg"
+                      gradientWith="accent"
+                      gradientColorVariant="text"
+                    >
+                      {mobileMenuOpen ? <X /> : <Menu />}
+                    </Icon>
+                  </Button>
+                </motion.div>
+              </div>
             </div>
           </div>
         </div>
@@ -807,24 +722,34 @@ export function Navbar() {
         {/* Línea decorativa degradada */}
         <div className="w-full h-1" style={gradientBarStyle} />
 
-        {/* Mobile navigation */}
+        {/* Navegación Móvil */}
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
               className="md:hidden border-b"
-              style={{ backgroundColor }}
+              style={{ 
+                backgroundColor: navBackgroundColor,
+                borderColor: navTokens.submenu.border,
+                borderBottomWidth: navTokens.submenu.border ? '1px' : '0',
+                borderBottomStyle: navTokens.submenu.border ? 'solid' : 'none',
+              }}
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="space-y-1 px-4 pb-3 pt-2">
+              <div className="space-y-1 px-2 pt-2 pb-3 sm:px-3">
+                <div className="flex justify-around items-center py-2 border-b mb-2" style={{ borderColor: navTokens.submenu.border, borderBottomWidth: navTokens.submenu.border ? '1px' : '0', borderBottomStyle: navTokens.submenu.border ? 'solid' : 'none' }}>
+                  <FontThemeSwitcher />
+                  <ThemeSwitcher />
+                </div>
+
                 {navItems.map((item, index) => (
                   <motion.div
                     key={item.href || item.label}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 + 0.1 }}
                   >
                     {item.submenu ? (
                       <>
@@ -857,12 +782,11 @@ export function Navbar() {
                             {item.icon(
                               pathname === item.href || isSubmenuActive(item)
                             )}
-                            {/* Primer nivel móvil: usar fuente de heading */}
                             <Text
                               color={
                                 pathname === item.href || isSubmenuActive(item)
-                                  ? "secondary"
-                                  : "neutral"
+                                  ? "primary"
+                                  : "secondary"
                               }
                               colorVariant={
                                 pathname === item.href || isSubmenuActive(item)
@@ -871,7 +795,7 @@ export function Navbar() {
                               }
                               weight="medium"
                               size="base"
-                              fontType="heading" // Especificar explícitamente que use la fuente de heading
+                              fontType="heading"
                             >
                               {item.label}
                             </Text>
@@ -907,18 +831,19 @@ export function Navbar() {
                               variants={submenuVariants}
                               data-submenu="content"
                             >
-                              {item.submenu.map((subitem, subIndex) => (
+                              {item.submenu.map((subitem) => (
                                 <motion.div
                                   key={subitem.href}
                                   variants={menuItemVariants}
-                                  whileHover={{
+                                   whileHover={{
                                     backgroundColor:
                                       pathname === subitem.href
                                         ? navTokens.active.bg
                                         : navTokens.hover.bg,
-                                    scale: 1.05,
+                                    scale: 1.02,
                                   }}
                                   whileTap={menuItemVariants.tap}
+                                  className="rounded-md"
                                 >
                                   <Link
                                     href={subitem.href}
@@ -942,12 +867,11 @@ export function Navbar() {
                                     }
                                   >
                                     {subitem.icon(pathname === subitem.href)}
-                                    {/* Submenú móvil: usar fuente de body y color tertiary */}
                                     <Text
                                       color={
                                         pathname === subitem.href
-                                          ? "secondary"
-                                          : "tertiary"
+                                          ? "primary"
+                                          : "secondary"
                                       }
                                       colorVariant={
                                         pathname === subitem.href
@@ -960,7 +884,7 @@ export function Navbar() {
                                           : "normal"
                                       }
                                       size="sm"
-                                      fontType="body" // Especificar explícitamente que use la fuente de body
+                                      fontType="body"
                                     >
                                       {subitem.label}
                                     </Text>
@@ -978,7 +902,7 @@ export function Navbar() {
                             pathname === item.href
                               ? navTokens.active.bg
                               : navTokens.hover.bg,
-                          scale: 1.05,
+                          scale: 1.02,
                         }}
                         whileTap={menuItemVariants.tap}
                         className="rounded-md"
@@ -1010,17 +934,16 @@ export function Navbar() {
                           }
                         >
                           {item.icon(pathname === item.href)}
-                          {/* Primer nivel móvil: usar fuente de heading */}
                           <Text
                             color={
-                              pathname === item.href ? "secondary" : "neutral"
+                              pathname === item.href ? "primary" : "secondary"
                             }
                             colorVariant={
                               pathname === item.href ? "pure" : "text"
                             }
                             weight="medium"
                             size="base"
-                            fontType="heading" // Especificar explícitamente que use la fuente de heading
+                            fontType="heading"
                           >
                             {item.label}
                           </Text>
@@ -1034,6 +957,9 @@ export function Navbar() {
                     )}
                   </motion.div>
                 ))}
+                <div className="pt-4 mt-2 border-t flex justify-center" style={{ borderColor: navTokens.submenu.border, borderTopWidth: navTokens.submenu.border ? '1px' : '0', borderTopStyle: navTokens.submenu.border ? 'solid' : 'none' }}>
+                   <UserAvatar />
+                </div>
               </div>
             </motion.div>
           )}

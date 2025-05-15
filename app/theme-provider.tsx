@@ -39,6 +39,7 @@ export const ThemeContext = createContext<ThemeContextType | undefined>(
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [colorScheme, setColorSchemeInternal] = useState<ColorScheme>("blue");
   const [mode, setModeInternal] = useState<Mode>("light");
+  const [mounted, setMounted] = useState(false);
 
   const [appTokensState, setAppTokensState] = useState<AppColorTokens>(() => {
     const initialAppTokens = createAppColorTokens("blue", "light");
@@ -61,6 +62,11 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       ? "light"
       : `theme-${colorScheme}`;
 
+  // Evitar problemas de hidratación
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const updateAllTokens = (newColorScheme: ColorScheme, newMode: Mode) => {
     const newAppTokens = createAppColorTokens(newColorScheme, newMode);
     setAppTokensState(newAppTokens);
@@ -74,11 +80,31 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const handleSetColorScheme = (newColorScheme: ColorScheme) => {
     setColorSchemeInternal(newColorScheme);
     updateAllTokens(newColorScheme, mode);
+
+    // Emitir evento para que AuthProvider guarde en la base de datos
+    document.dispatchEvent(
+      new CustomEvent("theme-preference-change", {
+        detail: {
+          theme: newColorScheme,
+          isDarkMode: mode === "dark",
+        },
+      })
+    );
   };
 
   const handleSetMode = (newMode: Mode) => {
     setModeInternal(newMode);
     updateAllTokens(colorScheme, newMode);
+
+    // Emitir evento para que AuthProvider guarde en la base de datos
+    document.dispatchEvent(
+      new CustomEvent("theme-preference-change", {
+        detail: {
+          theme: colorScheme,
+          isDarkMode: newMode === "dark",
+        },
+      })
+    );
   };
 
   const setTheme = (newTheme: string) => {
@@ -100,13 +126,69 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     setModeInternal(newMode);
     setColorSchemeInternal(newColorScheme);
     updateAllTokens(newColorScheme, newMode);
+
+    // Emitir evento para que AuthProvider guarde en la base de datos
+    document.dispatchEvent(
+      new CustomEvent("theme-preference-change", {
+        detail: {
+          theme: newColorScheme,
+          isDarkMode: newMode === "dark",
+        },
+      })
+    );
   };
+
+  // Escuchar eventos de cambio de tema desde el AuthProvider
+  useEffect(() => {
+    if (!mounted) return;
+
+    const handleThemeChange = (e: CustomEvent) => {
+      const { theme, isDarkMode } = e.detail;
+      console.log(`📣 Evento theme-change recibido:`, e.detail);
+
+      // Normalizar el tema (eliminar espacios en blanco)
+      const themeNormalized = typeof theme === "string" ? theme.trim() : theme;
+
+      console.log(`🔄 Tema normalizado: "${themeNormalized}"`);
+
+      // Mapear el tema recibido a los valores internos del ThemeProvider
+      let newColorScheme: ColorScheme = "blue";
+      if (themeNormalized === "green") newColorScheme = "green";
+      if (themeNormalized === "orange") newColorScheme = "orange";
+
+      // Establecer el modo según el valor de isDarkMode
+      const newMode: Mode = isDarkMode ? "dark" : "light";
+
+      console.log(`✅ Aplicando tema: ${newColorScheme}, modo: ${newMode}`);
+
+      // Actualizar estado y tokens
+      setColorSchemeInternal(newColorScheme);
+      setModeInternal(newMode);
+      updateAllTokens(newColorScheme, newMode);
+    };
+
+    // Añadir el event listener con tipado correcto
+    document.addEventListener(
+      "theme-change",
+      handleThemeChange as EventListener
+    );
+
+    // Limpiar el event listener
+    return () => {
+      document.removeEventListener(
+        "theme-change",
+        handleThemeChange as EventListener
+      );
+    };
+  }, [mounted]);
 
   useEffect(() => {
     updateAllTokens(colorScheme, mode);
   }, [colorScheme, mode]);
 
   useEffect(() => {
+    if (!mounted) return;
+
     let initialColorScheme = "blue" as ColorScheme;
     let initialMode = "light" as Mode;
 
@@ -134,9 +216,11 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
     setColorSchemeInternal(initialColorScheme);
     setModeInternal(initialMode);
-  }, []);
+  }, [mounted]);
 
   useEffect(() => {
+    if (!mounted) return;
+
     try {
       const root = window.document.documentElement;
       root.classList.remove(
@@ -156,10 +240,14 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
       localStorage.setItem("colorScheme", colorScheme);
       localStorage.setItem("mode", mode);
+
+      console.log(
+        `🎉 Tema aplicado completamente: ${colorScheme}, modo: ${mode}`
+      );
     } catch (error) {
       console.error("Error updating documentElement or localStorage:", error);
     }
-  }, [colorScheme, mode]);
+  }, [colorScheme, mode, mounted]);
 
   const value = {
     colorScheme,

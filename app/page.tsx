@@ -5,20 +5,20 @@ import { HomeCards } from "@/components/HomeCards";
 
 export default function Home() {
   return (
-    <PageBackground variant="gradient" className="grid gap-8">
+    <PageBackground variant="gradient" >
       {/* Hero Section */}
-      <section className="text-center pt-28 pb-8 md:pt-32 md:pb-10">
-        <div className="flex flex-col items-center mb-6">
+      <section className="text-center pt-20 pb-8 md:pt-24 md:pb-10">
+        <div className="flex flex-col items-center mb-4">
           <Text
             variant="label"
             color="primary"
             colorVariant="pure"
-            className="uppercase tracking-wider mb-4 font-bold"
+            className="uppercase tracking-wider mb-3 font-bold"
             fontType="heading"
           >
             Universidad Católica de Chile
           </Text>
-          <Divider variant="gradient" size="md" className="mb-12" />
+          <Divider variant="gradient" size="md" className="mb-8" />
         </div>
 
         <Text

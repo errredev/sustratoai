@@ -4,10 +4,8 @@ import "./globals.css";
 import type { Metadata } from "next";
 // Navbar y SolidNavbarWrapper NO SE IMPORTAN AQUÍ si AuthLayoutWrapper los maneja
 import { Providers } from "./providers";
-import { FontThemeProvider } from "./font-provider";
 import { getAllFontVariables } from "@/lib/fonts";
 import { AuthLayoutWrapper } from "./auth-layout-wrapper"; // Este es el clave
-import { AuthProvider } from "./auth-provider";
 import { SustratoLoadingLogo } from "@/components/ui/sustrato-loading-logo"; // Import the logo
 
 export const metadata: Metadata = {
@@ -20,7 +18,7 @@ const GlobalLoadingIndicator = () => (
     <SustratoLoadingLogo
       size={96}
       variant="spin-pulse"
-      speed="normal"
+      speed="fast"
       breathingEffect
       colorTransition
     />{" "}
@@ -42,16 +40,11 @@ export default function RootLayout({
       {/* y 'flex flex-col' en #__next si el layout principal es flex */}
       <body className="h-full">
         <Providers>
-          <FontThemeProvider>
-            {/* AuthLayoutWrapper ahora es responsable de la estructura principal (Navbar + Contenido) */}
-            <AuthProvider>
-              <AuthLayoutWrapper>
-                <Suspense fallback={<GlobalLoadingIndicator />}>
-                  {children}
-                </Suspense>
-              </AuthLayoutWrapper>
-            </AuthProvider>
-          </FontThemeProvider>
+          <AuthLayoutWrapper>
+            <Suspense fallback={<GlobalLoadingIndicator />}>
+              {children}
+            </Suspense>
+          </AuthLayoutWrapper>
         </Providers>
       </body>
     </html>
