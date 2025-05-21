@@ -31,9 +31,31 @@ import { AnimatePresence } from "framer-motion";
 import { SustratoLogo } from "@/components/ui/sustrato-logo";
 import { useRipple } from "@/components/ripple/RippleProvider";
 import { useColorTokens } from "@/hooks/use-color-tokens";
-import { Text } from "@/components/ui/text";
+import { Text, type TextProps } from "@/components/ui/text"; // Importando TextProps
 import { useTheme } from "@/app/theme-provider";
 import { Icon } from "@/components/ui/icon";
+import { useAuth } from "@/app/auth-provider"; // Added import
+
+// --- START: Variables de Configuración del Navbar ---
+
+// Variables booleanas para controlar la visibilidad de los menús
+// const SHOW_ENTREVISTAS_MENU = true; // Will be replaced by proyectoActual.module_interviews
+// const SHOW_ARTICULOS_MENU = true; // Will be replaced by proyectoActual.module_bibliography
+// const SHOW_DATOS_MAESTROS_MENU = true; // Will be replaced by proyectoActual presence or a specific flag
+
+// Estilos de texto para encabezados de menú principal
+const MENU_HEADER_TEXT_COLOR_ACTIVE: TextProps["color"] = "primary";
+const MENU_HEADER_TEXT_VARIANT_ACTIVE: TextProps["colorVariant"] = "pure";
+const MENU_HEADER_TEXT_COLOR_INACTIVE: TextProps["color"] = "secondary";
+const MENU_HEADER_TEXT_VARIANT_INACTIVE: TextProps["colorVariant"] = "text";
+
+// Estilos de texto para submenús
+const SUBMENU_TEXT_COLOR_ACTIVE: TextProps["color"] = "primary";
+const SUBMENU_TEXT_VARIANT_ACTIVE: TextProps["colorVariant"] = "pure";
+const SUBMENU_TEXT_COLOR_INACTIVE: TextProps["color"] = "secondary";
+const SUBMENU_TEXT_VARIANT_INACTIVE: TextProps["colorVariant"] = "text";
+
+// --- END: Variables de Configuración del Navbar ---
 
 const menuItemVariants = {
   hidden: { opacity: 0, y: -5 },
@@ -75,6 +97,7 @@ interface NavItem {
   icon: (isActive: boolean) => React.ReactElement;
   submenu?: NavSubItem[];
   disabled?: boolean;
+  id?: string; // Para identificar el menú al filtrar
 }
 
 export function Navbar() {
@@ -85,6 +108,7 @@ export function Navbar() {
   const ripple = useRipple();
   const { component } = useColorTokens();
   const { mode } = useTheme();
+  const { proyectoActual } = useAuth(); // Added useAuth hook
 
   const navTokens = component.navbar;
 
@@ -100,9 +124,10 @@ export function Navbar() {
     );
   };
 
-  const navItems: NavItem[] = useMemo(
+  const allNavItems: NavItem[] = useMemo(
     () => [
       {
+        id: "inicio",
         label: "Inicio",
         href: "/",
         icon: (isActive: boolean) => (
@@ -120,231 +145,251 @@ export function Navbar() {
           </Icon>
         ),
       },
-      {
-        label: "Transcripciones",
-        href: "/transcripciones",
-        icon: (isActive: boolean) => (
-          <Icon
-            size="sm"
-            gradient={true}
-            strokeOnly={!isActive}
-            color="tertiary"
-            colorVariant="bg"
-            gradientWith="accent"
-            gradientColorVariant="text"
-            className="mr-2"
-          >
-            <FileText />
-          </Icon>
-        ),
-        submenu: [
-          {
-            label: "Entrevistas",
-            href: "/entrevistas",
-            icon: (isActive: boolean) => (
-              <Icon
-                size="sm"
-                gradient={true}
-                strokeOnly={!isActive}
-                color="tertiary"
-                colorVariant="bg"
-                gradientWith="accent"
-                gradientColorVariant="text"
-                className="mr-2"
-              >
-                <MessageSquare />
-              </Icon>
-            ),
-          },
-          {
-            label: "Transcripciones",
-            href: "/transcripciones",
-            icon: (isActive: boolean) => (
-              <Icon
-                size="sm"
-                gradient={true}
-                strokeOnly={!isActive}
-                color="tertiary"
-                colorVariant="bg"
-                gradientWith="accent"
-                gradientColorVariant="text"
-                className="mr-2"
-              >
-                <FileSpreadsheet />
-              </Icon>
-            ),
-          },
-          {
-            label: "Matriz de Vaciado",
-            href: "/matriz",
-            icon: (isActive: boolean) => (
-              <Icon
-                size="sm"
-                gradient={true}
-                strokeOnly={!isActive}
-                color="tertiary"
-                colorVariant="bg"
-                gradientWith="accent"
-                gradientColorVariant="text"
-                className="mr-2"
-              >
-                <Layers />
-              </Icon>
-            ),
-          },
-        ],
-      },
-      {
-        label: "Artículos",
-        href: "/articulos",
-        icon: (isActive: boolean) => (
-          <Icon
-            size="sm"
-            gradient={true}
-            strokeOnly={!isActive}
-            color="tertiary"
-            colorVariant="bg"
-            gradientWith="accent"
-            gradientColorVariant="text"
-            className="mr-2"
-          >
-            <BookOpen />
-          </Icon>
-        ),
-        submenu: [
-          {
-            label: "Preclasificación",
-            href: "/articulos/preclasificacion",
-            icon: (isActive: boolean) => (
-              <Icon
-                size="sm"
-                gradient={true}
-                strokeOnly={!isActive}
-                color="tertiary"
-                colorVariant="bg"
-                gradientWith="accent"
-                gradientColorVariant="text"
-                className="mr-2"
-              >
-                <LayoutDashboard />
-              </Icon>
-            ),
-          },
-        ],
-      },
-      {
-        label: "Configuración",
-        href: "/configuracion",
-        icon: (isActive: boolean) => (
-          <Icon
-            size="sm"
-            gradient={true}
-            strokeOnly={!isActive}
-            color="tertiary"
-            colorVariant="bg"
-            gradientWith="accent"
-            gradientColorVariant="text"
-            className="mr-2"
-          >
-            <Settings />
-          </Icon>
-        ),
-        submenu: [
-          {
-            label: "Instituciones",
-            href: "/instituciones",
-            icon: (isActive: boolean) => (
-              <Icon
-                size="sm"
-                gradient={true}
-                strokeOnly={!isActive}
-                color="tertiary"
-                colorVariant="bg"
-                gradientWith="accent"
-                gradientColorVariant="text"
-                className="mr-2"
-              >
-                <Building />
-              </Icon>
-            ),
-          },
-          {
-            label: "Entrevistados",
-            href: "/entrevistados",
-            icon: (isActive: boolean) => (
-              <Icon
-                size="sm"
-                gradient={true}
-                strokeOnly={!isActive}
-                color="tertiary"
-                colorVariant="bg"
-                gradientWith="accent"
-                gradientColorVariant="text"
-                className="mr-2"
-              >
-                <UserCircle />
-              </Icon>
-            ),
-          },
-          {
-            label: "Investigadores",
-            href: "/configuracion/investigadores",
-            icon: (isActive: boolean) => (
-              <Icon
-                size="sm"
-                gradient={true}
-                strokeOnly={!isActive}
-                color="tertiary"
-                colorVariant="bg"
-                gradientWith="accent"
-                gradientColorVariant="text"
-                className="mr-2"
-              >
-                <Users />
-              </Icon>
-            ),
-          },
-          {
-            label: "Dimensiones Matriz",
-            href: "/configuracion/dimensiones",
-            icon: (isActive: boolean) => (
-              <Icon
-                size="sm"
-                gradient={true}
-                strokeOnly={!isActive}
-                color="tertiary"
-                colorVariant="bg"
-                gradientWith="accent"
-                gradientColorVariant="text"
-                className="mr-2"
-              >
-                <Database />
-              </Icon>
-            ),
-          },
-          {
-            label: "Expresiones Permitidas",
-            href: "/configuracion/expresiones-permitidas",
-            icon: (isActive: boolean) => (
-              <Icon
-                size="sm"
-                gradient={true}
-                strokeOnly={!isActive}
-                color="tertiary"
-                colorVariant="bg"
-                gradientWith="accent"
-                gradientColorVariant="text"
-                className="mr-2"
-              >
-                <MessageSquare />
-              </Icon>
-            ),
-          },
-        ],
-      },
+      ...(proyectoActual?.module_interviews
+        ? [
+            {
+              id: "entrevistas",
+              label: "Entrevistas",
+              href: "/entrevistas",
+              icon: (isActive: boolean) => (
+                <Icon
+                  size="sm"
+                  gradient={true}
+                  strokeOnly={!isActive}
+                  color="tertiary"
+                  colorVariant="bg"
+                  gradientWith="accent"
+                  gradientColorVariant="text"
+                  className="mr-2"
+                >
+                  <FileText />
+                </Icon>
+              ),
+              submenu: [
+                {
+                  label: "Entrevistas",
+                  href: "/entrevistas",
+                  icon: (isActive: boolean) => (
+                    <Icon
+                      size="sm"
+                      gradient={true}
+                      strokeOnly={!isActive}
+                      color="tertiary"
+                      colorVariant="bg"
+                      gradientWith="accent"
+                      gradientColorVariant="text"
+                      className="mr-2"
+                    >
+                      <MessageSquare />
+                    </Icon>
+                  ),
+                },
+                {
+                  label: "Listado de Transcripciones",
+                  href: "/transcripciones",
+                  icon: (isActive: boolean) => (
+                    <Icon
+                      size="sm"
+                      gradient={true}
+                      strokeOnly={!isActive}
+                      color="tertiary"
+                      colorVariant="bg"
+                      gradientWith="accent"
+                      gradientColorVariant="text"
+                      className="mr-2"
+                    >
+                      <FileSpreadsheet />
+                    </Icon>
+                  ),
+                },
+                {
+                  label: "Matriz de Vaciado",
+                  href: "/entrevistas/matriz",
+                  icon: (isActive: boolean) => (
+                    <Icon
+                      size="sm"
+                      gradient={true}
+                      strokeOnly={!isActive}
+                      color="tertiary"
+                      colorVariant="bg"
+                      gradientWith="accent"
+                      gradientColorVariant="text"
+                      className="mr-2"
+                    >
+                      <Layers />
+                    </Icon>
+                  ),
+                },
+              ],
+            },
+          ]
+        : []),
+      ...(proyectoActual?.module_bibliography
+        ? [
+            {
+              id: "articulos",
+              label: "Artículos",
+              href: "/articulos",
+              icon: (isActive: boolean) => (
+                <Icon
+                  size="sm"
+                  gradient={true}
+                  strokeOnly={!isActive}
+                  color="tertiary"
+                  colorVariant="bg"
+                  gradientWith="accent"
+                  gradientColorVariant="text"
+                  className="mr-2"
+                >
+                  <BookOpen />
+                </Icon>
+              ),
+              submenu: [
+                {
+                  label: "Preclasificación",
+                  href: "/articulos/preclasificacion",
+                  icon: (isActive: boolean) => (
+                    <Icon
+                      size="sm"
+                      gradient={true}
+                      strokeOnly={!isActive}
+                      color="tertiary"
+                      colorVariant="bg"
+                      gradientWith="accent"
+                      gradientColorVariant="text"
+                      className="mr-2"
+                    >
+                      <LayoutDashboard />
+                    </Icon>
+                  ),
+                },
+              ],
+            },
+          ]
+        : []),
+      ...(proyectoActual
+        ? [
+            {
+              // Show "Datos Maestros" if proyectoActual exists
+              id: "datos-maestros",
+              label: "Datos Maestros",
+              href: "/datos-maestros",
+              icon: (isActive: boolean) => (
+                <Icon
+                  size="sm"
+                  gradient={true}
+                  strokeOnly={!isActive}
+                  color="tertiary"
+                  colorVariant="bg"
+                  gradientWith="accent"
+                  gradientColorVariant="text"
+                  className="mr-2"
+                >
+                  <Settings />
+                </Icon>
+              ),
+              submenu: [
+                {
+                  label: "Instituciones",
+                  href: "/datos-maestros/instituciones",
+                  icon: (isActive: boolean) => (
+                    <Icon
+                      size="sm"
+                      gradient={true}
+                      strokeOnly={!isActive}
+                      color="tertiary"
+                      colorVariant="bg"
+                      gradientWith="accent"
+                      gradientColorVariant="text"
+                      className="mr-2"
+                    >
+                      <Building />
+                    </Icon>
+                  ),
+                },
+                {
+                  label: "Entrevistados",
+                  href: "/datos-maestros/entrevistados",
+                  icon: (isActive: boolean) => (
+                    <Icon
+                      size="sm"
+                      gradient={true}
+                      strokeOnly={!isActive}
+                      color="tertiary"
+                      colorVariant="bg"
+                      gradientWith="accent"
+                      gradientColorVariant="text"
+                      className="mr-2"
+                    >
+                      <UserCircle />
+                    </Icon>
+                  ),
+                },
+                {
+                  label: "Miembros", // Changed from "Investigadores"
+                  href: "/datos-maestros/miembros", // Changed href
+                  icon: (isActive: boolean) => (
+                    <Icon
+                      size="sm"
+                      gradient={true}
+                      strokeOnly={!isActive}
+                      color="tertiary"
+                      colorVariant="bg"
+                      gradientWith="accent"
+                      gradientColorVariant="text"
+                      className="mr-2"
+                    >
+                      <Users />
+                    </Icon>
+                  ),
+                },
+                {
+                  label: "Dimensiones Matriz",
+                  href: "/datos-maestros/dimensiones",
+                  icon: (isActive: boolean) => (
+                    <Icon
+                      size="sm"
+                      gradient={true}
+                      strokeOnly={!isActive}
+                      color="tertiary"
+                      colorVariant="bg"
+                      gradientWith="accent"
+                      gradientColorVariant="text"
+                      className="mr-2"
+                    >
+                      <Database />
+                    </Icon>
+                  ),
+                },
+                {
+                  label: "Expresiones Permitidas",
+                  href: "/datos-maestros/expresiones-permitidas",
+                  icon: (isActive: boolean) => (
+                    <Icon
+                      size="sm"
+                      gradient={true}
+                      strokeOnly={!isActive}
+                      color="tertiary"
+                      colorVariant="bg"
+                      gradientWith="accent"
+                      gradientColorVariant="text"
+                      className="mr-2"
+                    >
+                      <MessageSquare />
+                    </Icon>
+                  ),
+                },
+              ],
+            },
+          ]
+        : []),
     ],
-    [pathname]
+    [pathname, proyectoActual] // Added proyectoActual to dependencies
   );
+
+  // Filtra los navItems basados en las variables booleanas
+  // El menú "Inicio" siempre se muestra, los demás dependen de sus variables.
+  const navItems = allNavItems; // En este caso, la lógica de filtrado ya está en `allNavItems`
 
   useEffect(() => {
     const handleScroll = () => {
@@ -399,11 +444,8 @@ export function Navbar() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        {/* CAMBIO: Eliminado container mx-auto de aquí, se usa w-full con padding */}
         <div className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between"> {/* Distribuye los 3 bloques principales */}
-            
-            {/* Grupo 1: Branding (Logo y Marca) */}
+          <div className="flex h-16 items-center justify-between">
             <motion.div
               className="flex items-center flex-shrink-0"
               initial={{ x: -20, opacity: 0 }}
@@ -418,7 +460,7 @@ export function Navbar() {
                 }
               >
                 <SustratoLogo
-                  size={40} // Aumentado el tamaño del logo
+                  size={40}
                   className="flex-shrink-0"
                   primaryColor={navTokens.logo?.primary}
                   secondaryColor={navTokens.logo?.secondary}
@@ -448,8 +490,6 @@ export function Navbar() {
               </Link>
             </motion.div>
 
-            {/* Grupo 2: Menús (Navegación Central) */}
-            {/* CAMBIO: No necesita flex-1 ni mx-auto si el padre es justify-between y los otros son shrink-0 */}
             <div className="hidden md:flex items-center space-x-3 lg:space-x-5">
               {navItems.map((item, index) => (
                 <motion.div
@@ -474,8 +514,8 @@ export function Navbar() {
                         className={cn(
                           "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
                           pathname === item.href || isSubmenuActive(item)
-                            ? "" 
-                            : "hover:bg-opacity-100" 
+                            ? ""
+                            : "hover:bg-opacity-100"
                         )}
                         style={{
                           backgroundColor:
@@ -486,7 +526,7 @@ export function Navbar() {
                         whileHover={{
                           backgroundColor:
                             pathname === item.href || isSubmenuActive(item)
-                              ? navTokens.active.bg 
+                              ? navTokens.active.bg
                               : navTokens.hover.bg,
                           scale: 1.05,
                           transition: { duration: 0.2 },
@@ -499,13 +539,13 @@ export function Navbar() {
                         <Text
                           color={
                             pathname === item.href || isSubmenuActive(item)
-                              ? "primary"
-                              : "secondary"
+                              ? MENU_HEADER_TEXT_COLOR_ACTIVE
+                              : MENU_HEADER_TEXT_COLOR_INACTIVE
                           }
                           colorVariant={
                             pathname === item.href || isSubmenuActive(item)
-                              ? "pure" 
-                              : "text"
+                              ? MENU_HEADER_TEXT_VARIANT_ACTIVE
+                              : MENU_HEADER_TEXT_VARIANT_INACTIVE
                           }
                           weight="medium"
                           size="sm"
@@ -542,8 +582,12 @@ export function Navbar() {
                             style={{
                               backgroundColor: navTokens.submenu.background,
                               borderColor: navTokens.submenu.border,
-                              borderWidth: navTokens.submenu.border ? '1px' : '0',
-                              borderStyle: navTokens.submenu.border ? 'solid' : 'none',
+                              borderWidth: navTokens.submenu.border
+                                ? "1px"
+                                : "0",
+                              borderStyle: navTokens.submenu.border
+                                ? "solid"
+                                : "none",
                               boxShadow: navTokens.shadow,
                             }}
                             initial="hidden"
@@ -589,13 +633,13 @@ export function Navbar() {
                                     <Text
                                       color={
                                         pathname === subitem.href
-                                          ? "primary"
-                                          : "secondary"
+                                          ? SUBMENU_TEXT_COLOR_ACTIVE
+                                          : SUBMENU_TEXT_COLOR_INACTIVE
                                       }
                                       colorVariant={
                                         pathname === subitem.href
-                                          ? "pure"
-                                          : "text"
+                                          ? SUBMENU_TEXT_VARIANT_ACTIVE
+                                          : SUBMENU_TEXT_VARIANT_INACTIVE
                                       }
                                       weight={
                                         pathname === subitem.href
@@ -653,10 +697,14 @@ export function Navbar() {
                         {item.icon(pathname === item.href)}
                         <Text
                           color={
-                            pathname === item.href ? "primary" : "secondary"
+                            pathname === item.href
+                              ? MENU_HEADER_TEXT_COLOR_ACTIVE
+                              : MENU_HEADER_TEXT_COLOR_INACTIVE
                           }
                           colorVariant={
-                            pathname === item.href ? "pure" : "text"
+                            pathname === item.href
+                              ? MENU_HEADER_TEXT_VARIANT_ACTIVE
+                              : MENU_HEADER_TEXT_VARIANT_INACTIVE
                           }
                           weight="medium"
                           size="sm"
@@ -676,16 +724,13 @@ export function Navbar() {
               ))}
             </div>
 
-            {/* Grupo 3 y 4: Controles (Preferencias Visuales y User Avatar) y Menú Móvil */}
             <div className="flex items-center flex-shrink-0">
-              {/* Controles de Tema y Usuario - Visibles en Desktop */}
               <div className="hidden md:flex items-center gap-3 lg:gap-4">
                 <FontThemeSwitcher />
                 <ThemeSwitcher />
                 <UserAvatar />
               </div>
 
-              {/* Botón de Menú Móvil - Visible solo en Móvil */}
               <div className="md:hidden ml-2">
                 <motion.div whileTap={{ scale: 0.9 }}>
                   <Button
@@ -719,19 +764,17 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Línea decorativa degradada */}
         <div className="w-full h-1" style={gradientBarStyle} />
 
-        {/* Navegación Móvil */}
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
               className="md:hidden border-b"
-              style={{ 
+              style={{
                 backgroundColor: navBackgroundColor,
                 borderColor: navTokens.submenu.border,
-                borderBottomWidth: navTokens.submenu.border ? '1px' : '0',
-                borderBottomStyle: navTokens.submenu.border ? 'solid' : 'none',
+                borderBottomWidth: navTokens.submenu.border ? "1px" : "0",
+                borderBottomStyle: navTokens.submenu.border ? "solid" : "none",
               }}
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
@@ -739,7 +782,16 @@ export function Navbar() {
               transition={{ duration: 0.3 }}
             >
               <div className="space-y-1 px-2 pt-2 pb-3 sm:px-3">
-                <div className="flex justify-around items-center py-2 border-b mb-2" style={{ borderColor: navTokens.submenu.border, borderBottomWidth: navTokens.submenu.border ? '1px' : '0', borderBottomStyle: navTokens.submenu.border ? 'solid' : 'none' }}>
+                <div
+                  className="flex justify-around items-center py-2 border-b mb-2"
+                  style={{
+                    borderColor: navTokens.submenu.border,
+                    borderBottomWidth: navTokens.submenu.border ? "1px" : "0",
+                    borderBottomStyle: navTokens.submenu.border
+                      ? "solid"
+                      : "none",
+                  }}
+                >
                   <FontThemeSwitcher />
                   <ThemeSwitcher />
                 </div>
@@ -785,13 +837,13 @@ export function Navbar() {
                             <Text
                               color={
                                 pathname === item.href || isSubmenuActive(item)
-                                  ? "primary"
-                                  : "secondary"
+                                  ? MENU_HEADER_TEXT_COLOR_ACTIVE
+                                  : MENU_HEADER_TEXT_COLOR_INACTIVE
                               }
                               colorVariant={
                                 pathname === item.href || isSubmenuActive(item)
-                                  ? "pure"
-                                  : "text"
+                                  ? MENU_HEADER_TEXT_VARIANT_ACTIVE
+                                  : MENU_HEADER_TEXT_VARIANT_INACTIVE
                               }
                               weight="medium"
                               size="base"
@@ -835,7 +887,7 @@ export function Navbar() {
                                 <motion.div
                                   key={subitem.href}
                                   variants={menuItemVariants}
-                                   whileHover={{
+                                  whileHover={{
                                     backgroundColor:
                                       pathname === subitem.href
                                         ? navTokens.active.bg
@@ -870,13 +922,13 @@ export function Navbar() {
                                     <Text
                                       color={
                                         pathname === subitem.href
-                                          ? "primary"
-                                          : "secondary"
+                                          ? SUBMENU_TEXT_COLOR_ACTIVE
+                                          : SUBMENU_TEXT_COLOR_INACTIVE
                                       }
                                       colorVariant={
                                         pathname === subitem.href
-                                          ? "pure"
-                                          : "text"
+                                          ? SUBMENU_TEXT_VARIANT_ACTIVE
+                                          : SUBMENU_TEXT_VARIANT_INACTIVE
                                       }
                                       weight={
                                         pathname === subitem.href
@@ -936,10 +988,14 @@ export function Navbar() {
                           {item.icon(pathname === item.href)}
                           <Text
                             color={
-                              pathname === item.href ? "primary" : "secondary"
+                              pathname === item.href
+                                ? MENU_HEADER_TEXT_COLOR_ACTIVE
+                                : MENU_HEADER_TEXT_COLOR_INACTIVE
                             }
                             colorVariant={
-                              pathname === item.href ? "pure" : "text"
+                              pathname === item.href
+                                ? MENU_HEADER_TEXT_VARIANT_ACTIVE
+                                : MENU_HEADER_TEXT_VARIANT_INACTIVE
                             }
                             weight="medium"
                             size="base"
@@ -957,8 +1013,15 @@ export function Navbar() {
                     )}
                   </motion.div>
                 ))}
-                <div className="pt-4 mt-2 border-t flex justify-center" style={{ borderColor: navTokens.submenu.border, borderTopWidth: navTokens.submenu.border ? '1px' : '0', borderTopStyle: navTokens.submenu.border ? 'solid' : 'none' }}>
-                   <UserAvatar />
+                <div
+                  className="pt-4 mt-2 border-t flex justify-center"
+                  style={{
+                    borderColor: navTokens.submenu.border,
+                    borderTopWidth: navTokens.submenu.border ? "1px" : "0",
+                    borderTopStyle: navTokens.submenu.border ? "solid" : "none",
+                  }}
+                >
+                  <UserAvatar />
                 </div>
               </div>
             </motion.div>

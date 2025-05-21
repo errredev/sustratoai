@@ -1,80 +1,126 @@
-"use client"
+// components/ui/form-field.tsx
+"use client";
 
-import * as React from "react"
-import { Label } from "./label"
-import { cn } from "@/lib/utils"
-import { Text } from "./text"
+import * as React from "react";
+import { Label } from "./label";
+import { cn } from "@/lib/utils";
+import { Text } from "./text";
+import type { TextProps } from "./text";
 
-interface FormFieldProps {
-  label: string
-  htmlFor: string
-  className?: string
-  children: React.ReactNode
-  hint?: string
-  error?: string
+type TextColor = TextProps["color"];
+type TextColorVariant = TextProps["colorVariant"];
+
+
+export interface FormFieldProps {
+  label: string;
+  htmlFor: string;
+  className?: string;
+  children: React.ReactNode;
+  hint?: string;
+  error?: string;
+  isRequired?: boolean;
 }
 
-export function FormField({ label, htmlFor, className, children, hint, error }: FormFieldProps) {
-  const [isFocused, setIsFocused] = React.useState(false)
+export function FormField({
+  label,
+  htmlFor,
+  className,
+  children,
+  hint,
+  error, // Este es el error de FormField
+  isRequired,
+}: FormFieldProps) {
+  const [isFocused, setIsFocused] = React.useState(false);
 
-  // Usamos un ID único para el contenedor
-  const containerId = React.useMemo(() => `form-field-${htmlFor}`, [htmlFor])
+  const formFieldWrapperId = `form-field-wrapper-${htmlFor}`;
 
-  // Efecto para manejar el focus usando eventos a nivel de documento
   React.useEffect(() => {
-    const handleFocusChange = (e: FocusEvent) => {
-      const container = document.getElementById(containerId)
-      if (!container) return
-
-      // Verificamos si el elemento enfocado está dentro de nuestro contenedor
-      if (container.contains(e.target as Node)) {
-        console.log(`Focus detected in container for: ${htmlFor}`)
-        setIsFocused(true)
-      } else if (isFocused) {
-        console.log(`Focus lost from container for: ${htmlFor}`)
-        setIsFocused(false)
-      }
+    const formFieldDiv = document.getElementById(formFieldWrapperId);
+    if (!formFieldDiv) {
+      // console.warn(`FormField: Wrapper div con id "${formFieldWrapperId}" no encontrado.`);
+      return;
     }
 
-    // Agregamos listeners para capturar focus y blur en todo el documento
-    document.addEventListener("focusin", handleFocusChange)
-    document.addEventListener("focusout", handleFocusChange)
+    const handleFocusIn = (event: FocusEvent) => {
+      console.log(`FormField [${htmlFor}] focusin. Target:`, event.target); // LOG
+      // Verificamos si el elemento que recibió foco o uno de sus padres cercanos es un input, textarea, select, o nuestro combobox
+      if (event.target && (event.target as HTMLElement).closest('input, textarea, select, [role="combobox"]')) {
+        setIsFocused(true);
+      }
+    };
+    const handleFocusOut = (event: FocusEvent) => {
+      console.log(`FormField [${htmlFor}] focusout. RelatedTarget (nuevo foco):`, event.relatedTarget); // LOG
+      // Si el nuevo elemento enfocado NO está dentro de ESTE FormField, entonces perdemos el foco.
+      if (!formFieldDiv.contains(event.relatedTarget as Node)) {
+          setIsFocused(false);
+      }
+    };
+
+    formFieldDiv.addEventListener('focusin', handleFocusIn);
+    formFieldDiv.addEventListener('focusout', handleFocusOut);
 
     return () => {
-      document.removeEventListener("focusin", handleFocusChange)
-      document.removeEventListener("focusout", handleFocusChange)
-    }
-  }, [containerId, htmlFor, isFocused])
+      formFieldDiv.removeEventListener('focusin', handleFocusIn);
+      formFieldDiv.removeEventListener('focusout', handleFocusOut);
+    };
+  }, [htmlFor, formFieldWrapperId]); // formFieldWrapperId es constante si htmlFor lo es
 
-  // Clonamos el hijo para asignarle el ID correcto
-  const childrenWithId = React.Children.map(children, (child) => {
-    if (React.isValidElement(child)) {
-      return React.cloneElement(child, {
-        id: htmlFor,
-        ...child.props,
-      })
-    }
-    return child
-  })
+  let labelTextColor: TextColor = "neutral";
+  let labelTextVariant: TextColorVariant | undefined = "text";
+
+  if (error) { 
+    labelTextColor = "danger";
+    labelTextVariant = "pure";
+  } else if (isFocused) {
+    labelTextColor = "primary";
+    labelTextVariant = "pure";
+  }
+
+  const formFieldGeneratedHintId = hint ? `${htmlFor}-formfield-hint` : undefined;
+  const formFieldGeneratedErrorId = error ? `${htmlFor}-formfield-error` : undefined;
 
   return (
-    <div id={containerId} className={cn("space-y-2", className)}>
+    <div id={formFieldWrapperId} className={cn("space-y-1.5", className)}>
       <div>
-        <Text variant="label" color={isFocused ? "primary" : "neutral"} colorVariant={isFocused ? "pure" : "text"}>
-          <Label htmlFor={htmlFor}>{label}</Label>
-        </Text>
+        <Label htmlFor={htmlFor}>
+          <Text
+            variant="label"
+            color={labelTextColor}
+            colorVariant={labelTextVariant}
+            className="transition-colors duration-200"
+          >
+            {label}
+            {isRequired && (
+              <span className="text-danger-pure ml-0.5 select-none">*</span>
+            )}
+          </Text>
+        </Label>
       </div>
-      {childrenWithId}
+      
+      {children}
+
       {hint && !error && (
-        <Text variant="caption" color="neutral" colorVariant="text">
+        <Text
+          id={formFieldGeneratedHintId}
+          variant="caption"
+          color="neutral"
+          colorVariant="textShade"
+          className="mt-1"
+        >
           {hint}
         </Text>
       )}
-      {error && (
-        <Text variant="caption" color="error" colorVariant="text">
+      {error && ( // Este es el mensaje de error de FormField
+        <Text
+          id={formFieldGeneratedErrorId}
+          variant="caption"
+          color="danger"
+          colorVariant="pure"
+          className="mt-1"
+        >
           {error}
         </Text>
       )}
     </div>
-  )
+  );
 }

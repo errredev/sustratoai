@@ -37,6 +37,7 @@ interface AuthContextType {
   proyectoActual: UserProjectSetting | null;
   proyectosDisponibles: UserProjectSetting[];
   cargandoProyectos: boolean;
+  cambiandoProyecto: boolean; // Nuevo estado para indicar que se está cambiando de proyecto
   seleccionarProyecto: (proyectoId: string) => Promise<void>;
   signIn: (
     email: string,
@@ -70,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     UserProjectSetting[]
   >([]);
   const [cargandoProyectos, setCargandoProyectos] = useState(false);
+  const [cambiandoProyecto, setCambiandoProyecto] = useState(false); // Nuevo estado para cambio de proyecto
   const [mostrarSelectorProyecto, setMostrarSelectorProyecto] = useState(false);
 
   // Referencias para controlar estados y evitar operaciones duplicadas
@@ -359,9 +361,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Función para seleccionar un proyecto
   const seleccionarProyecto = async (proyectoId: string) => {
     try {
+      // Activar el estado de carga
+      setCambiandoProyecto(true);
+
       const resultado = await obtenerProyectoPorId(proyectoId);
 
       if (resultado.success && resultado.data) {
+        // Resetear las referencias de configuración para forzar la aplicación de nuevos temas
+        currentThemeRef.current = null;
+        currentFontRef.current = null;
+        currentDarkModeRef.current = null;
+        configAppliedForProjectId.current = null;
+
         // Intentar persistir el cambio de proyecto activo en la base de datos
         if (user) {
           try {
@@ -388,11 +399,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 is_active_for_user: true,
               };
 
-              setProyectoActual(proyectoActualizado);
-              localStorage.setItem("proyectoActualId", proyectoId);
-
-              // Aplicar configuración de UI inmediatamente
+              // Aquí aplicamos la configuración antes de actualizar el estado
+              // para evitar problemas de timing con el useEffect
+              console.log(
+                "🚀 Forzando aplicación de configuración UI para nuevo proyecto"
+              );
               aplicarConfiguracionUI(proyectoActualizado);
+
+              // Pequeño retraso para asegurar que los cambios visuales se apliquen completamente
+              setTimeout(() => {
+                setProyectoActual(proyectoActualizado);
+                localStorage.setItem("proyectoActualId", proyectoId);
+                setMostrarSelectorProyecto(false);
+
+                // Desactivar estado de carga después de completar todo
+                setCambiandoProyecto(false);
+              }, 300);
             } else {
               // Si no lo encontramos en la lista disponible, crear un UserProjectSetting básico
               // con los datos del proyecto y valores predeterminados para los campos adicionales
@@ -409,10 +431,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setProyectoActual(proyectoBasico);
               localStorage.setItem("proyectoActualId", proyectoId);
             }
-
-            setMostrarSelectorProyecto(false);
           } catch (error) {
             console.error("❌ Error actualizando proyecto activo:", error);
+            setCambiandoProyecto(false);
           }
         } else {
           // Si no hay usuario, simplemente actualizar la UI sin persistencia
@@ -421,13 +442,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           );
 
           if (proyectoEncontrado) {
-            setProyectoActual({
+            const proyectoActualizado = {
               ...proyectoEncontrado,
               is_active_for_user: true,
-            });
+            };
+
+            // Aplicar configuración antes de actualizar estado
+            console.log(
+              "🚀 Forzando aplicación de configuración UI para nuevo proyecto"
+            );
+            aplicarConfiguracionUI(proyectoActualizado);
+
+            setProyectoActual(proyectoActualizado);
             localStorage.setItem("proyectoActualId", proyectoId);
-            // Aplicar configuración de UI inmediatamente
-            aplicarConfiguracionUI(proyectoEncontrado);
           } else {
             // Código existente para manejo de proyecto no encontrado
             const proyectoBasico: UserProjectSetting = {
@@ -445,10 +472,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           setMostrarSelectorProyecto(false);
+          // Desactivar estado de carga después de completar
+          setCambiandoProyecto(false);
         }
+      } else {
+        // Si no hay datos o hay error, desactivar carga
+        setCambiandoProyecto(false);
       }
     } catch (error) {
       console.error("Error al seleccionar proyecto:", error);
+      setCambiandoProyecto(false);
     }
   };
 
@@ -1027,6 +1060,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const debeBloquear =
     user && proyectosDisponibles.length > 0 && !proyectoActual;
 
+  // Componente para mostrar overlay bloqueante mientras se cambia de proyecto
+  const LoadingProjectOverlay = () => {
+    if (!cambiandoProyecto) return null;
+
+    return (
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          background: "rgba(0,0,0,0.35)",
+          zIndex: 10000,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            background: "white",
+            borderRadius: "12px",
+            padding: "2rem 2.5rem",
+            boxShadow: "0 2px 24px rgba(0,0,0,0.12)",
+            textAlign: "center",
+          }}
+        >
+          <div className="mb-6 flex justify-center">
+            <SustratoLoadingLogo
+              size={50}
+              variant="spin-pulse"
+              speed="normal"
+              colorTransition
+              showText
+              text="Cambiando a nuevo proyecto..."
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -1037,14 +1113,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         proyectoActual,
         proyectosDisponibles,
         cargandoProyectos,
+        cambiandoProyecto,
         seleccionarProyecto,
         signIn: login,
         signUp: signup,
         logout,
       }}
     >
-      {/* Overlay bloqueante si no hay proyecto seleccionado */}
-      {debeBloquear && (
+      {/* Overlay bloqueante si no hay proyecto seleccionado o se está cambiando de proyecto */}
+      {(debeBloquear || cambiandoProyecto) && (
         <div
           style={{
             position: "fixed",
@@ -1075,19 +1152,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 speed="normal"
                 colorTransition
                 showText
-                text="Selecciona un proyecto para continuar"
+                text={
+                  cambiandoProyecto
+                    ? "Cambiando de proyecto..."
+                    : "Selecciona un proyecto para continuar"
+                }
               />
             </div>
-            <p className="mt-4">
-              Debes elegir un proyecto válido antes de acceder a la plataforma.
-            </p>
+            {!cambiandoProyecto && (
+              <p className="mt-4">
+                Debes elegir un proyecto válido antes de acceder a la
+                plataforma.
+              </p>
+            )}
           </div>
         </div>
       )}
+      {/* Overlay de carga durante cambio de proyecto */}
+      <LoadingProjectOverlay />
       {/* Modal y resto de la app */}
       <ProyectoSelectorModal />
       <ProyectoIndicator />
-      {/* Solo renderizar children si hay proyecto seleccionado o no hay proyectos disponibles */}
+      {/* Solo renderizar children si no está cambiando de proyecto y no debe bloquear */}
       {!debeBloquear && children}
     </AuthContext.Provider>
   );

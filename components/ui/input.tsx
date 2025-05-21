@@ -1,3 +1,7 @@
+// components/ui/input.tsx
+// Versión 1.0.0 (Ascendido desde CustomInputExperimental 1.7.0)
+// Componente de Input principal para Sustrato.ai, con tematización dinámica y ARIA.
+
 "use client";
 
 import * as React from "react";
@@ -6,14 +10,14 @@ import { AlertCircle, X, CheckCircle, Eye, EyeOff } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/app/theme-provider";
-import type {
-  InputVariant,
-  InputSize,
-  InputTokens,
-} from "@/lib/theme/components/input-tokens";
-import { generateInputTokens } from "@/lib/theme/components/input-tokens";
-import { Icon } from "@/components/ui/icon";
-import tinycolor from "tinycolor2";
+import {
+  generateInputTokens,
+  type InputSize,
+  type InputVariant,
+  type InputTokens
+} from "@/lib/theme/components/input-tokens"; // input-tokens.ts sigue siendo válido
+import { Icon, type Color as IconColorType, type IconProps } from "@/components/ui/icon";
+import { Text } from "@/components/ui/text";
 
 export interface InputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
@@ -28,6 +32,9 @@ export interface InputProps
   onClear?: () => void;
   variant?: InputVariant;
   size?: InputSize;
+  isRequired?: boolean;
+  formFieldHintId?: string;  // Opcional: ID de hint de FormField
+  formFieldErrorId?: string; // Opcional: ID de error de FormField
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -47,355 +54,250 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       variant = "default",
       size = "md",
       disabled,
+      id,
+      name,
+      value,
+      onChange,
+      maxLength,
+      readOnly,
+      onFocus,
+      onBlur,
+      style,
+      autoComplete,
+      isRequired,
+      formFieldHintId,
+      formFieldErrorId,
       ...props
     },
     ref
   ) => {
     const { appColorTokens, mode } = useTheme();
+    const inputRef = React.useRef<HTMLInputElement>(null);
+    React.useImperativeHandle(ref, () => inputRef.current as HTMLInputElement);
+
+    const [showPassword, setShowPassword] = React.useState(false);
+    const inputType = type === "password" && showPassword ? "text" : type;
+
+    const charCount = React.useMemo(() => {
+      if (value === null || value === undefined) return 0;
+      return String(value).length;
+    }, [value]);
 
     const inputTokens: InputTokens | null = React.useMemo(() => {
       if (!appColorTokens || !mode) return null;
       return generateInputTokens(appColorTokens, mode);
     }, [appColorTokens, mode]);
+    
+    React.useEffect(() => {
+      const element = inputRef.current;
+      if (element && inputTokens && appColorTokens) {
+        const cvt = inputTokens.variants[variant];
+        let effectiveBackgroundColor = cvt.background;
+        let effectiveTextColor = cvt.text;
 
-    if (!inputTokens) {
-      return (
-        <div className="w-full">
-          <input
-            type={type}
-            className={cn(
-              "peer flex w-full rounded-md transition-all h-10 px-3 py-2 text-sm",
-              "border border-gray-300 bg-gray-100",
-              disabled && "cursor-not-allowed opacity-50",
-              className
-            )}
-            ref={ref}
-            disabled={disabled}
-            {...props}
-            placeholder="Loading..."
-          />
-        </div>
-      );
-    }
+        if (disabled) {
+          effectiveBackgroundColor = cvt.disabledBackground;
+          effectiveTextColor = cvt.disabledText;
+        } else if (readOnly) {
+          effectiveBackgroundColor = cvt.readOnlyBackground;
+          effectiveTextColor = cvt.readOnlyText;
+        } else if (error) {
+          effectiveBackgroundColor = cvt.errorBackground;
+        } else if (success) {
+          effectiveBackgroundColor = cvt.successBackground;
+        } else if (isEditing) {
+          effectiveBackgroundColor = cvt.editingBackground;
+        }
+        
+        element.style.setProperty('--input-bg', cvt.background);
+        element.style.setProperty('--input-border', cvt.border);
+        element.style.setProperty('--input-placeholder', cvt.placeholder);
+        element.style.setProperty('--input-focus-border', cvt.focusBorder);
+        element.style.setProperty('--input-focus-ring', cvt.focusRing);
+        element.style.setProperty('--input-readonly-focus-border', cvt.readOnlyBorder); 
+        element.style.setProperty('--input-error-bg', cvt.errorBackground);
+        element.style.setProperty('--input-error-border', cvt.errorBorder);
+        element.style.setProperty('--input-error-ring', cvt.errorRing);
+        element.style.setProperty('--input-success-bg', cvt.successBackground);
+        element.style.setProperty('--input-success-border', cvt.successBorder);
+        element.style.setProperty('--input-success-ring', cvt.successRing);
+        element.style.setProperty('--input-disabled-bg', cvt.disabledBackground);
+        element.style.setProperty('--input-disabled-border', cvt.disabledBorder);
+        element.style.setProperty('--input-disabled-text', cvt.disabledText);
+        element.style.setProperty('--input-readonly-bg', cvt.readOnlyBackground);
+        element.style.setProperty('--input-readonly-border', cvt.readOnlyBorder);
+        element.style.setProperty('--input-readonly-text', cvt.readOnlyText);
+        element.style.setProperty('--input-editing-bg', cvt.editingBackground);
+        element.style.setProperty('--input-autofill-bg', effectiveBackgroundColor);
+        element.style.setProperty('--input-text', effectiveTextColor);
+      }
+    }, [inputTokens, variant, appColorTokens, disabled, error, success, isEditing, readOnly, id, name]);
 
-    const variantTokens = inputTokens.variants[variant];
-    const sizeTokens = inputTokens.sizes[size];
-
-    const [charCount, setCharCount] = React.useState(
-      props.value ? String(props.value).length : 0
-    );
-
-    const [showPassword, setShowPassword] = React.useState(false);
-
-    const inputType = type === "password" && showPassword ? "text" : type;
+    const sizeTokens = inputTokens ? inputTokens.sizes[size] : { height: "h-10", fontSize: "text-sm", paddingX: "px-3", paddingY: "py-2" };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setCharCount(e.target.value.length);
-      props.onChange?.(e);
+      onChange?.(e);
     };
 
-    React.useEffect(() => {
-      if (props.value !== undefined) {
-        setCharCount(String(props.value).length);
-      }
-    }, [props.value]);
-
-    const getCounterColor = () => {
-      if (!props.maxLength)
-        return appColorTokens?.neutral.text || "text-neutral-500";
-      if (charCount === props.maxLength)
-        return appColorTokens?.success.text || "text-green-500";
-      if (charCount > props.maxLength)
-        return appColorTokens?.danger.text || "text-red-500";
-      if (charCount >= props.maxLength * 0.8)
-        return appColorTokens?.warning?.text || "text-amber-500";
-      return appColorTokens?.neutral.text || "text-neutral-500";
+    const mapInputSizeToIconInternalSize = (s: InputSize): IconProps['size'] => {
+       switch (s) { case "sm": return "xs"; case "lg": return "md"; default: return "sm"; }
     };
-
-    const mapInputSizeToIconSize = (inputSize: InputSize) => {
-      switch (inputSize) {
-        case "sm":
-          return "xs";
-        case "lg":
-          return "md";
-        default:
-          return "sm";
-      }
-    };
-
-    const iconSize = mapInputSizeToIconSize(size);
-    const hasLeadingIcon = !!leadingIcon;
-    const hasTrailingIcon =
-      !!trailingIcon ||
-      (props.value && onClear) ||
-      !!error ||
-      success ||
-      type === "password";
-
-    const getLeadingPadding = () => {
-      if (!hasLeadingIcon) return "";
-      switch (size) {
-        case "sm":
-          return "pl-7";
-        case "lg":
-          return "pl-12";
-        default:
-          return "pl-10";
-      }
-    };
-
-    const getTrailingPadding = () => {
-      if (!hasTrailingIcon) return "";
-      switch (size) {
-        case "sm":
-          return "pr-7";
-        case "lg":
-          return "pr-12";
-        default:
-          return "pr-10";
-      }
-    };
-
-    const getBackgroundColor = () => {
-      if (disabled) return variantTokens.disabledBackground;
-      if (error) return variantTokens.errorBackground;
-      if (success) return variantTokens.successBackground;
-      if (isEditing) return variantTokens.editingBackground;
-      return variantTokens.background;
-    };
-
-    const getBorderColor = () => {
-      if (disabled) return variantTokens.disabledBorder;
-      if (error) return variantTokens.errorBorder;
-      if (success) return variantTokens.successBorder;
-      return variantTokens.border;
-    };
-
-    const getTextColor = () => {
-      if (disabled) return variantTokens.disabledText;
-      return variantTokens.text;
-    };
-
+    const iconInternalSize = mapInputSizeToIconInternalSize(size);
     const getIconLeftPosition = () => {
-      switch (size) {
-        case "sm":
-          return "left-2.5";
-        case "lg":
-          return "left-4";
-        default:
-          return "left-3";
-      }
+      switch (size) { case "sm": return "left-2.5"; case "lg": return "left-4"; default: return "left-3"; }
     };
+    const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
-    const togglePasswordVisibility = () => {
-      setShowPassword(!showPassword);
-    };
+    const paddingClassesArray: string[] = [];
+    if (inputTokens) {
+        const basePaddingXFromTokens = sizeTokens.paddingX;
+        const specificLeadingPaddingClass = size === "sm" ? "pl-7" : size === "lg" ? "pl-12" : "pl-10";
+        const specificTrailingPaddingClassBase = size === "sm" ? "pr-7" : size === "lg" ? "pr-12" : "pr-10";
+        const hasLeadingIcon = !!leadingIcon;
+        const hasAnyVisibleTrailingElement = !!trailingIcon || (value && onClear && !disabled && !readOnly) || !!error || success || type === "password";
 
-    React.useEffect(() => {
-      // console.log("Input border color:", getBorderColor());
-      // console.log("Input focus border:", variantTokens.focusBorder);
-      // console.log("Input semantic primary:", semantic.primary.border);
-    }, [variantTokens]);
+        if (hasLeadingIcon) { paddingClassesArray.push(specificLeadingPaddingClass); } 
+        else { if (basePaddingXFromTokens.startsWith('px-')) { paddingClassesArray.push(basePaddingXFromTokens.replace('px-', 'pl-')); } else { paddingClassesArray.push(basePaddingXFromTokens); } }
+        
+        if (hasAnyVisibleTrailingElement) {
+        let numTrailingElements = 0;
+        if (type === "password" && !readOnly && !disabled) numTrailingElements++;
+        if (value && onClear && !disabled && !readOnly) numTrailingElements++;
+        if ((error || (success && !error)) && !disabled && !readOnly) numTrailingElements++;
+        if (trailingIcon && !error && !(success && !error) && !(value && onClear && !disabled && !readOnly) && type !== "password") numTrailingElements++;
+
+        if (numTrailingElements > 1) {
+            const basePrValue = size === "sm" ? 7 : size === "md" ? 10 : 12;
+            const iconWidthApprox = size === "sm" ? 5 : size === "md" ? 6 : 7; 
+            paddingClassesArray.push(`pr-${basePrValue + (numTrailingElements - 1) * iconWidthApprox}`);
+        } else if (numTrailingElements === 1) {
+             paddingClassesArray.push(specificTrailingPaddingClassBase);
+        } else { 
+             if (basePaddingXFromTokens.startsWith('px-')) { paddingClassesArray.push(basePaddingXFromTokens.replace('px-', 'pr-')); } else { paddingClassesArray.push(basePaddingXFromTokens); }
+        }
+        } else { 
+            if (basePaddingXFromTokens.startsWith('px-')) { paddingClassesArray.push(basePaddingXFromTokens.replace('px-', 'pr-')); } else { paddingClassesArray.push(basePaddingXFromTokens); } 
+        }
+    } else { 
+        paddingClassesArray.push("px-3");
+    }
+    
+    const baseClasses = [ "peer", "flex", "w-full", "rounded-md", "transition-all", "border", sizeTokens.height, sizeTokens.fontSize, ...paddingClassesArray, sizeTokens.paddingY, "placeholder:text-[var(--input-placeholder)]", "text-[var(--input-text)]" ];
+    const stateClasses: string[] = [];
+    if (disabled) { stateClasses.push( "border-[var(--input-disabled-border)]", "bg-[var(--input-disabled-bg)]", "cursor-not-allowed", "opacity-70" ); } 
+    else if (readOnly) { stateClasses.push( "border-[var(--input-readonly-border)]", "bg-[var(--input-readonly-bg)]", "cursor-default", "read-only:focus:outline-none", "read-only:focus:ring-0", "read-only:focus:border-[var(--input-readonly-focus-border)]" ); } 
+    else if (error) { stateClasses.push("border-[var(--input-error-border)]", "bg-[var(--input-error-bg)]"); } 
+    else if (success) { stateClasses.push("border-[var(--input-success-border)]", "bg-[var(--input-success-bg)]"); } 
+    else if (isEditing) { stateClasses.push("border-[var(--input-border)]", "bg-[var(--input-editing-bg)]"); } 
+    else { stateClasses.push("border-[var(--input-border)]", "bg-[var(--input-bg)]"); }
+    
+    const focusClasses: string[] = [];
+    if (!disabled && !readOnly) { focusClasses.push("focus:outline-none"); if (error) { focusClasses.push("focus:border-[var(--input-error-border)]", "focus:shadow-[0_0_0_3px_var(--input-error-ring)]"); } else if (success) { focusClasses.push("focus:border-[var(--input-success-border)]", "focus:shadow-[0_0_0_3px_var(--input-success-ring)]"); } else { focusClasses.push("focus:border-[var(--input-focus-border)]", "focus:shadow-[0_0_0_3px_var(--input-focus-ring)]"); } }
+    const inputClasses = cn(...baseClasses, ...stateClasses, ...focusClasses, className);
+    
+    let baseIconColor: IconColorType = "neutral";
+    let baseIconColorVariant: IconProps['colorVariant'] = "text";
+    if (disabled) { baseIconColor = "neutral"; baseIconColorVariant = "text"; } 
+    else if (readOnly) { baseIconColor = "neutral"; baseIconColorVariant = "text"; } 
+    else if (variant === "default") { baseIconColor = "primary"; baseIconColorVariant = "shade"; } 
+    else if (["primary", "secondary", "tertiary", "accent", "neutral"].includes(variant)) { baseIconColor = variant as IconColorType; baseIconColorVariant = "shade"; }
+    
+    const dynamicInputStyle: React.CSSProperties = { ...style }; 
+
+    const errorMsgId = id && error ? `${id}-error-message` : undefined;
+    const successMsgId = id && success && !error && successMessage ? `${id}-success-message` : undefined;
+    const hintMsgId = id && hint && !error && !success ? `${id}-hint-message` : undefined; // Mantenemos: hint se oculta si hay success
+
+    const describedByArray = [];
+    if (errorMsgId) describedByArray.push(errorMsgId);
+    if (successMsgId) describedByArray.push(successMsgId);
+    if (hintMsgId) describedByArray.push(hintMsgId);
+    if (formFieldErrorId) describedByArray.push(formFieldErrorId);
+    if (formFieldHintId) describedByArray.push(formFieldHintId);
+    const ariaDescribedBy = describedByArray.length > 0 ? describedByArray.join(" ") : undefined;
 
     return (
       <div className="w-full">
         <div className="relative w-full">
           <input
+            id={id}
+            name={name}
             type={inputType}
-            className={cn(
-              "peer flex w-full rounded-md transition-all",
-              sizeTokens.height,
-              sizeTokens.fontSize,
-              !hasLeadingIcon ? sizeTokens.paddingX : "pr-3",
-              sizeTokens.paddingY,
-              getLeadingPadding(),
-              getTrailingPadding(),
-              "border",
-              disabled && "disabled:cursor-not-allowed",
-              className
-            )}
-            style={{
-              backgroundColor: getBackgroundColor(),
-              borderColor: getBorderColor(),
-              color: getTextColor(),
-              outline: "none",
-              boxShadow: "none",
-            }}
-            onFocus={(e) => {
-              const target = e.target as HTMLInputElement;
-              if (error) {
-                target.style.borderColor = variantTokens.errorBorder;
-                target.style.boxShadow = `0 0 0 4px ${variantTokens.errorRing}`;
-              } else if (success) {
-                target.style.borderColor = variantTokens.successBorder;
-                target.style.boxShadow = `0 0 0 4px ${variantTokens.successRing}`;
-              } else {
-                target.style.borderColor = variantTokens.focusBorder;
-                target.style.boxShadow = `0 0 0 4px ${variantTokens.focusRing}`;
-              }
-              props.onFocus?.(e);
-            }}
-            onBlur={(e) => {
-              const target = e.target as HTMLInputElement;
-              target.style.borderColor = getBorderColor();
-              target.style.boxShadow = "none";
-              props.onBlur?.(e);
-            }}
-            ref={ref}
+            className={inputClasses}
+            ref={inputRef} 
+            value={value ?? ""}
             onChange={handleChange}
-            disabled={disabled}
-            autoComplete={props.autoComplete === "on" ? "on" : "new-password"}
+            onFocus={onFocus} 
+            onBlur={onBlur}
+            disabled={disabled} 
+            maxLength={maxLength} 
+            readOnly={readOnly}
+            autoComplete={autoComplete !== undefined ? autoComplete : (type === "password" ? "current-password" : "off")}
+            style={dynamicInputStyle}
+            aria-invalid={!!error}
+            aria-required={isRequired}
+            aria-describedby={ariaDescribedBy}
             {...props}
           />
-
-          {leadingIcon && (
-            <div
-              className={`absolute ${getIconLeftPosition()} top-0 h-full flex items-center`}
-              style={{
-                color: disabled
-                  ? variantTokens.disabledText
-                  : variantTokens.iconColor,
-              }}
-            >
-              {React.createElement(leadingIcon, {
-                size: iconSize === "xs" ? 14 : iconSize === "sm" ? 16 : 20,
-              })}
-            </div>
-          )}
-
-          <div className="absolute right-3 top-0 h-full flex items-center gap-2">
-            {type === "password" && (
-              <button
-                type="button"
-                className="outline-none focus:outline-none"
-                onClick={togglePasswordVisibility}
+          {leadingIcon && ( <div className={`absolute ${getIconLeftPosition()} top-0 h-full flex items-center pointer-events-none`}> <Icon color={baseIconColor} colorVariant={baseIconColorVariant} size={iconInternalSize}> {React.createElement(leadingIcon)} </Icon> </div> )}
+          <div className={`absolute right-3 top-0 h-full flex items-center gap-2`}>
+            {type === "password" && !readOnly && !disabled && ( 
+              <button 
+                type="button" 
+                className="outline-none focus:outline-none" 
+                onClick={togglePasswordVisibility} 
                 tabIndex={-1}
-                style={{
-                  color: disabled
-                    ? variantTokens.disabledText
-                    : variantTokens.iconColor,
-                }}
-              >
-                {React.createElement(showPassword ? EyeOff : Eye, {
-                  size: iconSize === "xs" ? 14 : iconSize === "sm" ? 16 : 20,
-                })}
-              </button>
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              > 
+                <Icon color={baseIconColor} colorVariant={baseIconColorVariant} size={iconInternalSize}> 
+                  {React.createElement(showPassword ? EyeOff : Eye)} 
+                </Icon> 
+              </button> 
             )}
-
-            {props.value && onClear && (
-              <button
-                type="button"
-                className="outline-none focus:outline-none"
-                onClick={onClear}
+            {value && onClear && !disabled && !readOnly && ( 
+              <button 
+                type="button" 
+                className="outline-none focus:outline-none" 
+                onClick={onClear} 
                 tabIndex={-1}
-                style={{
-                  color: disabled
-                    ? variantTokens.disabledText
-                    : error && appColorTokens?.danger.text
-                    ? appColorTokens.danger.text
-                    : variantTokens.iconColor,
-                }}
-              >
-                {React.createElement(X, {
-                  size: iconSize === "xs" ? 14 : iconSize === "sm" ? 16 : 20,
-                })}
-              </button>
+                aria-label="Limpiar campo"
+              > 
+                <Icon color={error ? "danger" : baseIconColor} colorVariant={error ? "pure" : baseIconColorVariant} size={iconInternalSize}> <X /> </Icon> 
+              </button> 
             )}
-
-            {(error || success) && (
-              <div
-                style={{
-                  color: error
-                    ? appColorTokens?.danger.text
-                    : appColorTokens?.success.text,
-                }}
-              >
-                {React.createElement(error ? AlertCircle : CheckCircle, {
-                  size: iconSize === "xs" ? 14 : iconSize === "sm" ? 16 : 20,
-                })}
-              </div>
-            )}
-
-            {trailingIcon && !error && !success && (
-              <div
-                style={{
-                  color: disabled
-                    ? variantTokens.disabledText
-                    : variantTokens.iconColor,
-                }}
-              >
-                {React.createElement(trailingIcon, {
-                  size: iconSize === "xs" ? 14 : iconSize === "sm" ? 16 : 20,
-                })}
-              </div>
-            )}
+            {(error || (success && !error)) && !disabled && !readOnly && ( <Icon color={error ? "danger" : "success"} colorVariant="pure" size={iconInternalSize}> {error ? <AlertCircle className="pointer-events-none" /> : <CheckCircle className="pointer-events-none" />} </Icon> )}
+            {trailingIcon && !error && !(success && !error) && !(value && onClear && !disabled && !readOnly) && type !== "password" && !disabled && !readOnly && ( <div className="pointer-events-none"> <Icon color={baseIconColor} colorVariant={baseIconColorVariant} size={iconInternalSize}> {React.createElement(trailingIcon)} </Icon> </div> )}
           </div>
         </div>
-
-        {showCharacterCount && props.maxLength && (
-          <div className="flex justify-end mt-1">
-            <span className={`text-xs ${getCounterColor()}`}>
-              {charCount}/{props.maxLength}
-            </span>
+        <div className="mt-1.5 flex justify-between items-start min-h-[1.25em]">
+          <div className="flex-grow pr-2">
+            <AnimatePresence> 
+              {error && ( 
+                <motion.div id={errorMsgId} initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}> 
+                  <Text color="danger" colorVariant="pure" size="sm" className="flex items-center"> {error} </Text> 
+                </motion.div> 
+              )} 
+            </AnimatePresence>
+            <AnimatePresence> 
+              {success && !error && successMessage && ( 
+                <motion.div id={successMsgId} initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}> 
+                  <Text color="success" colorVariant="pure" size="sm" className="flex items-center"> {successMessage} </Text> 
+                </motion.div> 
+              )} 
+            </AnimatePresence>
+            {hint && !error && !success && !disabled && !readOnly && ( // Mantenemos: hint se oculta si hay success
+              <div id={hintMsgId} className="text-sm opacity-70 text-[var(--input-text)]">{hint}</div> 
+            )}
           </div>
-        )}
-
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="mt-1.5"
-            >
-              <div
-                className="flex items-center text-sm"
-                style={{ color: appColorTokens?.danger.text }}
-              >
-                <span>{error}</span>
-              </div>
-            </motion.div>
+          {showCharacterCount && maxLength && maxLength > 0 && !disabled && !readOnly && ( <div className="flex-shrink-0"> 
+              <Text size="xs" color={error && appColorTokens ? "danger" : "neutral"} colorVariant={error && appColorTokens ? "pure" : "textShade"} className="opacity-70" > {charCount}/{maxLength} </Text> 
+            </div> 
           )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {success && successMessage && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="mt-1.5"
-            >
-              <div
-                className="flex items-center text-sm"
-                style={{ color: appColorTokens?.success.text }}
-              >
-                <span>{successMessage}</span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {hint && !error && !success && (
-          <div
-            className="mt-1.5 text-sm"
-            style={{
-              color: appColorTokens?.neutral.text
-                ? tinycolor(appColorTokens.neutral.text)
-                    .setAlpha(0.7)
-                    .toRgbString()
-                : "#71717a",
-            }}
-          >
-            {hint}
-          </div>
-        )}
+        </div>
       </div>
     );
   }
 );
 
-Input.displayName = "Input";
-export { Input };
+Input.displayName = "Input"; // Nombre oficial
+export { Input }; // Exportación oficial

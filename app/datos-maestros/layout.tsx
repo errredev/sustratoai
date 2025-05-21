@@ -1,13 +1,18 @@
 "use client";
 
 import { SidebarNav } from "@/components/ui/sidebar-nav";
-import { Database, Users, Building2, Briefcase } from "lucide-react";
+import { Database, Users, Building2, Briefcase, UserPlus } from "lucide-react";
 
 const sidebarNavItems = [
   {
     title: "Investigadores",
     href: "/datos-maestros/investigadores",
     icon: Users,
+  },
+  {
+    title: "Miembros",
+    href: "/datos-maestros/miembros",
+    icon: UserPlus,
   },
   // Otros ítems del menú pueden agregarse en el futuro
   // {
