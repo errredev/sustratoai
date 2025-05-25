@@ -1,14 +1,13 @@
 // components/ui/textarea.tsx
-// Versión 1.0.0
+// Versión 1.0.1 (Refactorización de mensajes)
 // Componente TextArea para Sustrato.ai, con tematización dinámica y ARIA.
+// Los mensajes de texto (error, hint, success) son ahora responsabilidad de FormField.
 
 "use client";
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-// Iconos para mensajes, si se decide usarlos:
-// import { AlertCircle, CheckCircle } from "lucide-react"; 
-import { motion, AnimatePresence } from "framer-motion";
+// import { motion, AnimatePresence } from "framer-motion"; // Eliminado, ya que los mensajes de texto se mueven a FormField
 import { useTheme } from "@/app/theme-provider";
 import {
   generateTextareaTokens,
@@ -16,22 +15,21 @@ import {
   type TextareaVariant,
   type TextareaTokens
 } from "@/lib/theme/components/textarea-tokens";
-// import { Icon } from "@/components/ui/icon"; // Si se usan iconos
 import { Text } from "@/components/ui/text";
 
 export interface TextAreaProps
   extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "size" | "cols"> {
-  error?: string;
-  success?: boolean;
-  successMessage?: string;
-  hint?: string;
+  error?: string; // Se mantiene para estilos visuales (borde) y aria-invalid
+  success?: boolean; // Se mantiene para estilos visuales (borde)
+  // successMessage?: string; // Eliminado: FormField maneja el texto
+  // hint?: string; // Eliminado: FormField maneja el texto
   isEditing?: boolean;
   showCharacterCount?: boolean;
   variant?: TextareaVariant;
   size?: TextareaSize;
   isRequired?: boolean;
-  formFieldHintId?: string;
-  formFieldErrorId?: string;
+  formFieldHintId?: string;  // ID de hint de FormField (para aria-describedby)
+  formFieldErrorId?: string; // ID de error de FormField (para aria-describedby)
 }
 
 const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
@@ -40,8 +38,8 @@ const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
       className,
       error,
       success,
-      successMessage,
-      hint,
+      // successMessage, // Eliminado
+      // hint, // Eliminado
       isEditing,
       showCharacterCount,
       variant = "default",
@@ -84,9 +82,6 @@ const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
         const cvt = textareaTokens.variants[variant];
         
         let effectiveBackgroundColor = cvt.background;
-        // El texto del textarea raramente cambia su color principal basado en estos estados,
-        // pero el fondo sí puede hacerlo, especialmente para autofill si fuera aplicable.
-        // let effectiveTextColor = cvt.text; // No se usa directamente para cambiar --textarea-text aquí
 
         if (disabled) {
           effectiveBackgroundColor = cvt.disabledBackground;
@@ -127,8 +122,6 @@ const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
         element.style.setProperty('--textarea-editing-bg', cvt.editingBackground);
 
         element.style.setProperty('--textarea-autofill-bg', effectiveBackgroundColor);
-        // La variable --textarea-text ya se establece con cvt.text, que es el color de texto normal.
-        // No se suele cambiar el color del texto principal del textarea con autofill de la misma forma que un input.
       }
     }, [textareaTokens, variant, appColorTokens, disabled, error, success, isEditing, readOnly, id, name]);
 
@@ -138,7 +131,6 @@ const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       onChange?.(e);
-      // Aquí se podría añadir lógica para auto-resize si se desea en el futuro
     };
 
     const baseClasses = [
@@ -150,7 +142,7 @@ const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
       sizeTokens.paddingY,
       "placeholder:text-[var(--textarea-placeholder)]",
       "text-[var(--textarea-text)]",
-      "resize-y" // Permitir redimensionamiento vertical, se puede sobreescribir con className (e.g., resize-none)
+      "resize-y" 
     ];
     
     const stateClasses: string[] = [];
@@ -158,7 +150,7 @@ const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
       stateClasses.push( 
         "border-[var(--textarea-disabled-border)]", 
         "bg-[var(--textarea-disabled-bg)]", 
-        "text-[var(--textarea-disabled-text)]", // Aplicar color de texto deshabilitado
+        "text-[var(--textarea-disabled-text)]", 
         "cursor-not-allowed", 
         "opacity-70" 
       ); 
@@ -166,25 +158,25 @@ const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
       stateClasses.push( 
         "border-[var(--textarea-readonly-border)]", 
         "bg-[var(--textarea-readonly-bg)]", 
-        "text-[var(--textarea-readonly-text)]", // Aplicar color de texto readonly
+        "text-[var(--textarea-readonly-text)]",
         "cursor-default", 
         "read-only:focus:outline-none", 
         "read-only:focus:ring-0", 
-        "read-only:focus:border-[var(--textarea-readonly-border)]" // Mantener borde readonly en foco
+        "read-only:focus:border-[var(--textarea-readonly-border)]"
       ); 
     } else if (error) { 
       stateClasses.push(
         "border-[var(--textarea-error-border)]", 
-        "bg-[var(--textarea-error-bg)]" // El texto no cambia su color principal con error, solo el borde/fondo.
+        "bg-[var(--textarea-error-bg)]"
       ); 
     } else if (success) { 
       stateClasses.push(
         "border-[var(--textarea-success-border)]", 
-        "bg-[var(--textarea-success-bg)]" // El texto no cambia su color principal con success.
+        "bg-[var(--textarea-success-bg)]"
       ); 
     } else if (isEditing) { 
       stateClasses.push(
-        "border-[var(--textarea-border)]", // Borde normal
+        "border-[var(--textarea-border)]", 
         "bg-[var(--textarea-editing-bg)]"
       ); 
     } else { 
@@ -217,17 +209,13 @@ const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
     
     const textareaClasses = cn(...baseClasses, ...stateClasses, ...focusClasses, className);
     
-    const errorMsgId = id && error ? `${id}-error-message` : undefined;
-    const successMsgId = id && success && !error && successMessage ? `${id}-success-message` : undefined;
-    const hintMsgId = id && hint && !error && !success ? `${id}-hint-message` : undefined; 
-
+    // Construcción de aria-describedby con IDs de FormField
     const describedByArray = [];
-    if (errorMsgId) describedByArray.push(errorMsgId);
-    if (successMsgId) describedByArray.push(successMsgId);
-    if (hintMsgId) describedByArray.push(hintMsgId);
     if (formFieldErrorId) describedByArray.push(formFieldErrorId);
     if (formFieldHintId) describedByArray.push(formFieldHintId);
     const ariaDescribedBy = describedByArray.length > 0 ? describedByArray.join(" ") : undefined;
+
+    const showCharCountEffective = showCharacterCount && maxLength && maxLength > 0 && !disabled && !readOnly;
 
     return (
       <div className="w-full">
@@ -245,50 +233,26 @@ const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
           readOnly={readOnly}
           style={style}
           rows={rows}
-          aria-invalid={!!error}
+          aria-invalid={!!error} // Sigue funcionando como antes
           aria-required={isRequired}
-          aria-describedby={ariaDescribedBy}
+          aria-describedby={ariaDescribedBy} // Actualizado para usar IDs de FormField
           {...props}
         />
-        <div className="mt-1.5 flex justify-between items-start min-h-[1.25em]">
-          <div className="flex-grow pr-2">
-            <AnimatePresence>
-              {error && (
-                <motion.div id={errorMsgId} initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}>
-                  <Text color="danger" colorVariant="pure" size="sm" className="flex items-center">
-                    {error}
-                  </Text>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <AnimatePresence>
-              {success && !error && successMessage && (
-                <motion.div id={successMsgId} initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}>
-                  <Text color="success" colorVariant="pure" size="sm" className="flex items-center">
-                    {successMessage}
-                  </Text>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            {hint && !error && !success && !disabled && !readOnly && (
-              <div id={hintMsgId} className="text-sm opacity-70 text-[var(--textarea-text)]">
-                {hint}
-              </div>
-            )}
+        
+        {/* Sección de mensajes de texto eliminada. FormField es ahora responsable. */}
+        {/* El contador de caracteres se mantiene si showCharacterCount es true. */}
+        {showCharCountEffective && (
+          <div className="mt-1.5 flex justify-end"> {/* Solo muestra el div si hay contador */}
+            <Text
+              size="xs"
+              color={error && appColorTokens ? "danger" : "neutral"}
+              colorVariant={error && appColorTokens ? "pure" : "textShade"}
+              className="opacity-70"
+            >
+              {charCount}/{maxLength}
+            </Text>
           </div>
-          {showCharacterCount && maxLength && maxLength > 0 && !disabled && !readOnly && (
-            <div className="flex-shrink-0">
-              <Text
-                size="xs"
-                color={error && appColorTokens ? "danger" : "neutral"}
-                colorVariant={error && appColorTokens ? "pure" : "textShade"}
-                className="opacity-70"
-              >
-                {charCount}/{maxLength}
-              </Text>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     );
   }

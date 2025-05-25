@@ -13,7 +13,7 @@ import {
 import { CustomButton } from "@/components/ui/custom-button";
 import { PageHeader } from "@/components/common/page-header";
 import { SustratoLoadingLogo } from "@/components/ui/sustrato-loading-logo";
-import { ArrowLeft, UserPlus } from "lucide-react"; // Icono para agregar
+import { ArrowLeft, ShieldPlus, UserPlus } from "lucide-react"; // Icono para agregar
 import {
   MiembroForm,
   type MiembroFormValues,
@@ -21,6 +21,9 @@ import {
 import type { SelectOption } from "@/components/ui/select-custom";
 import { toast } from "sonner"; // Para notificaciones
 import { useLoading } from "@/contexts/LoadingContext"; // Opcional, para loading global
+import { PageBackground } from "@/components/ui/page-background";
+import { PageTitle } from "@/components/ui/page-title";
+import { ProCard } from "@/components/ui/pro-card";
 
 export default function CrearMiembroPage() {
   const router = useRouter();
@@ -161,21 +164,25 @@ export default function CrearMiembroPage() {
 
   if (errorPage && rolesDisponibles.length === 0) { // Si hay un error que impidió cargar roles
     return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Error de Configuración"
-          description={errorPage}
-          actions={
-            <CustomButton
-              onClick={handleVolver}
-              leftIcon={<ArrowLeft className="h-4 w-4"/>}
-              variant="outline"
-            >
-              Volver a Miembros
-            </CustomButton>
-          }
-        />
-      </div>
+      <PageBackground>
+        <div className="container mx-auto py-6">
+          <div className="space-y-6">
+            <PageHeader
+              title="Error de Configuración"
+              description={errorPage}
+              actions={
+                <CustomButton
+                  onClick={handleVolver}
+                  leftIcon={<ArrowLeft className="h-4 w-4"/>}
+                  variant="outline"
+                >
+                  Volver a Miembros
+                </CustomButton>
+              }
+            />
+          </div>
+        </div>
+      </PageBackground>
     );
   }
   
@@ -183,29 +190,33 @@ export default function CrearMiembroPage() {
   // y no hay errorPage bloqueante.
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Agregar Nuevo Miembro al Proyecto"
-        description="Complete la información para invitar y asignar un rol a un nuevo miembro."
-        actions={
-          <CustomButton
-            onClick={handleVolver}
-            leftIcon={<ArrowLeft className="h-4 w-4" />}
-            variant="outline"
-            disabled={isSubmitting} // Deshabilitar si se está enviando
-          >
-            Cancelar
-          </CustomButton>
-        }
-      />
+    <PageBackground>
+      <div className="container mx-auto py-6">
+        <div className="space-y-6">
+          <PageTitle 
+            title="Agregar Nuevo Miembro"
+            subtitle="Complete la información para invitar y asignar un rol a un nuevo miembro en el proyecto"
+            mainIcon={UserPlus}
+            breadcrumbs={[
+              { label: "Datos Maestros", href: "/datos-maestros" },
+              { label: "Miembros ", href: "/datos-maestros/miembros" },
+              { label: "Crear Miembro" }
+            ]}
+            showBackButton={{ href: "/datos-maestros/miembros" }}
+         />
 
-      <MiembroForm
-        modo="crear"
-        // valoresIniciales se omite o es {} por defecto en MiembroForm para "crear"
-        rolesDisponibles={rolesDisponibles}
-        onSubmit={handleFormSubmit}
-        loading={isSubmitting} // Pasar el estado de submitting al formulario
-      />
-    </div>
+         <ProCard border="top" color="primary"   >
+          <MiembroForm
+            modo="crear"
+            // valoresIniciales se omite o es {} por defecto en MiembroForm para "crear"
+            rolesDisponibles={rolesDisponibles}
+            onSubmit={handleFormSubmit}
+            loading={isSubmitting} // Pasar el estado de submitting al formulario
+          />
+          </ProCard>
+
+        </div>
+      </div>
+    </PageBackground>
   );
 }

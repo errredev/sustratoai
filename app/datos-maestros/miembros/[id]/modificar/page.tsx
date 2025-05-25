@@ -18,8 +18,11 @@ import { PageHeader } from "@/components/common/page-header";
 import { SustratoLoadingLogo } from "@/components/ui/sustrato-loading-logo";
 import { MiembroForm, MiembroFormValues } from "@/app/datos-maestros/miembros/components/MiembroForm";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, User } from "lucide-react";
 import { useLoading } from "@/contexts/LoadingContext";
+import { PageBackground } from "@/components/ui/page-background";
+import { PageTitle } from "@/components/ui/page-title";
+import { ProCard } from "@/components/ui/pro-card";
 
 interface RolOption {
   value: string;
@@ -234,68 +237,82 @@ export default function ModificarMiembroPage() {
 
   if (error && !miembro) {
     return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Error al Cargar Datos"
-          description={error}
-          actions={
-            <CustomButton
-              onClick={handleCancel}
-              leftIcon={<ArrowLeft className="h-4 w-4" />}
-              variant="outline"
-            >
-              Volver a Miembros
-            </CustomButton>
-          }
-        />
-      </div>
+      <PageBackground>
+        <div className="container mx-auto py-6">
+          <div className="space-y-6">
+            <PageHeader
+              title="Error al Cargar Datos"
+              description={error}
+              actions={
+                <CustomButton
+                  onClick={handleCancel}
+                  leftIcon={<ArrowLeft className="h-4 w-4" />}
+                  variant="outline"
+                >
+                  Volver a Miembros
+                </CustomButton>
+              }
+            />
+          </div>
+        </div>
+      </PageBackground>
     );
   }
 
   if (!miembro && !isPageLoading) {
     return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Miembro no Encontrado"
-          description="No se pudieron cargar los datos del miembro o el miembro no existe."
-          actions={
-            <CustomButton
-              onClick={handleCancel}
-              leftIcon={<ArrowLeft className="h-4 w-4" />}
-              variant="outline"
-            >
-              Volver a Miembros
-            </CustomButton>
-          }
-        />
-      </div>
+      <PageBackground>
+        <div className="container mx-auto py-6">
+          <div className="space-y-6">
+            <PageHeader
+              title="Miembro no Encontrado"
+              description="No se pudieron cargar los datos del miembro o el miembro no existe."
+              actions={
+                <CustomButton
+                  onClick={handleCancel}
+                  leftIcon={<ArrowLeft className="h-4 w-4" />}
+                  variant="outline"
+                >
+                  Volver a Miembros
+                </CustomButton>
+              }
+            />
+          </div>
+        </div>
+      </PageBackground>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={`Editar Miembro: ${getNombreMiembro()}`}
-        description="Actualiza la información del miembro en el proyecto."
-        actions={
-          <CustomButton
-            onClick={handleCancel}
-            leftIcon={<ArrowLeft className="h-4 w-4" />}
-            variant="outline"
-          >
-            Volver
-          </CustomButton>
-        }
-      />
-      {valoresIniciales && roles.length > 0 && (
-        <MiembroForm
-          modo="editar"
-          valoresIniciales={valoresIniciales}
-          rolesDisponibles={roles}
-          loading={isButtonSubmitting}
-          onSubmit={onSubmit}
-        />
-      )}
-    </div>
+    <PageBackground>
+      <div className="container mx-auto py-6">
+        <div className="space-y-6">
+          <PageTitle 
+            title={`Editar Miembro: ${getNombreMiembro()}`}
+            subtitle="Actualiza la información del miembro en el proyecto"
+            mainIcon={User}
+            breadcrumbs={[
+              { label: "Datos Maestros", href: "/datos-maestros" },
+              { label: "Miembros ", href: "/datos-maestros/miembros" },
+              { label: "Modificar Miembro" }
+            ]}
+            showBackButton={{ href: "/datos-maestros/miembros" }}
+          />
+          
+
+          {valoresIniciales && roles.length > 0 && (
+            <ProCard border="top" color="primary"   >
+            <MiembroForm
+              modo="editar"
+              valoresIniciales={valoresIniciales}
+              rolesDisponibles={roles}
+              loading={isButtonSubmitting}
+              onSubmit={onSubmit}
+            />
+            </ProCard>
+          )}
+        </div>
+      </div>
+    </PageBackground>
   );
 }

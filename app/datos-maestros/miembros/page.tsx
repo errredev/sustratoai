@@ -26,8 +26,9 @@ import { SustratoLoadingLogo } from "@/components/ui/sustrato-loading-logo";
 import { PageBackground } from "@/components/ui/page-background";
 import { Divider } from "@/components/ui/divider";
 import { CellVariant } from "@/lib/theme/components/table-tokens";
-import { BadgeCustom } from "@/components/ui/badge-custom"; // 
+import { BadgeCustom } from "@/components/ui/badge-custom"; //
 import type { BadgeVariant } from "@/lib/theme/components/badge-tokens";
+import { PageTitle } from "@/components/ui/page-title";
 import Link from "next/link";
 //#endregion ![imports]
 
@@ -122,43 +123,35 @@ export default function MiembrosPage() {
 				}
 				return "Sin nombre registrado";
 			},
-			cell: ({ getValue }: any) => (
-				getValue()
-			),
-      meta: {
-        textColorVariant: "secondary" as CellVariant,
-        isTextBold: true,
-      },
-		
+			cell: ({ getValue }: any) => getValue(),
+			meta: {
+				textColorVariant: "secondary" as CellVariant,
+				isTextBold: true,
+			},
 		},
 		{
 			header: "Institución",
 			accessorFn: (row: ProjectMemberDetails) =>
 				row.profile?.primary_institution || "No especificada",
-			cell: ({ getValue }: any) => (
-				getValue()
-			),
+			cell: ({ getValue }: any) => getValue(),
 		},
 		{
 			header: "Correo",
 			accessorFn: (row: ProjectMemberDetails) =>
 				row.profile?.public_contact_email || "No especificado",
-			cell: ({ getValue }: any) => (
-				getValue()
-			),
+			cell: ({ getValue }: any) => getValue(),
 		},
 		{
 			header: "Rol",
 			accessorFn: (row: ProjectMemberDetails) =>
 				row.role_name || "Sin rol asignado",
 			cell: ({ getValue }: any) => (
-        <BadgeCustom
-        variant = { "default" as BadgeVariant}
-        subtle={true}
-        className="text-xs"
-        >
-          {getValue()}  
-      </BadgeCustom>
+				<BadgeCustom
+					variant={"default" as BadgeVariant}
+					subtle={true}
+					className="text-xs">
+					{getValue()}
+				</BadgeCustom>
 			),
 		},
 		{
@@ -204,7 +197,7 @@ export default function MiembrosPage() {
 			},
 		},
 	];
-/*
+	/*
 const getRowTextColorVariantForRow = (row: ProjectMemberDetails): CellVariant | undefined => {
     if (row.profile?.public_display_name === "eRRRe") return "accent"; // Fila de Luis tendrá texto accent como base
     return undefined;
@@ -223,33 +216,14 @@ const getRowTextColorVariantForRow = (row: ProjectMemberDetails): CellVariant | 
 		<PageBackground>
 			<div className="container mx-auto py-6">
 				<div className="space-y-6">
-					<div>
-						<Text
-							className="text-left"
-							size="4xl"
-							weight="bold"
-							gradient
-							fontType="heading">
-							Miembros del Proyecto
-						</Text>
-						<Text className="text-left text-muted-foreground mt-2">
-							Creación, visualización, modificación de miembros del proyecto{" "}
-							{proyectoActual?.name || "actual"}
-						</Text>
-					</div>
-
-					{puedeGestionarMiembros && (
-						<div className="flex justify-end">
-							<CustomButton
-								onClick={handleAgregarMiembro}
-								leftIcon={<UserPlus className="h-4 w-4" />}
-								color="primary"
-               >
-                
-								Agregar Miembro
-							</CustomButton>
-						</div>
-					)}
+					<PageTitle
+  title="Miembros del Proyecto"
+  subtitle={`Creación, visualización, modificación de miembros del proyecto ${proyectoActual?.name || "actual"}`}
+  breadcrumbs={[
+    { label: "Datos Maestros", href: "/datos-maestros" },
+    { label: "Miembros" }
+  ]}
+/>
 
 					{isLoading ? (
 						<div className="flex justify-center py-8">
@@ -278,11 +252,11 @@ const getRowTextColorVariantForRow = (row: ProjectMemberDetails): CellVariant | 
 							}
 							action={
 								puedeGestionarMiembros ? (
-                  <Link href="/datos-maestros/miembros/crear" passHref>
-                  <CustomButton color="primary" leftIcon={<UserPlus />}>
-                    Agregar Nuevo Miembro
-                  </CustomButton>
-                </Link>
+									<Link href="/datos-maestros/miembros/crear" passHref>
+										<CustomButton color="primary" leftIcon={<UserPlus />}>
+											Agregar Nuevo Miembro
+										</CustomButton>
+									</Link>
 								) : undefined
 							}
 						/>
@@ -292,12 +266,22 @@ const getRowTextColorVariantForRow = (row: ProjectMemberDetails): CellVariant | 
 							border="top"
 							className="overflow-hidden hover:shadow-md transition-shadow duration-300"
 							borderVariant="primary">
+							{puedeGestionarMiembros && (
+// ... existing code ...
+<div className="flex justify-end mb-4 pt-4"> 
+									<CustomButton
+										onClick={handleAgregarMiembro}
+										leftIcon={<UserPlus className="h-4 w-4" />}
+										color="primary">
+										Agregar Miembro
+									</CustomButton>
+								</div>
+							)}
 							<ProCard>
 								<ProTable
 									data={miembros}
 									columns={columnas}
 									showColumnSelector={false}
-                
 								/>
 							</ProCard>
 						</ProCard>

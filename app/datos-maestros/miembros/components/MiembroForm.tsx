@@ -9,12 +9,12 @@ import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { TextArea } from "@/components/ui/textarea";
 import { SelectCustom, type SelectOption } from "@/components/ui/select-custom";
-import { FormField } from "@/components/ui/form-field";
+import { FormField } from "@/components/ui/form-field"; // Asegúrate de que FormField pueda recibir y mostrar 'hint' y 'successMessage'
 import { CustomButton } from "@/components/ui/custom-button";
 import { ProCard } from "@/components/ui/pro-card";
 import { Text } from "@/components/ui/text";
 import {
-  Mail, User, Briefcase, Building, Phone, Languages, MessageSquare, Info
+  Mail, User, Briefcase, Building, Phone, Languages, MessageSquare
 } from "lucide-react";
 
 const formSchema = z.object({
@@ -117,7 +117,7 @@ export const MiembroForm: React.FC<MiembroFormProps> = ({
   const isFieldRequired = (fieldName: keyof MiembroFormValues): boolean => {
     if (isReadOnlyEffective) return false;
     const fieldSchema = formSchema.shape[fieldName];
-    // @ts-ignore
+    // @ts-ignore // ZodObject.isOptional() no está directamente en el tipo, pero existe en la instancia.
     return !fieldSchema.isOptional();
   };
 
@@ -150,7 +150,8 @@ export const MiembroForm: React.FC<MiembroFormProps> = ({
         return false; 
       
       case "emailUsuario":
-        return !!fieldValue && !form.formState.errors[fieldName];
+        // Lógica para el email: éxito si parece email y no hay error de Zod
+        return !!fieldValue && typeof fieldValue === 'string' && fieldValue.includes('@') && fieldValue.includes('.') && !form.formState.errors[fieldName];
       case "rolId":
       case "language": 
         return !!fieldValue && !form.formState.errors[fieldName];
@@ -162,8 +163,6 @@ export const MiembroForm: React.FC<MiembroFormProps> = ({
         return false;
 
       default:
-        // Por defecto, para campos no listados, el éxito se basa en tener valor y no tener error de Zod.
-        // Esto podría necesitar ajuste si tienes otros campos con lógicas de éxito diferentes.
         return !!fieldValue && !form.formState.errors[fieldName];
     }
   };
@@ -180,21 +179,13 @@ export const MiembroForm: React.FC<MiembroFormProps> = ({
 
   return (
     <ProCard>
-      <ProCard.Header>
-        <Text variant="heading" size="lg">
-          {modo === "crear"
-            ? "Agregar Miembro al Proyecto"
-            : modo === "editar"
-            ? "Editar Miembro del Proyecto"
-            : "Detalle del Miembro"}
-        </Text>
-      </ProCard.Header>
+    
       <ProCard.Content>
         <form
           onSubmit={form.handleSubmit(handleFormSubmit, onInvalidSubmit)}
           className="space-y-6"
         >
-          <Text variant="heading" size="md" className="pb-2 border-b">
+          <Text variant="heading" size="md" color="tertiary" className="pb-2 border-b">
             Información del Miembro
           </Text>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
@@ -203,6 +194,7 @@ export const MiembroForm: React.FC<MiembroFormProps> = ({
               htmlFor="mf-emailUsuario"
               isRequired={isFieldRequired("emailUsuario")}
               error={form.formState.errors.emailUsuario?.message}
+              hint={isReadOnlyEffective ? undefined : (modo === "editar" ? "El email no se puede modificar una vez creado." : "Email principal para el inicio de sesión y contacto.")}
             >
               <Controller
                 name="emailUsuario"
@@ -220,7 +212,7 @@ export const MiembroForm: React.FC<MiembroFormProps> = ({
                     isRequired={isFieldRequired("emailUsuario")}
                     {...field}
                     value={field.value || ""}
-                    hint={modo === "editar" ? "El email no se puede modificar una vez creado." : "Email principal para el inicio de sesión y contacto."}
+                    // hint prop eliminada de Input
                   />
                 )}
               />
@@ -231,6 +223,7 @@ export const MiembroForm: React.FC<MiembroFormProps> = ({
               htmlFor="mf-rolId"
               isRequired={isFieldRequired("rolId")}
               error={form.formState.errors.rolId?.message}
+              hint={isReadOnlyEffective ? undefined : "El rol define los permisos del miembro en este proyecto."}
             >
               <Controller
                 name="rolId"
@@ -248,19 +241,24 @@ export const MiembroForm: React.FC<MiembroFormProps> = ({
                     isEditing={modo === "editar" && !isReadOnlyEffective}
                     clearable={!isReadOnlyEffective}
                     {...field}
-                    hint="El rol define los permisos del miembro en este proyecto."
+                    // hint prop eliminada de SelectCustom
                   />
                 )}
               />
             </FormField>
           </div>
 
-          <Text variant="heading" size="md" className="pt-4 pb-2 border-b">
+          <Text variant="heading" size="md" color="tertiary" className="pt-4 pb-2 border-b">
             Información Adicional de Perfil (Opcional)
           </Text>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-            <FormField label="Nombre(s)" htmlFor="mf-firstName" isRequired={isFieldRequired("firstName")} error={form.formState.errors.firstName?.message}>
+            <FormField 
+              label="Nombre(s)" 
+              htmlFor="mf-firstName" 
+              isRequired={isFieldRequired("firstName")} 
+              error={form.formState.errors.firstName?.message}
+            >
               <Controller
                 name="firstName"
                 control={form.control}
@@ -281,7 +279,12 @@ export const MiembroForm: React.FC<MiembroFormProps> = ({
               />
             </FormField>
 
-            <FormField label="Apellido(s)" htmlFor="mf-lastName" isRequired={isFieldRequired("lastName")} error={form.formState.errors.lastName?.message}>
+            <FormField 
+              label="Apellido(s)" 
+              htmlFor="mf-lastName" 
+              isRequired={isFieldRequired("lastName")} 
+              error={form.formState.errors.lastName?.message}
+            >
               <Controller
                 name="lastName"
                 control={form.control}
@@ -302,7 +305,13 @@ export const MiembroForm: React.FC<MiembroFormProps> = ({
               />
             </FormField>
 
-            <FormField label="Nombre para Mostrar" htmlFor="mf-displayName" isRequired={isFieldRequired("displayName")} error={form.formState.errors.displayName?.message}>
+            <FormField 
+              label="Nombre para Mostrar" 
+              htmlFor="mf-displayName" 
+              isRequired={isFieldRequired("displayName")} 
+              error={form.formState.errors.displayName?.message}
+              hint={isReadOnlyEffective ? undefined : "Ej: 'Dra. Ada L.' o 'Ada Lovelace'"}
+            >
               <Controller
                 name="displayName"
                 control={form.control}
@@ -318,13 +327,18 @@ export const MiembroForm: React.FC<MiembroFormProps> = ({
                     isRequired={isFieldRequired("displayName")}
                     {...field}
                     value={field.value || ""}
-                    hint="Ej: 'Dra. Ada L.' o 'Ada Lovelace'"
+                    // hint prop eliminada de Input
                   />
                 )}
               />
             </FormField>
 
-            <FormField label="Institución" htmlFor="mf-institution" isRequired={isFieldRequired("institution")} error={form.formState.errors.institution?.message}>
+            <FormField 
+              label="Institución" 
+              htmlFor="mf-institution" 
+              isRequired={isFieldRequired("institution")} 
+              error={form.formState.errors.institution?.message}
+            >
               <Controller
                 name="institution"
                 control={form.control}
@@ -345,7 +359,12 @@ export const MiembroForm: React.FC<MiembroFormProps> = ({
               />
             </FormField>
 
-            <FormField label="Teléfono" htmlFor="mf-phone" isRequired={isFieldRequired("phone")} error={form.formState.errors.phone?.message}>
+            <FormField 
+              label="Teléfono" 
+              htmlFor="mf-phone" 
+              isRequired={isFieldRequired("phone")} 
+              error={form.formState.errors.phone?.message}
+            >
               <Controller
                 name="phone"
                 control={form.control}
@@ -376,7 +395,12 @@ export const MiembroForm: React.FC<MiembroFormProps> = ({
               />
             </FormField>
 
-            <FormField label="Lenguaje Preferido" htmlFor="mf-language" isRequired={isFieldRequired("language")} error={form.formState.errors.language?.message}>
+            <FormField 
+              label="Lenguaje Preferido" 
+              htmlFor="mf-language" 
+              isRequired={isFieldRequired("language")} 
+              error={form.formState.errors.language?.message}
+            >
               <Controller
                 name="language"
                 control={form.control}
@@ -402,7 +426,14 @@ export const MiembroForm: React.FC<MiembroFormProps> = ({
               />
             </FormField>
 
-            <FormField label="Pronombres" htmlFor="mf-pronouns" isRequired={isFieldRequired("pronouns")} error={form.formState.errors.pronouns?.message} className="md:col-span-2">
+            <FormField 
+              label="Pronombres" 
+              htmlFor="mf-pronouns" 
+              isRequired={isFieldRequired("pronouns")} 
+              error={form.formState.errors.pronouns?.message} 
+              className="md:col-span-2"
+              hint={isReadOnlyEffective ? undefined : "Para asegurar una comunicación respetuosa."}
+            >
               <Controller
                 name="pronouns"
                 control={form.control}
@@ -418,14 +449,21 @@ export const MiembroForm: React.FC<MiembroFormProps> = ({
                     isRequired={isFieldRequired("pronouns")}
                     {...field}
                     value={field.value || ""}
-                    hint="Para asegurar una comunicación respetuosa."
+                    // hint prop eliminada de Input
                   />
                 )}
               />
             </FormField>
           </div>
 
-          <FormField label="Notas Adicionales" htmlFor="mf-notes" isRequired={isFieldRequired("notes")} error={form.formState.errors.notes?.message} className="col-span-full">
+          <FormField 
+            label="Notas Adicionales" 
+            htmlFor="mf-notes" 
+            isRequired={isFieldRequired("notes")} 
+            error={form.formState.errors.notes?.message} 
+            className="col-span-full"
+            hint={isReadOnlyEffective ? undefined : "Máximo 500 caracteres."}
+          >
             <Controller
               name="notes"
               control={form.control}
@@ -443,7 +481,7 @@ export const MiembroForm: React.FC<MiembroFormProps> = ({
                   showCharacterCount
                   {...field}
                   value={field.value || ""}
-                  hint="Máximo 500 caracteres."
+                  // hint prop eliminada de TextArea
                 />
               )}
             />

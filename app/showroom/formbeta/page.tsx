@@ -4,7 +4,7 @@
 import React from "react";
 import { useForm, SubmitHandler, Controller, FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { formBetaSchema, type FormBetaValues } from "./schema";
+import { formBetaSchema, type FormBetaValues } from "./schema"; // Asegúrate que schema.ts esté en la misma ruta o ajusta la importación
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/ui/form-field";
 import { CustomButton } from "@/components/ui/custom-button";
@@ -12,7 +12,7 @@ import { ProCard } from "@/components/ui/pro-card";
 import { Text } from "@/components/ui/text";
 import { toast } from "sonner";
 import { 
-  Mail, User, UserCog, CalendarDays, Fingerprint, KeyRound, Edit3, ShieldCheck, Eye
+  Mail, User, UserCog, CalendarDays, Fingerprint, KeyRound, Edit3, Eye
 } from "lucide-react";
 import type { InputVariant } from "@/lib/theme/components/input-tokens";
 import { TextArea } from "@/components/ui/textarea";
@@ -31,15 +31,16 @@ const initialFormData: FormBetaValues = {
   description: "Esta es una descripción de prueba."
 };
 
+// Helper para validación en vivo del formato de fecha
 const checkLiveDateFormat = (value: string): string | undefined => {
-  if (!value) return undefined;
+  if (!value) return undefined; // Si está vacío, no hay error de formato en vivo (Zod se encargará si es requerido)
   if (!/^[0-9-]*$/.test(value)) return "Solo números y guiones";
   const parts = value.split('-');
-  if (parts.length > 3) return "Demasiados guiones";
-  if (parts[0] && parts[0].length > 4) return "Año > 4 dígitos";
-  if (parts[1] && parts[1].length > 2) return "Mes > 2 dígitos";
-  if (parts[2] && parts[2].length > 2) return "Día > 2 dígitos";
-  if (value.length === 10 && !/^\d{4}-\d{2}-\d{2}$/.test(value)) return "Formato YYYY-MM-DD";
+  if (parts[0] && parts[0].length > 4) return "Año excede 4 dígitos";
+  if (parts[1] && parts[1].length > 2) return "Mes excede 2 dígitos";
+  if (parts[2] && parts[2].length > 2) return "Día excede 2 dígitos";
+  // Si tiene la longitud completa pero el formato no es exacto YYYY-MM-DD
+  if (value.length === 10 && !/^\d{4}-\d{2}-\d{2}$/.test(value)) return "Formato debe ser YYYY-MM-DD";
   return undefined;
 };
 
@@ -59,27 +60,27 @@ export default function FormBetaShowroomPage() {
     watch,
     control,
     setValue,
-    setError,
+    setError, // Para errores del servidor
   } = useForm<FormBetaValues>({
     resolver: zodResolver(formBetaSchema),
-    mode: "onBlur",
-    reValidateMode: "onBlur",
+    mode: "onBlur", // Validar en onBlur
+    reValidateMode: "onBlur", // Revalidar también en onBlur
     defaultValues: currentMode === "create" ? {} : { ...formDataForView },
   });
 
   React.useEffect(() => {
     if (currentMode === "create") {
-      reset({});
+      reset({}); // Limpiar formulario para modo crear
     } else {
-      reset({ ...formDataForView });
+      reset({ ...formDataForView }); // Cargar datos para modo ver/editar
     }
-    setSubmissionStatus("idle");
+    setSubmissionStatus("idle"); // Resetear estado de envío
   }, [currentMode, formDataForView, reset]);
 
   const onValidSubmit: SubmitHandler<FormBetaValues> = async (data) => {
     console.log("FormBeta_OnSubmit (Válido) Intentando enviar:", data);
     setSubmissionStatus("idle");
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simular delay de red
 
     if (data.username === "test_error_server") {
       setError("username", { type: "server", message: "Este nombre de usuario ya existe (error del servidor)." });
@@ -96,9 +97,9 @@ export default function FormBetaShowroomPage() {
       description: "Tus datos han sido guardados (simulado).",
       duration: 3000,
     });
-    setFormDataForView({ ...data });
+    setFormDataForView({ ...data }); // Guardar datos para modo vista
     setSubmissionStatus("success");
-    setCurrentMode("view");
+    setCurrentMode("view"); // Cambiar a modo vista después de éxito
   };
 
   const onInvalidSubmit = (formErrors: FieldErrors<FormBetaValues>) => {
@@ -114,53 +115,74 @@ export default function FormBetaShowroomPage() {
     setCurrentMode(mode);
   };
 
-  const getSuccessState = (fieldName: keyof FormBetaValues, fieldError?: string, liveFormatError?: string) => {
+  const getSuccessState = (
+    fieldName: keyof FormBetaValues,
+    fieldErrorFromState?: string, // Error de react-hook-form (Zod)
+    liveFormatError?: string     // Error de validación en vivo (ej. checkLiveDateFormat)
+  ) => {
     if (isReadOnlyViewMode) return false;
-    if (fieldError || liveFormatError) return false;
+
+    if (fieldErrorFromState || liveFormatError) {
+      return false;
+    }
+
+    if (!touchedFields[fieldName] && !dirtyFields[fieldName]) {
+      return false;
+    }
     
-    const fieldHasValue = !!watch(fieldName);
-    const isValidAndTouched = (touchedFields[fieldName] || dirtyFields[fieldName]) && fieldHasValue;
-    const formSuccessAndFieldValid = submissionStatus === 'success' && fieldHasValue;
-    
-    return isValidAndTouched || formSuccessAndFieldValid;
+    const fieldValue = watch(fieldName);
+        
+    switch (fieldName) {
+      case "email":
+        // Éxito si tiene formato de email básico y no hay error de Zod
+        return typeof fieldValue === 'string' && fieldValue.includes('@') && fieldValue.includes('.') && !errors[fieldName];
+      case "username":
+      case "firstName":
+      case "lastName":
+      case "rut":
+        return !!fieldValue && !errors[fieldName];
+
+      case "birthDate":
+        if (typeof fieldValue === 'string' && fieldValue.length > 0) {
+          return /^\d{4}-\d{2}-\d{2}$/.test(fieldValue) && !errors[fieldName] && !liveFormatError;
+        }
+        return false;
+      
+      case "accessCode":
+        if (typeof fieldValue === 'string') {
+          return fieldValue.length === 6 && !errors[fieldName];
+        }
+        return false;
+      
+      case "description":
+         if (typeof fieldValue === 'string') {
+            return fieldValue.length > 0 && fieldValue.length <= 500 && !errors[fieldName];
+        }
+        return false;
+
+      default:
+        return !!fieldValue && !errors[fieldName];
+    }
   };
   
   const isFieldRequired = (fieldName: keyof FormBetaValues): boolean => {
-    if (isReadOnlyViewMode) return false; // Campos no son "requeridos" para la interacción en modo vista
-    // @ts-ignore - Zod's shape type can be tricky, this is a common way to check
+    if (isReadOnlyViewMode) return false;
+    // @ts-ignore
     const fieldSchema = formBetaSchema.shape[fieldName];
-    // Un campo es requerido si no es opcional y no es nullable/undefinable por defecto en Zod
-    // La forma más directa de chequearlo con Zod v3 es si .isOptional() o .isNullable() no están en su definición,
-    // o si no tiene un .default(). Para simplicidad, chequeamos si no es explícitamente opcional.
-    // Zod considera un campo requerido si no se marca con .optional() o .nullable()
-    // y no tiene un .default()
-    // La forma más robusta es ver si !fieldSchema.isOptional() (si existe tal método)
-    // o si no tiene _def.typeName que indique opcionalidad.
-    // Para Zod, si no llamas a .optional() o .nullable(), es requerido.
-    // Una forma simple de verificarlo programáticamente si no tenemos .isOptional()
-    // es intentar parsear un objeto vacío y ver si falla para ese campo.
-    // Sin embargo, para UI, solemos definirlo explícitamente.
-    // Aquí usaremos la prop 'isRequired' de FormField que ya define la obligatoriedad en la UI.
-    // Para el atributo aria-required, la prop de FormField es la fuente de verdad.
-    
-    // Esta es una simplificación, Zod v3 no tiene un `isOptional()` directo en el schema del campo.
-    // Podrías inferirlo basado en la definición o pasar explícitamente.
-    // Por ahora, usaremos la lógica de FormField, pero idealmente esto se alinea con Zod.
-    // Para 'accessCode' y 'email' sabemos que son requeridos por el schema.
-    if (fieldName === 'email' || fieldName === 'username' || fieldName === 'accessCode') return true;
-    return false; // Por defecto para los otros campos opcionales en este form.
+    // @ts-ignore
+    return !fieldSchema.isOptional();
   };
-
 
   return (
     <div className="container mx-auto p-4 md:p-8">
       <ProCard className="max-w-3xl mx-auto">
         <ProCard.Header className="space-y-4">
           <Text variant="heading" size="2xl" color="primary">
-            Showroom: Formulario Beta (Semilla Fractal ARIA)
+            Showroom: Formulario Beta (Adaptado FormField para mensajes)
           </Text>
           <Text>
-            Probando `CustomInputExperimental` con ARIA, validaciones, formatos y modos.
+            Probando Inputs y TextAreas con ARIA, validaciones, formatos y modos,
+            con mensajes de error/hint gestionados por `FormField`.
           </Text>
           <div className="flex flex-wrap gap-2 border-b pb-4">
             <CustomButton
@@ -196,6 +218,8 @@ export default function FormBetaShowroomPage() {
               label="Correo Electrónico" 
               htmlFor="email-input"
               isRequired={isFieldRequired("email")}
+              error={!isReadOnlyViewMode ? errors.email?.message : undefined}
+              hint={isReadOnlyViewMode ? undefined : "Escribe tu dirección de correo completa."}
             >
               <Controller
                 name="email"
@@ -208,13 +232,11 @@ export default function FormBetaShowroomPage() {
                     autoComplete="email"
                     error={!isReadOnlyViewMode ? fieldState.error?.message : undefined}
                     success={getSuccessState("email", fieldState.error?.message)}
-                    successMessage="Correo válido"
                     readOnly={isReadOnlyViewMode}
                     isEditing={isFormEditingMode && !isReadOnlyViewMode}
                     variant={currentVariant}
                     {...field} value={field.value || ""}
                     isRequired={isFieldRequired("email")}
-                    hint="Escribe tu dirección de correo completa."
                   />
                 )}
               />
@@ -224,6 +246,8 @@ export default function FormBetaShowroomPage() {
               label="Nombre de Usuario" 
               htmlFor="username-input" 
               isRequired={isFieldRequired("username")}
+              error={!isReadOnlyViewMode ? errors.username?.message : undefined}
+              hint={isReadOnlyViewMode ? undefined : "De 3 a 20 caracteres, solo letras, números y guion bajo."}
             >
               <Controller
                 name="username"
@@ -236,13 +260,11 @@ export default function FormBetaShowroomPage() {
                     autoComplete="username"
                     error={!isReadOnlyViewMode ? fieldState.error?.message : undefined}
                     success={getSuccessState("username", fieldState.error?.message)}
-                    successMessage="Nombre de usuario parece bien"
                     readOnly={isReadOnlyViewMode}
                     isEditing={isFormEditingMode && !isReadOnlyViewMode}
                     variant={currentVariant}
                     {...field} value={field.value || ""}
                     isRequired={isFieldRequired("username")}
-                    hint="De 3 a 20 caracteres, solo letras, números y guion bajo."
                   />
                 )}
               />
@@ -252,6 +274,7 @@ export default function FormBetaShowroomPage() {
               label="Primer Nombre" 
               htmlFor="firstName-input" 
               isRequired={isFieldRequired("firstName")}
+              error={!isReadOnlyViewMode ? errors.firstName?.message : undefined}
             >
               <Controller
                 name="firstName"
@@ -277,6 +300,7 @@ export default function FormBetaShowroomPage() {
               label="Apellido" 
               htmlFor="lastName-input" 
               isRequired={isFieldRequired("lastName")}
+              error={!isReadOnlyViewMode ? errors.lastName?.message : undefined}
             >
               <Controller
                 name="lastName"
@@ -302,6 +326,8 @@ export default function FormBetaShowroomPage() {
               label="Fecha de Nacimiento (YYYY-MM-DD)" 
               htmlFor="birthDate-input" 
               isRequired={isFieldRequired("birthDate")}
+              error={!isReadOnlyViewMode ? (errors.birthDate?.message || checkLiveDateFormat(watch("birthDate") || "")) : undefined}
+              hint={isReadOnlyViewMode ? undefined : "Formato YYYY-MM-DD. Ejemplo: 1990-12-31"}
             >
               <Controller
                 name="birthDate"
@@ -317,21 +343,21 @@ export default function FormBetaShowroomPage() {
                       autoComplete="bday"
                       error={displayError}
                       success={isSuccess}
-                      successMessage="Fecha parece válida"
                       readOnly={isReadOnlyViewMode}
                       isEditing={isFormEditingMode && !isReadOnlyViewMode}
                       variant={currentVariant}
                       {...field} value={field.value || ""}
                       isRequired={isFieldRequired("birthDate")}
-                      hint="Formato YYYY-MM-DD. Ejemplo: 1990-12-31"
                     />);
                 }}/>
             </FormField>
-            // En app/showroom/formbeta/page.tsx (ya presente)
+            
             <FormField 
               label="Descripción (Opcional)" 
               htmlFor="description-input" 
               isRequired={isFieldRequired("description")}
+              error={!isReadOnlyViewMode ? errors.description?.message : undefined}
+              hint={isReadOnlyViewMode ? undefined : "Máximo 500 caracteres para la descripción."}
             >
               <Controller
                 name="description"
@@ -349,17 +375,18 @@ export default function FormBetaShowroomPage() {
                     variant={"default"} 
                     {...field} value={field.value || ""}
                     isRequired={isFieldRequired("description")}
-                    maxLength={500} // Para el contador
-                    showCharacterCount // Para mostrar el contador
-                    hint="Máximo 500 caracteres para la descripción."
+                    maxLength={500}
+                    showCharacterCount
                   />
                 )}
               />
             </FormField>
+
             <FormField 
               label="RUT Chileno (Opcional)" 
               htmlFor="rut-input" 
               isRequired={isFieldRequired("rut")}
+              error={!isReadOnlyViewMode ? errors.rut?.message : undefined}
             >
                <Controller
                 name="rut"
@@ -388,26 +415,25 @@ export default function FormBetaShowroomPage() {
               label="Código de Acceso (6 caracteres)" 
               htmlFor="accessCode-input" 
               isRequired={isFieldRequired("accessCode")}
+              error={!isReadOnlyViewMode ? errors.accessCode?.message : undefined}
+              hint={isReadOnlyViewMode ? undefined : "Debe contener exactamente 6 caracteres alfanuméricos."}
             >
               <Controller
                 name="accessCode"
                 control={control}
                 defaultValue=""
                 render={({ field, fieldState }) => (
-                      
                     <Input
                     id="accessCode-input" leadingIcon={KeyRound} placeholder="XXXXXX"
                     maxLength={6} showCharacterCount
                     autoComplete="one-time-code"
                     error={!isReadOnlyViewMode ? fieldState.error?.message : undefined}
-                    success={getSuccessState("accessCode", fieldState.error?.message) && (field.value || "").length === 6}
-                    successMessage="Código OK"
+                    success={getSuccessState("accessCode", fieldState.error?.message)}
                     readOnly={isReadOnlyViewMode}
                     isEditing={isFormEditingMode && !isReadOnlyViewMode}
                     variant={currentVariant}
                     {...field} value={field.value || ""}
                     isRequired={isFieldRequired("accessCode")}
-                    hint="Debe contener exactamente 6 caracteres alfanuméricos."
                   />
                 )}
               />
