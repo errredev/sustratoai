@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState } from "react"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ProCard } from '@/components/ui/pro-card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Search, Mail, User, Lock, AlertCircle, Info, CheckCircle, CreditCard, Calendar } from "lucide-react"
 import { Text } from "@/components/ui/text"
@@ -53,12 +53,12 @@ export default function ShowroomInput() {
         </TabsList>
 
         <TabsContent value="variants">
-          <Card>
-            <CardHeader>
-              <CardTitle>Input Variants</CardTitle>
-              <CardDescription>Different visual styles for the Input component</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-6">
+          <ProCard>
+            <ProCard.Header>
+              <ProCard.Title>Input Variants</ProCard.Title>
+              <Text variant="description">Different visual styles for the Input component</Text>
+            </ProCard.Header>
+            <ProCard.Content className="grid gap-6">
               {variants.map((variant) => (
                 <div key={variant} className="space-y-2">
                   <Text variant="label" className="capitalize">
@@ -72,17 +72,17 @@ export default function ShowroomInput() {
                   />
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </ProCard.Content>
+          </ProCard>
         </TabsContent>
 
         <TabsContent value="sizes">
-          <Card>
-            <CardHeader>
-              <CardTitle>Input Sizes</CardTitle>
-              <CardDescription>Different size options for the Input component</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-6">
+          <ProCard>
+            <ProCard.Header>
+              <ProCard.Title>Input Sizes</ProCard.Title>
+              <Text variant="description">Different size options for the Input component</Text>
+            </ProCard.Header>
+            <ProCard.Content className="grid gap-6">
               {sizes.map((size) => (
                 <div key={size} className="space-y-2">
                   <Text variant="label" className="capitalize">
@@ -117,17 +117,17 @@ export default function ShowroomInput() {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </ProCard.Content>
+          </ProCard>
         </TabsContent>
 
         <TabsContent value="states">
-          <Card>
-            <CardHeader>
-              <CardTitle>Input States</CardTitle>
-              <CardDescription>Different states of the Input component</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-6">
+          <ProCard>
+            <ProCard.Header>
+              <ProCard.Title>Input States</ProCard.Title>
+              <Text variant="description">Different states of the Input component</Text>
+            </ProCard.Header>
+            <ProCard.Content className="grid gap-6">
               <div className="space-y-2">
                 <Text variant="label">Default</Text>
                 <Input placeholder="Default input" value={values.default} onChange={handleChange("default")} />
@@ -194,17 +194,17 @@ export default function ShowroomInput() {
                   isEditing
                 />
               </div>
-            </CardContent>
-          </Card>
+            </ProCard.Content>
+          </ProCard>
         </TabsContent>
 
         <TabsContent value="examples">
-          <Card>
-            <CardHeader>
-              <CardTitle>Input Examples</CardTitle>
-              <CardDescription>Common use cases for the Input component</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-6">
+          <ProCard>
+            <ProCard.Header>
+              <ProCard.Title>Input Examples</ProCard.Title>
+              <Text variant="description">Common use cases for the Input component</Text>
+            </ProCard.Header>
+            <ProCard.Content className="grid gap-6">
               <div className="space-y-2">
                 <Text variant="label">With Leading Icon</Text>
                 <Input
@@ -295,8 +295,8 @@ export default function ShowroomInput() {
                 <Text variant="label">Date Input</Text>
                 <Input type="date" leadingIcon={Calendar} variant="secondary" />
               </div>
-            </CardContent>
-          </Card>
+            </ProCard.Content>
+          </ProCard>
         </TabsContent>
       </Tabs>
     </div>
