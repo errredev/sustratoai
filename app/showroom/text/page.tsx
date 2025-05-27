@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Text } from "@/components/ui/text";
 import { ProCard } from "@/components/ui/pro-card";
 import { useTheme } from "@/app/theme-provider";
-import { Button } from "@/components/ui/button";
+import { CustomButton } from "@/components/ui/custom-button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useFontTheme } from "@/app/font-provider";
@@ -48,27 +48,27 @@ export default function ShowroomText() {
 
               <div className="flex flex-wrap gap-4 justify-center">
                 <div className="flex items-center space-x-2">
-                  <Button
-                    variant={colorScheme === "blue" ? "default" : "outline"}
+                  <CustomButton
+                    variant={colorScheme === "blue" ? "solid" : "outline"}
                     onClick={() => setColorScheme("blue")}
                     className="w-24"
                   >
                     Azul
-                  </Button>
-                  <Button
-                    variant={colorScheme === "green" ? "default" : "outline"}
+                  </CustomButton>
+                  <CustomButton
+                    variant={colorScheme === "green" ? "solid" : "outline"}
                     onClick={() => setColorScheme("green")}
                     className="w-24"
                   >
                     Verde
-                  </Button>
-                  <Button
-                    variant={colorScheme === "orange" ? "default" : "outline"}
+                  </CustomButton>
+                  <CustomButton
+                    variant={colorScheme === "orange" ? "solid" : "outline"}
                     onClick={() => setColorScheme("orange")}
                     className="w-24"
                   >
                     Naranja
-                  </Button>
+                  </CustomButton>
                 </div>
 
                 <div className="flex items-center space-x-2">

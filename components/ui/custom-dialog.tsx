@@ -4,8 +4,9 @@ import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useColorTokens } from "@/hooks/use-color-tokens"
-import { Button } from "@/components/ui/button"
+import { useTheme } from "@/app/theme-provider"
+import { generateDialogTokens } from "@/lib/theme/components/dialog-tokens"
+import { CustomButton } from "@/components/ui/custom-button"
 import { Text } from "@/components/ui/text"
 
 // Tipos para las props del diálogo
@@ -23,7 +24,7 @@ export interface CustomDialogProps {
   onCancel?: () => void
 
   // Variantes de estilo
-  variant?: "default" | "destructive" | "success" | "warning"
+  variant?: "neutral" | "destructive" | "success" | "warning"
 
   // Props de configuración
   showCloseButton?: boolean
@@ -62,8 +63,12 @@ const CustomDialog = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Co
     },
     ref,
   ) => {
-    const { component } = useColorTokens()
-    const dialogTokens = component.dialog
+    const { appColorTokens, mode } = useTheme()
+    const dialogTokens = React.useMemo(() => {
+      if (!appColorTokens) return null
+      return generateDialogTokens(appColorTokens, mode)
+    }, [appColorTokens, mode])
+    if (!dialogTokens) return null
 
     // Estados internos
     const [isConfirmLoading, setIsConfirmLoading] = React.useState(false)
@@ -98,16 +103,26 @@ const CustomDialog = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Co
     }
 
     // Variantes de botón según el tipo de diálogo
+    // Mapear variante visual
     const getConfirmButtonVariant = () => {
       switch (variant) {
-        case "destructive":
-          return "destructive"
-        case "success":
-          return "default"
         case "warning":
           return "outline"
         default:
-          return "default"
+          return "solid"
+      }
+    }
+    // Mapear color visual
+    const getConfirmButtonColor = () => {
+      switch (variant) {
+        case "destructive":
+          return "danger"
+        case "success":
+          return "success"
+        case "warning":
+          return "warning"
+        default:
+          return "primary"
       }
     }
 
@@ -206,25 +221,26 @@ const CustomDialog = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Co
                 }}
               >
                 {onCancel && (
-                  <Button
+                  <CustomButton
                     variant="outline"
                     onClick={handleCancel}
                     disabled={isLoading || isConfirmLoading}
                     className="mb-2 sm:mb-0"
                   >
                     {cancelText}
-                  </Button>
+                  </CustomButton>
                 )}
 
                 {onConfirm && (
-                  <Button
+                  <CustomButton
                     variant={getConfirmButtonVariant()}
+                    color={getConfirmButtonColor()}
                     onClick={handleConfirm}
-                    isLoading={isConfirmLoading}
+                    loading={isConfirmLoading}
                     disabled={isLoading}
                   >
                     {confirmText}
-                  </Button>
+                  </CustomButton>
                 )}
               </div>
             )}

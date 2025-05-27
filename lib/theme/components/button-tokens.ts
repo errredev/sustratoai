@@ -5,7 +5,7 @@ import type { AppColorTokens, Mode } from "../ColorToken"
 
 // Definimos los tipos para las variantes y tamaños
 export type ButtonVariant = "solid" | "outline" | "ghost" | "link" | "subtle"
-export type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl"
+export type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl" | "icon"
 export type ButtonColor = "default" | "primary" | "secondary" | "tertiary" | "accent" | "success" | "warning" | "danger"
 export type ButtonRounded = "none" | "sm" | "md" | "lg" | "full"
 
@@ -75,6 +75,8 @@ export type ButtonTokens = {
       outlineBorder: string
       // Nuevo token para el efecto ripple
       rippleColor: string
+      bgShade: string
+      textShade: string
     }
   }
   loading: {
@@ -154,11 +156,12 @@ export function generateButtonTokens(appColorTokens: AppColorTokens, mode: Mode)
   // Tokens base
   const baseTokens = {
     padding: {
-      xs: "0.5rem 0.75rem",
-      sm: "0.625rem 1rem",
-      md: "0.75rem 1.25rem",
-      lg: "0.875rem 1.5rem",
-      xl: "1rem 1.75rem",
+      xs: "0.25rem 0.5rem",
+      sm: "0.375rem 0.75rem",
+      md: "0.5rem 1rem",
+      lg: "0.75rem 1.25rem",
+      xl: "1rem 1.5rem",
+      icon: "0", // Sin padding para icon-only
     },
     borderRadius: {
       none: "0",
@@ -170,16 +173,18 @@ export function generateButtonTokens(appColorTokens: AppColorTokens, mode: Mode)
     fontSize: {
       xs: "0.75rem",
       sm: "0.875rem",
-      md: "0.875rem",
-      lg: "1rem",
-      xl: "1.125rem",
+      md: "1rem",
+      lg: "1.125rem",
+      xl: "1.25rem",
+      icon: "1.25rem", // Tamaño de icono base
     },
     height: {
-      xs: "1.75rem",
+      xs: "1.5rem",
       sm: "2rem",
       md: "2.5rem",
       lg: "3rem",
       xl: "3.5rem",
+      icon: "2.5rem", // Altura estándar para botón de icono
     },
     iconSize: {
       xs: "0.75rem",
@@ -187,13 +192,15 @@ export function generateButtonTokens(appColorTokens: AppColorTokens, mode: Mode)
       md: "1rem",
       lg: "1.25rem",
       xl: "1.5rem",
+      icon: "1.25rem", // Tamaño de icono base
     },
     gap: {
       xs: "0.25rem",
       sm: "0.375rem",
       md: "0.5rem",
-      lg: "0.625rem",
-      xl: "0.75rem",
+      lg: "0.75rem",
+      xl: "1rem",
+      icon: "0.25rem",
     },
     transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
     fontWeight: "500",
@@ -246,8 +253,8 @@ export function generateButtonTokens(appColorTokens: AppColorTokens, mode: Mode)
         boxShadow: "none",
       },
       hover: {
-        background: "rgba(currentRgb, 0.3)", // Aumentado significativamente de 0.15 a 0.3
-        color: "currentHoverColor",
+        background: "currentBgShade",
+        color: "currentTextShade",
         border: "1px solid currentHoverBorder",
         boxShadow: isDark ? "0 2px 4px -1px rgba(0, 0, 0, 0.3)" : "0 2px 4px -1px rgba(0, 0, 0, 0.06)",
         transform: "translateY(-1px)",
@@ -281,8 +288,8 @@ export function generateButtonTokens(appColorTokens: AppColorTokens, mode: Mode)
         boxShadow: "none",
       },
       hover: {
-        background: "rgba(currentRgb, 0.3)", // Aumentado significativamente de 0.15 a 0.3
-        color: "currentHoverColor",
+        background: "currentBgShade",
+        color: "currentTextShade",
         border: "none",
         boxShadow: "none",
         transform: "translateY(-1px)",
@@ -316,8 +323,8 @@ export function generateButtonTokens(appColorTokens: AppColorTokens, mode: Mode)
         boxShadow: "none",
       },
       hover: {
-        background: "transparent",
-        color: "currentHoverColor",
+        background: "currentBgShade",
+        color: "currentTextShade",
         border: "none",
         boxShadow: "none",
         transform: "none",
@@ -349,14 +356,14 @@ export function generateButtonTokens(appColorTokens: AppColorTokens, mode: Mode)
         boxShadow: "none",
       },
       hover: {
-        background: "rgba(currentRgb, 0.4)", // Aumentado significativamente de 0.3 a 0.4
-        color: "currentHoverColor",
+        background: "currentBackground", // Cambiar de rgba a currentBackground (que es el color pure)
+        color: "currentColor", // Mantener el color original para contraste
         border: "none",
         boxShadow: isDark ? "0 2px 4px -1px rgba(0, 0, 0, 0.2)" : "0 2px 4px -1px rgba(0, 0, 0, 0.05)",
         transform: "translateY(-1px)",
       },
       active: {
-        background: "rgba(currentRgb, 0.5)", // Aumentado significativamente de 0.4 a 0.5
+        background: "currentActiveBackground", // Usar el activeBackground para consistencia
         color: "currentActiveColor",
         border: "none",
         boxShadow: "none",
@@ -400,6 +407,8 @@ export function generateButtonTokens(appColorTokens: AppColorTokens, mode: Mode)
       outlineColor: isDark ? colors.neutral.white : colors.neutral.gray[900],
       outlineBorder: isDark ? colors.neutral.gray[300] : colors.neutral.gray[500],
       rippleColor: defaultRippleColor,
+      bgShade: appColorTokens.neutral.bgShade,
+      textShade: appColorTokens.neutral.textShade,
     },
     primary: {
       background: primaryColor,
@@ -418,6 +427,8 @@ export function generateButtonTokens(appColorTokens: AppColorTokens, mode: Mode)
       outlineColor: primaryColor,
       outlineBorder: primaryColor,
       rippleColor: primaryRippleColor,
+      bgShade: appColorTokens.primary.bgShade,
+      textShade: appColorTokens.primary.textShade,
     },
     secondary: {
       background: secondaryColor,
@@ -436,6 +447,8 @@ export function generateButtonTokens(appColorTokens: AppColorTokens, mode: Mode)
       outlineColor: secondaryColor,
       outlineBorder: secondaryColor,
       rippleColor: secondaryRippleColor,
+      bgShade: appColorTokens.secondary.bgShade,
+      textShade: appColorTokens.secondary.textShade,
     },
     tertiary: {
       background: tertiaryColor,
@@ -454,6 +467,8 @@ export function generateButtonTokens(appColorTokens: AppColorTokens, mode: Mode)
       outlineColor: tertiaryColor,
       outlineBorder: tertiaryColor,
       rippleColor: tertiaryRippleColor,
+      bgShade: appColorTokens.tertiary.bgShade,
+      textShade: appColorTokens.tertiary.textShade,
     },
     accent: {
       background: accentColor,
@@ -472,6 +487,8 @@ export function generateButtonTokens(appColorTokens: AppColorTokens, mode: Mode)
       outlineColor: accentColor,
       outlineBorder: accentColor,
       rippleColor: accentRippleColor,
+      bgShade: appColorTokens.accent.bgShade,
+      textShade: appColorTokens.accent.textShade,
     },
     success: {
       background: successColor,
@@ -490,6 +507,8 @@ export function generateButtonTokens(appColorTokens: AppColorTokens, mode: Mode)
       outlineColor: successColor,
       outlineBorder: successColor,
       rippleColor: successRippleColor,
+      bgShade: appColorTokens.success.bgShade,
+      textShade: appColorTokens.success.textShade,
     },
     warning: {
       background: warningColor,
@@ -508,6 +527,8 @@ export function generateButtonTokens(appColorTokens: AppColorTokens, mode: Mode)
       outlineColor: warningColor,
       outlineBorder: warningColor,
       rippleColor: warningRippleColor,
+      bgShade: appColorTokens.warning.bgShade,
+      textShade: appColorTokens.warning.textShade,
     },
     danger: {
       background: dangerColor,
@@ -526,6 +547,8 @@ export function generateButtonTokens(appColorTokens: AppColorTokens, mode: Mode)
       outlineColor: dangerColor,
       outlineBorder: dangerColor,
       rippleColor: dangerRippleColor,
+      bgShade: appColorTokens.danger.bgShade,
+      textShade: appColorTokens.danger.textShade,
     },
   }
 
@@ -534,10 +557,11 @@ export function generateButtonTokens(appColorTokens: AppColorTokens, mode: Mode)
     spinnerColor: "currentColor",
     spinnerSize: {
       xs: "0.75rem",
-      sm: "0.875rem",
-      md: "1rem",
-      lg: "1.25rem",
-      xl: "1.5rem",
+      sm: "1rem",
+      md: "1.25rem",
+      lg: "1.5rem",
+      xl: "1.75rem",
+      icon: "1.25rem",
     },
     opacity: "0.7",
   }

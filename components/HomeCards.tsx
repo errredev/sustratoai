@@ -3,7 +3,7 @@
 import { ProCard } from "@/components/ui/pro-card";
 import { Text } from "@/components/ui/text";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { CustomButton } from "@/components/ui/custom-button";
 import {
   FileText,
   BookOpen,
@@ -20,8 +20,8 @@ export function HomeCards() {
       <ProCard
         variant="primary"
         border="top"
+        animateEntrance
         className="overflow-hidden hover:shadow-md transition-shadow duration-300"
-        
       >
         <ProCard.Header>
           <div className="flex items-center justify-between">
@@ -93,7 +93,7 @@ export function HomeCards() {
 
         <ProCard.Actions>
           <Link href="/entrevistas" className="w-full">
-            <Button className="w-full group">
+            <CustomButton className="w-full group" variant="solid">
               <Text fontType="heading" size="sm">
                 Acceder al módulo
               </Text>
@@ -103,7 +103,7 @@ export function HomeCards() {
                 size="sm"
                 className="ml-2 transition-transform group-hover:translate-x-1"
               />
-            </Button>
+            </CustomButton>
           </Link>
         </ProCard.Actions>
       </ProCard>
@@ -112,7 +112,7 @@ export function HomeCards() {
       <ProCard
         variant="secondary"
         border="top"
-      
+        animateEntrance
         selected={true}
       >
         <ProCard.Header>
@@ -188,7 +188,7 @@ export function HomeCards() {
         </ProCard.Content>
 
         <ProCard.Actions>
-          <Button className="w-full" variant="secondary" disabled>
+          <CustomButton className="w-full" variant="outline" disabled>
             <Text fontType="heading" size="sm">
               Próximamente
             </Text>
@@ -199,7 +199,7 @@ export function HomeCards() {
               gradient={true}
               gradientWith="secondary"
             />
-          </Button>
+          </CustomButton>
         </ProCard.Actions>
       </ProCard>
     </div>

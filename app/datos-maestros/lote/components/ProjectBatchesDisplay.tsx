@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import type { BatchStatusEnum } from "@/lib/database.types";
 import { toast as sonnerToast } from "sonner";
+import { CustomDialog } from "@/components/ui/custom-dialog";
 import { BatchItem } from "./BatchItem";
 import type { BatchAuxColor, BatchTokens } from "./batch-tokens";
 import tinycolor from "tinycolor2";
@@ -106,27 +107,23 @@ export default function ProjectBatchesDisplay({
 	const mostrarBotonReset =
 		permisoParaResetearGeneral && todosLosLotesEstanPendientes;
 
-	const handleConfirmReset = async () => {
-		const loteCount = lotes.length;
-		const confirmado = window.confirm(
-			`¿Estás SEGURO de que quieres eliminar TODOS los ${loteCount} lotes de este proyecto? ` +
-				`Esta acción solo procederá si NINGÚN lote ha sido iniciado. No se puede deshacer.`
-		);
-		if (!confirmado) return;
+	const [dialogResetOpen, setDialogResetOpen] = useState(false);
 
-		setIsResetting(true);
-		const result = await onResetAllBatches();
-		if (result.success) {
-			sonnerToast.success("Reseteo Exitoso", {
-				description: result.message || "Todos los lotes han sido eliminados.",
-			});
-		} else {
-			sonnerToast.error("Error en el Reseteo", {
-				description: result.error || "No se pudieron eliminar los lotes.",
-			});
-		}
-		setIsResetting(false);
-	};
+const handleConfirmReset = async () => {
+	setIsResetting(true);
+	setDialogResetOpen(false);
+	const result = await onResetAllBatches();
+	if (result.success) {
+		sonnerToast.success("Reseteo Exitoso", {
+			description: result.message || "Todos los lotes han sido eliminados.",
+		});
+	} else {
+		sonnerToast.error("Error en el Reseteo", {
+			description: result.error || "No se pudieron eliminar los lotes.",
+		});
+	}
+	setIsResetting(false);
+};
 
 	if (!batchTokens) {
 		return (
@@ -186,23 +183,35 @@ export default function ProjectBatchesDisplay({
 					<ProCard.Header className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
 						<div>
 							<Text variant="heading" size="xl" weight="semibold" color="tertiary">
-                            Total: {lotes.length} lotes.
+								Total: {lotes.length} lotes.
 							</Text>
-						
 						</div>
 						{mostrarBotonReset && (
-							<CustomButton
-								color="danger"
-								variant="outline"
-								onClick={handleConfirmReset}
-								loading={isResetting}
-								disabled={isResetting}
-								leftIcon={<Trash2 className="h-4 w-4" />}
-								className="mt-3 sm:mt-0 pt-4">
-								{isResetting
-									? "Eliminando..."
-									: "Eliminar Todos los Lotes Pendientes"}
-							</CustomButton>
+							<>
+								<CustomButton
+									type="button"
+									color="danger"
+									variant="solid"
+									leftIcon={<Trash2 className="w-4 h-4" />}
+									className="ml-auto"
+									onClick={() => setDialogResetOpen(true)}
+									loading={isResetting}
+								>
+									Eliminar todos los lotes
+								</CustomButton>
+								<CustomDialog
+									open={dialogResetOpen}
+									onOpenChange={(open: boolean) => setDialogResetOpen(open)}
+									variant="destructive"
+									title="Eliminar todos los lotes"
+									description={`¿Estás SEGURO de que quieres eliminar TODOS los ${lotes.length} lotes de este proyecto? Esta acción solo procederá si NINGÚN lote ha sido iniciado. No se puede deshacer.`}
+									confirmText="Eliminar todos"
+									cancelText="Cancelar"
+									onConfirm={handleConfirmReset}
+									onCancel={() => setDialogResetOpen(false)}
+									isLoading={isResetting}
+								/>
+							</>
 						)}
 					</ProCard.Header>
 					<ProCard.Content className="space-y-6">

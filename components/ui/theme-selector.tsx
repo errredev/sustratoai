@@ -1,6 +1,6 @@
 "use client"
 import { useTheme } from "@/app/theme-provider"
-import { Button } from "@/components/ui/button"
+import { CustomButton } from "@/components/ui/custom-button"
 import { Check, Palette } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -17,7 +17,7 @@ export function ThemeSelector() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button
+        <CustomButton
           variant="ghost"
           size="icon"
           className="h-8 w-8"
@@ -31,11 +31,11 @@ export function ThemeSelector() {
               "text-orange-500": colorScheme === "orange",
             })}
           />
-        </Button>
+        </CustomButton>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-2">
         <div className="grid gap-1">
-          <Button
+          <CustomButton
             variant="ghost"
             className="flex items-center justify-between px-2 py-1.5 w-full"
             onClick={() => setColorScheme("default")}
@@ -46,8 +46,8 @@ export function ThemeSelector() {
               <span>Azul</span>
             </div>
             {colorScheme === "default" && <Check className="h-4 w-4" />}
-          </Button>
-          <Button
+          </CustomButton>
+          <CustomButton
             variant="ghost"
             className="flex items-center justify-between px-2 py-1.5 w-full"
             onClick={() => setColorScheme("green")}
@@ -58,8 +58,8 @@ export function ThemeSelector() {
               <span>Verde</span>
             </div>
             {colorScheme === "green" && <Check className="h-4 w-4" />}
-          </Button>
-          <Button
+          </CustomButton>
+          <CustomButton
             variant="ghost"
             className="flex items-center justify-between px-2 py-1.5 w-full"
             onClick={() => setColorScheme("orange")}
@@ -70,7 +70,7 @@ export function ThemeSelector() {
               <span>Naranja</span>
             </div>
             {colorScheme === "orange" && <Check className="h-4 w-4" />}
-          </Button>
+          </CustomButton>
         </div>
       </PopoverContent>
     </Popover>

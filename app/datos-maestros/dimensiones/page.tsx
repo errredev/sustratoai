@@ -11,6 +11,7 @@ import {
   type DeleteDimensionPayload, // <-- Y ESTE TIPO TAMBIÉN
 } from "@/lib/actions/dimension-actions";
 import { PageBackground } from "@/components/ui/page-background";
+import { CustomDialog } from "@/components/ui/custom-dialog";
 import { PageTitle } from "@/components/ui/page-title";
 import { CustomButton } from "@/components/ui/custom-button";
 import { SustratoLoadingLogo } from "@/components/ui/sustrato-loading-logo";
@@ -31,6 +32,7 @@ export default function DimensionesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null); // string: ID de la dimensión borrándose
   const [error, setError] = useState<string | null>(null);
+  const [dialogToDelete, setDialogToDelete] = useState<{ id: string; name: string } | null>(null);
 
   const puedeGestionarDimensiones =
     proyectoActual?.permissions?.can_manage_master_data || false;
@@ -86,34 +88,30 @@ export default function DimensionesPage() {
   };
   
   // --- FUNCIÓN handleEliminarDimension ACTUALIZADA ---
-  const handleEliminarDimension = async (dimensionId: string, dimensionName: string) => {
+  const handleEliminarDimension = (dimensionId: string, dimensionName: string) => {
     if (!proyectoActual?.id || !puedeGestionarDimensiones) {
       sonnerToast.error("Acción no permitida", { 
         description: "No tienes permisos o falta información del proyecto." 
       });
       return;
     }
+    setDialogToDelete({ id: dimensionId, name: dimensionName });
+  };
 
-    const confirmacion = window.confirm(
-      `¿Estás seguro de que deseas eliminar la dimensión "${dimensionName}"?\n\nEsta acción no se puede deshacer y eliminará todas sus opciones, preguntas y ejemplos asociados (si el borrado en cascada está configurado en la base de datos).\n\nNOTA IMPORTANTE: La dimensión no se podrá eliminar si el proyecto tiene lotes de trabajo activos o en progreso.`
-    );
-
-    if (confirmacion) {
-      setIsDeleting(dimensionId); // Para feedback visual en la card
-      if (typeof showLoading === 'function') showLoading("Eliminando dimensión..."); // Feedback global opcional
-
+  const handleConfirmDelete = async () => {
+    if (!dialogToDelete || !proyectoActual?.id) return; // Asegurar que proyectoActual no sea null antes de usar su id
+    const nombreDimension = dialogToDelete.name; // Guardar el nombre antes de setDialogToDelete(null)
+    setIsDeleting(dialogToDelete.id);
+    setDialogToDelete(null);
+    try {
       const payload: DeleteDimensionPayload = { 
-        dimensionId: dimensionId, 
+        dimensionId: dialogToDelete.id, 
         projectId: proyectoActual.id 
       };
       const resultado = await deleteDimension(payload);
-
-      if (typeof hideLoading === 'function') hideLoading();
-      setIsDeleting(null); // Limpiar estado de borrado
-
       if (resultado.success) {
         sonnerToast.success("Dimensión Eliminada", {
-          description: `La dimensión "${dimensionName}" ha sido eliminada correctamente.`,
+          description: `La dimensión "${nombreDimension}" ha sido eliminada correctamente.`,
         });
         cargarDimensiones(); // Recargar la lista para reflejar el cambio
       } else {
@@ -122,6 +120,13 @@ export default function DimensionesPage() {
           duration: 8000, // Mostrar errores importantes por más tiempo
         });
       }
+    } catch (err) {
+      sonnerToast.error("Error al Eliminar", {
+        description: err instanceof Error ? err.message : "Error desconocido.",
+        duration: 8000,
+      });
+    } finally {
+      setIsDeleting(null);
     }
   };
   // --- FIN FUNCIÓN ACTUALIZADA ---
@@ -230,6 +235,19 @@ export default function DimensionesPage() {
             ))}
           </div>
         )}
+        {/* Diálogo de confirmación destructiva */}
+        <CustomDialog
+          open={!!dialogToDelete}
+          onOpenChange={(open: boolean) => { if (!open) setDialogToDelete(null); }}
+          variant="destructive"
+          title="Eliminar dimensión"
+          description={dialogToDelete ? `¿Estás seguro de que deseas eliminar la dimensión "${dialogToDelete.name}"? Esta acción no se puede deshacer y eliminará todas sus opciones, preguntas y ejemplos asociados (si el borrado en cascada está configurado en la base de datos).\n\nNOTA IMPORTANTE: La dimensión no se podrá eliminar si el proyecto tiene lotes de trabajo activos o en progreso.` : ""}
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setDialogToDelete(null)}
+          isLoading={isDeleting === dialogToDelete?.id}
+        />
       </div>
     </PageBackground>
   );

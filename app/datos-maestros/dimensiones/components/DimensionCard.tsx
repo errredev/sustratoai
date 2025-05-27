@@ -2,6 +2,8 @@
 "use client";
 
 import React from "react";
+import { useRipple } from "@/components/ripple/RippleProvider";
+import { useTheme } from "@/app/theme-provider";
 import { type FullDimension } from "@/lib/actions/dimension-actions";
 import { ProCard } from "@/components/ui/pro-card";
 import { Text } from "@/components/ui/text";
@@ -18,11 +20,9 @@ interface DimensionCardProps {
 	dimension: FullDimension;
 	onEdit: () => void;
 	onDelete: () => void;
-	onViewDetails: () => void; // Para ver detalles si es necesario
+	onViewDetails: () => void;
 	canManage: boolean;
 	isBeingDeleted?: boolean;
-	// Props para dnd-kit (se añadirán después)
-	// id: string;
 }
 
 export const DimensionCard: React.FC<DimensionCardProps> = ({
@@ -47,6 +47,17 @@ export const DimensionCard: React.FC<DimensionCardProps> = ({
 		cardColorVariant = "success"; // ej. verde para finitas
 	else if (dimension.type === "open") cardColorVariant = "info"; // ej. azul para abiertas
 
+	const { appColorTokens, mode } = useTheme();
+	const triggerRipple = useRipple();
+
+	// Color para el ripple (accent background)
+	const accentBg = appColorTokens?.accent?.bg || appColorTokens?.primary?.bg || "#4f46e5";
+
+	const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+		triggerRipple(e, accentBg, 10);
+		onViewDetails();
+	};
+
 	return (
 		// <div ref={setNodeRef} style={style}> {/* Envolver con esto para dnd-kit */}
 		<ProCard
@@ -57,7 +68,7 @@ export const DimensionCard: React.FC<DimensionCardProps> = ({
 			border="left"
 			color={cardColorVariant as any} // ProCard podría no tener 'info', 'success' directamente. Adaptar.
 			shadow="md"
-
+			animateEntrance
 			// Añadir un efecto hover
 		>
 			{isBeingDeleted && (
@@ -66,55 +77,55 @@ export const DimensionCard: React.FC<DimensionCardProps> = ({
 				</div>
 			)}
 
-			{canManage && (
-				<div
-					className={cn(
-						"absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-200",
-						isBeingDeleted && "!opacity-0"
-					)}>
-					{/* <button {...attributes} {...listeners} className="cursor-grab p-1 text-muted-foreground hover:text-foreground">
-              <GripVertical className="h-5 w-5" />
-            </button> */}{" "}
-					{/* Drag Handle para dnd-kit */}
-					<CustomButton
-						size="xs"
-						variant="ghost"
-						iconOnly
-						onClick={onEdit}
-						disabled={isBeingDeleted}>
-						<PenLine className="h-4 w-4" />
-					</CustomButton>
-					<CustomButton
-						size="xs"
-						variant="ghost"
-						iconOnly
-						color="danger"
-						onClick={onDelete}
-						disabled={isBeingDeleted}>
-						<Trash2 className="h-4 w-4" />
-					</CustomButton>
-				</div>
-			)}
-
 			{/* Hacemos el cuerpo de la card clickeable para ver detalles */}
 			<div
-				onClick={onViewDetails}
-				className="cursor-pointer flex-grow flex flex-col p-4">
+				onClick={handleCardClick}
+				className="cursor-pointer flex-grow flex flex-col p-4"
+				tabIndex={0}
+				role="button"
+				aria-label={`Ver detalles de ${dimension.name}`}
+			>
 				<ProCard.Header className="p-0 mb-2">
-					{" "}
-					{/* Eliminar padding por defecto de header si no es necesario */}
-					<div className="flex items-center justify-between">
-						<Text
-							variant="heading"
-							size="md"
-							weight="semibold"
-							className="mb-1 flex-grow mr-2"
-							truncate>
-							{dimension.name}
-						</Text>
-						<BadgeCustom variant={cardColorVariant} className="flex-shrink-0">
-							{tipoLabel}
-						</BadgeCustom>
+					<div className="flex flex-col gap-1">
+						<div className="flex items-start justify-between">
+							<Text
+								variant="heading"
+								size="md"
+								weight="semibold"
+								className="flex-grow mr-2"
+								truncate
+							>
+								{dimension.name}
+							</Text>
+							<BadgeCustom variant={cardColorVariant} className="flex-shrink-0">
+								{tipoLabel}
+							</BadgeCustom>
+						</div>
+						{canManage && (
+							<div className="flex justify-end gap-1 mt-1">
+								<CustomButton
+									size="sm"
+									variant="ghost"
+									iconOnly
+									onClick={onEdit}
+									disabled={isBeingDeleted}
+									tooltip="Editar dimensión"
+								>
+									<PenLine className="h-5 w-5" />
+								</CustomButton>
+								<CustomButton
+									size="sm"
+									variant="ghost"
+									iconOnly
+									color="danger"
+									onClick={onDelete}
+									disabled={isBeingDeleted}
+									tooltip="Eliminar dimensión"
+								>
+									<Trash2 className="h-5 w-5" />
+								</CustomButton>
+							</div>
+						)}
 					</div>
 				</ProCard.Header>
 

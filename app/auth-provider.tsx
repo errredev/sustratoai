@@ -25,8 +25,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { CustomButton } from "@/components/ui/custom-button";
+import { ProCard } from "@/components/ui/pro-card";
 import { SustratoLoadingLogo } from "@/components/ui/sustrato-loading-logo";
 
 interface AuthContextType {
@@ -610,7 +610,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             )}...`
           );
 
-          // Guardar en localStorage para recuperación rápida
+          // Guardar en caché para futuras cargas rápidas
           localStorage.setItem("cachedUser", JSON.stringify(newSession.user));
 
           setUser(newSession.user);
@@ -679,7 +679,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               `🔄 [${eventId}] Estableciendo usuario de sesión inicial`
             );
 
-            // Guardar en localStorage para recuperación rápida
+            // Guardar en caché para futuras cargas rápidas
             localStorage.setItem("cachedUser", JSON.stringify(newSession.user));
 
             setUser(newSession.user);
@@ -902,7 +902,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 proyecto.permissions?.can_manage_master_data;
 
               return (
-                <Card
+                <ProCard
                   key={proyecto.id}
                   className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
                   onClick={() => {
@@ -958,17 +958,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                       )}
                     </div>
                   )}
-                </Card>
+                </ProCard>
               );
             })}
           </div>
           <DialogFooter>
-            <Button
+            <CustomButton
               variant="outline"
               onClick={() => setMostrarSelectorProyecto(false)}
             >
               Cancelar
-            </Button>
+            </CustomButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>

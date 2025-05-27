@@ -162,32 +162,32 @@ export default function MiembrosPage() {
 					<div className="flex gap-2 justify-end">
 						<CustomButton
 							variant="ghost"
-							size="lg"
+							size="icon"
 							onClick={() => handleVerMiembro(miembro)}
-							className="h-8 w-8 p-0"
-							iconOnly>
-							<Eye className="h-4 w-4" />
+							iconOnly
+							tooltip="Ver detalles">
+							<Eye className="h-5 w-5" />
 							<span className="sr-only">Ver detalles</span>
 						</CustomButton>
 						{puedeGestionarMiembros && (
 							<>
 								<CustomButton
 									variant="ghost"
-									size="lg"
+									size="icon"
 									onClick={() => handleEditarMiembro(miembro)}
-									className="h-8 w-8 p-0"
-									iconOnly>
-									<PenLine className="h-4 w-4" />
+									iconOnly
+									tooltip="Editar miembro">
+									<PenLine className="h-5 w-5" />
 									<span className="sr-only">Editar</span>
 								</CustomButton>
 								<CustomButton
 									variant="ghost"
-									size="lg"
+									size="icon"
 									onClick={() => handleEliminarMiembro(miembro)}
-									className="h-8 w-8 p-0 text-destructive"
 									iconOnly
-									color="danger">
-									<Trash2 className="h-4 w-4" />
+									color="danger"
+									tooltip="Eliminar miembro">
+									<Trash2 className="h-5 w-5 text-destructive" />
 									<span className="sr-only">Eliminar</span>
 								</CustomButton>
 							</>
@@ -217,13 +217,15 @@ const getRowTextColorVariantForRow = (row: ProjectMemberDetails): CellVariant | 
 			<div className="container mx-auto py-6">
 				<div className="space-y-6">
 					<PageTitle
-  title="Miembros del Proyecto"
-  subtitle={`Creación, visualización, modificación de miembros del proyecto ${proyectoActual?.name || "actual"}`}
-  breadcrumbs={[
-    { label: "Datos Maestros", href: "/datos-maestros" },
-    { label: "Miembros" }
-  ]}
-/>
+						title="Miembros del Proyecto"
+						subtitle={`Creación, visualización, modificación de miembros del proyecto ${
+							proyectoActual?.name || "actual"
+						}`}
+						breadcrumbs={[
+							{ label: "Datos Maestros", href: "/datos-maestros" },
+							{ label: "Miembros" },
+						]}
+					/>
 
 					{isLoading ? (
 						<div className="flex justify-center py-8">
@@ -267,8 +269,8 @@ const getRowTextColorVariantForRow = (row: ProjectMemberDetails): CellVariant | 
 							className="overflow-hidden hover:shadow-md transition-shadow duration-300"
 							borderVariant="primary">
 							{puedeGestionarMiembros && (
-// ... existing code ...
-<div className="flex justify-end mb-4 pt-4"> 
+								// ... existing code ...
+								<div className="flex justify-end mb-4 pt-4">
 									<CustomButton
 										onClick={handleAgregarMiembro}
 										leftIcon={<UserPlus className="h-4 w-4" />}

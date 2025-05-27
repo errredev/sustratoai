@@ -203,7 +203,7 @@ interface BatchSimulatorPageProps {
     return (
       <PageBackground>
         <div style={{display: "flex", alignItems: "center", justifyContent: "center", minHeight: "80vh" }}>
-            <ProCard variant="primary" className="text-center max-w-lg p-8">
+            <ProCard animateEntrance variant="primary" className="text-center max-w-lg p-8">
             <ProCard.Header className="items-center flex flex-col"> 
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-warning-100 mb-4">
                     <AlertTriangle className="h-6 w-6 text-warning-600" />
@@ -221,7 +221,7 @@ interface BatchSimulatorPageProps {
      return (
       <PageBackground>
         <div style={{display: "flex", alignItems: "center", justifyContent: "center", minHeight: "80vh" }}>
-            <ProCard variant="primary" className="text-center max-w-lg p-8">
+            <ProCard animateEntrance variant="primary" className="text-center max-w-lg p-8">
             <ProCard.Header className="items-center flex flex-col"> 
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-info-100 mb-4">
                     <AlertTriangle className="h-6 w-6 text-info-600" />
@@ -249,12 +249,12 @@ interface BatchSimulatorPageProps {
                 ]}
             />
             
-            <ProCard className="mt-6 mb-8" variant="primary" border="top" borderVariant="primary" shadow="md">
+            <ProCard animateEntrance className="mt-6 mb-8" variant="primary" border="top" borderVariant="primary" shadow="md">
                 <ProCard.Header>
                     <Text variant="subheading" weight="medium" color="primary">Configuración de Lotes</Text>
                 </ProCard.Header>
                 <ProCard.Content className={`grid md:grid-cols-2 gap-6 ${isSimulating || isCreating ? 'opacity-60 pointer-events-none' : ''}`}>
-                    <ProCard variant="primary" borderVariant="primary" border="normal" className="p-4">
+                    <ProCard variant="primary" borderVariant="primary" border="normal" animateEntrance className="p-4">
                         <Text variant="label" weight="semibold" className="mb-1 block">1. Definir Tamaño por Lote</Text>
                         <div className="flex justify-between items-baseline my-3">
                             <Text size="sm">Artículos/Lote:{" "}
@@ -281,7 +281,7 @@ interface BatchSimulatorPageProps {
                         </Text>
                     </ProCard>
 
-                    <ProCard variant="primary" borderVariant="primary" border="normal" className="p-4">
+                    <ProCard variant="primary" borderVariant="primary" border="normal" animateEntrance className="p-4">
                         <Text variant="label" weight="semibold" className="mb-3 block">2. Asignar a Miembros</Text>
                         <div className="flex gap-2 flex-wrap min-h-[40px]">
                             {projectMembers.map((member) => {
@@ -317,7 +317,10 @@ interface BatchSimulatorPageProps {
             </ProCard>
 
             {uiError && !isSimulating && !isCreating && (
-                <ProCard variant="danger" border="left" className="mb-8 p-4">
+                <ProCard variant="danger" 
+                  animateEntrance
+                  border="left" 
+                  className="mb-8 p-4">
                     <div className="flex items-start gap-3">
                         <AlertTriangle className="h-5 w-5 mt-0.5 text-danger-fg" />
                         <div>
@@ -334,23 +337,37 @@ interface BatchSimulatorPageProps {
             )}
 
             {((simulationData && totalBatchesCalculated > 0) || isSimulating || isCreating) && !uiError && (
-            <ProCard variant="primary" border="top" borderVariant="secondary" shadow="md" className="mb-8 relative">
+            <ProCard animateEntrance variant="primary" border="top" borderVariant="secondary" shadow="md" className="mb-8 relative">
                 {isCreating && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-card/90 backdrop-blur-sm z-20 rounded-md p-4 text-center">
-                        <SustratoLoadingLogo 
-                        variant={"spin-pulse"} 
-                            size={50} 
-                        />
-                        <Text weight="medium" className="mt-4 mb-2 text-primary-text">{creationStatusMessage || "Procesando lotes..."}</Text>
-                        <Progress 
-                            indeterminate 
-                            variant="primary"
-                            size="sm"
-                            className="w-full max-w-xs" 
-                        />
-                         <Text size="xs" className="text-muted-foreground mt-2">(Esto puede tardar unos segundos)</Text>
-                    </div>
-                )}
+  <div className="absolute inset-0 flex flex-col items-center justify-center bg-card/90 backdrop-blur-sm z-20 rounded-md p-4 text-center">
+    <div className="flex w-full items-center gap-2 mb-2">
+      <div className="flex-1">
+        <Progress 
+          indeterminate 
+          variant="primary"
+          size="sm"
+          className="w-full" 
+        />
+      </div>
+      <div className="flex-shrink-0 flex items-center justify-center" style={{ width: 56, height: 56 }}>
+        <SustratoLoadingLogo 
+          variant={"spin-pulse"}
+          size={50}
+        />
+      </div>
+      <div className="flex-1">
+        <Progress 
+          indeterminate 
+          variant="primary"
+          size="sm"
+          className="w-full" 
+        />
+      </div>
+    </div>
+    <Text weight="medium" className="mb-2 mt-3 text-primary-text">{creationStatusMessage || "Procesando lotes..."}</Text>
+    <Text size="xs" className="text-muted-foreground mt-2">(Esto puede tardar unos segundos)</Text>
+  </div>
+)}
 
                 <ProCard.Header>
                     <Text variant="subheading" weight="medium" color="secondary">Previsualización de la Distribución</Text>

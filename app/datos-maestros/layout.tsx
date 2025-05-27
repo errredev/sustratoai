@@ -1,7 +1,7 @@
 "use client";
 
 import { SidebarNav } from "@/components/ui/sidebar-nav";
-import { Database, Users, Building2, Briefcase, UserPlus, ShieldCheck, Layers} from "lucide-react";
+import { Database, Users, Building2, Briefcase, UserPlus, ShieldCheck, Layers, LayoutGrid } from "lucide-react";
 
 const sidebarNavItems = [
  
@@ -19,6 +19,11 @@ const sidebarNavItems = [
     title: "lotes",
     href: "/datos-maestros/lote",
     icon: Layers,
+  },
+  {
+    title: "Dimensiones",
+    href: "/datos-maestros/dimensiones",
+    icon: LayoutGrid,
   }
   // Otros ítems del menú pueden agregarse en el futuro
   // {

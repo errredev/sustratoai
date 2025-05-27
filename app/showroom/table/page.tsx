@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { PageWrapper } from "@/components/ui/page-wrapper";
 import { Text } from "@/components/ui/text";
-import { Button } from "@/components/ui/button"; // Para acciones
+import { CustomButton } from "@/components/ui/custom-button";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -531,14 +531,14 @@ const columns: ColumnDef<Person, any>[] = [
     header: () => <div className="text-center">Acciones</div>,
     cell: ({ row }) => (
       <div className="flex items-center justify-center space-x-1 md:space-x-2">
-        <Button
+        <CustomButton
           variant="outline"
           size="sm"
           onClick={() => alert(`Viendo perfil de: ${row.original.firstName}`)}
         >
           Ver
-        </Button>
-        <Button
+        </CustomButton>
+        <CustomButton
           variant="ghost"
           size="sm"
           className="text-red-600 hover:text-red-700"
@@ -549,7 +549,7 @@ const columns: ColumnDef<Person, any>[] = [
           }
         >
           Eliminar
-        </Button>
+        </CustomButton>
       </div>
     ),
     meta: {

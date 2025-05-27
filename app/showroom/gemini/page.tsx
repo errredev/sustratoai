@@ -1,8 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { ProCard } from "@/components/ui/pro-card"
+import { CustomButton } from "@/components/ui/custom-button"
+import { PageBackground } from "@/components/ui/page-background"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -66,15 +67,16 @@ export default function ShowroomGemini() {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <PageBackground>
+      <div className="container mx-auto py-8">
       <h1 className="text-2xl font-bold mb-6">Showroom Gemini - Traductor de Abstracts</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Configuración</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <ProCard>
+          <ProCard.Header>
+            <ProCard.Title>Configuración</ProCard.Title>
+          </ProCard.Header>
+          <ProCard.Content>
             <div className="space-y-6">
               {/* Selección de modelo */}
               <div>
@@ -113,7 +115,7 @@ export default function ShowroomGemini() {
               </div>
 
               {/* Botón de traducción */}
-              <Button onClick={translateText} disabled={isLoading} className="w-full">
+              <CustomButton onClick={translateText} disabled={isLoading} fullWidth loading={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -122,16 +124,16 @@ export default function ShowroomGemini() {
                 ) : (
                   "Traducir al Español"
                 )}
-              </Button>
+              </CustomButton>
             </div>
-          </CardContent>
-        </Card>
+          </ProCard.Content>
+        </ProCard>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Resultado de la Traducción</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <ProCard>
+          <ProCard.Header>
+            <ProCard.Title>Resultado de la Traducción</ProCard.Title>
+          </ProCard.Header>
+          <ProCard.Content>
             {error ? (
               <div className="p-4 bg-red-50 border border-red-200 rounded-md text-red-600">{error}</div>
             ) : translation ? (
@@ -144,8 +146,8 @@ export default function ShowroomGemini() {
                 La traducción aparecerá aquí
               </div>
             )}
-          </CardContent>
-        </Card>
+          </ProCard.Content>
+        </ProCard>
       </div>
 
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
@@ -157,5 +159,6 @@ export default function ShowroomGemini() {
         </p>
       </div>
     </div>
+    </PageBackground>
   )
 }

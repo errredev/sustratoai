@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ProCard } from "@/components/ui/pro-card"; // Asegúrate que la ruta sea correcta
-import { Button } from "@/components/ui/button";    // Asegúrate que la ruta sea correcta
+import { CustomButton } from "@/components/ui/custom-button";
 import { Text } from "@/components/ui/text";        // Asegúrate que la ruta sea correcta
 import { Icon } from "@/components/ui/icon";        // Asegúrate que la ruta sea correcta
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Asegúrate que la ruta sea correcta
@@ -89,9 +89,39 @@ export default function ShowroomCardProPage() { // Renombrado para evitar confli
                   className="grid grid-cols-1 md:grid-cols-2 gap-6"
                   variants={gridContainerVariants}
                   initial="hidden"
-                  animate="visible" // Animar cuando esta pestaña se monta/muestra
+                  animate="visible"
                 >
-                  <div> {/* No necesita motion.div si ProCard maneja su propia animación */}
+                  {/* Ejemplo 1: Por defecto (sin hover ni glow) */}
+                  <ProCard animateEntrance>
+                    <ProCard.Title>Por defecto (sin hover ni glow)</ProCard.Title>
+                    <ProCard.Content>
+                      <Text>Esta tarjeta no tiene efecto hover ni glow.</Text>
+                    </ProCard.Content>
+                  </ProCard>
+
+                  {/* Ejemplo 2: Hover clásico */}
+                  <ProCard animateEntrance disableShadowHover={true}>
+                    <ProCard.Title>Con hover clásico</ProCard.Title>
+                    <ProCard.Content>
+                      <Text>Esta tarjeta tiene sombra al hacer hover.</Text>
+                    </ProCard.Content>
+                  </ProCard>
+
+                  {/* Ejemplo 3: Glow elegante */}
+                  <ProCard animateEntrance>
+                    <ProCard.Title>Glow elegante</ProCard.Title>
+                    <ProCard.Content>
+                      <Text>Esta tarjeta muestra un efecto glow animado al hacer hover.</Text>
+                    </ProCard.Content>
+                  </ProCard>
+                </motion.div>
+                <motion.div
+                  className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                  variants={gridContainerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <div>
                     <Text variant="heading" size="xl" className="mb-4">ProCard Básico</Text>
                     <ProCard animateEntrance>
                       <Text>Contenido básico</Text>
@@ -178,7 +208,7 @@ export default function ShowroomCardProPage() { // Renombrado para evitar confli
                       </ProCard.Header>
                       <ProCard.Media><div className="h-32 bg-slate-200 dark:bg-slate-700 rounded flex items-center justify-center"><ImageIcon/></div></ProCard.Media>
                       <ProCard.Content><Text>Contenido principal.</Text></ProCard.Content>
-                      <ProCard.Actions><Button size="sm">Acción</Button></ProCard.Actions>
+                      <ProCard.Actions><CustomButton variant="solid" size="sm">Acción</CustomButton></ProCard.Actions>
                       <ProCard.Footer><Text size="xs">Pie de tarjeta.</Text></ProCard.Footer>
                     </ProCard>
                   </div>
@@ -239,7 +269,7 @@ export default function ShowroomCardProPage() { // Renombrado para evitar confli
                         <ProCard.Media><div className="h-40 bg-blue-100 dark:bg-blue-900 rounded flex items-center justify-center"><Package/></div></ProCard.Media>
                         <ProCard.Header><ProCard.Title>Tarjeta de Producto</ProCard.Title></ProCard.Header>
                         <ProCard.Content><Text>Descripción del producto...</Text></ProCard.Content>
-                        <ProCard.Actions><Button>Comprar</Button></ProCard.Actions>
+                        <ProCard.Actions><CustomButton variant="solid">Comprar</CustomButton></ProCard.Actions>
                     </ProCard>
                      <ProCard animateEntrance variant="warning" border="left">
                         <ProCard.Header><ProCard.Title><AlertTriangle className="inline mr-2"/>Notificación</ProCard.Title></ProCard.Header>
