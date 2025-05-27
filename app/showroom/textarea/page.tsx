@@ -3,13 +3,7 @@
 import type React from "react";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea"; // Changed from Input
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { ProCard } from '@/components/ui/pro-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Text } from "@/components/ui/text";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
@@ -73,14 +67,14 @@ export default function ShowroomTextarea() {
         </TabsList>
 
         <TabsContent value="variants">
-          <Card>
-            <CardHeader>
-              <CardTitle>Textarea Variants</CardTitle>
-              <CardDescription>
+          <ProCard>
+            <ProCard.Header>
+              <ProCard.Title>Textarea Variants</ProCard.Title>
+              <Text variant="description">
                 Different visual styles for the Textarea component
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              </Text>
+            </ProCard.Header>
+            <ProCard.Content className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {variants.map((variant) => (
                 <div key={variant} className="space-y-2">
                   <Text variant="label" className="capitalize">
@@ -94,19 +88,19 @@ export default function ShowroomTextarea() {
                   />
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </ProCard.Content>
+          </ProCard>
         </TabsContent>
 
         <TabsContent value="sizes">
-          <Card>
-            <CardHeader>
-              <CardTitle>Textarea Sizes</CardTitle>
-              <CardDescription>
+          <ProCard>
+            <ProCard.Header>
+              <ProCard.Title>Textarea Sizes</ProCard.Title>
+              <Text variant="description">
                 Different size options for the Textarea component
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-6">
+              </Text>
+            </ProCard.Header>
+            <ProCard.Content className="grid gap-6">
               {sizes.map((size) => (
                 <div key={size} className="space-y-2">
                   <Text variant="label" className="capitalize">
@@ -120,19 +114,19 @@ export default function ShowroomTextarea() {
                   />
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </ProCard.Content>
+          </ProCard>
         </TabsContent>
 
         <TabsContent value="states">
-          <Card>
-            <CardHeader>
-              <CardTitle>Textarea States</CardTitle>
-              <CardDescription>
+          <ProCard>
+            <ProCard.Header>
+              <ProCard.Title>Textarea States</ProCard.Title>
+              <Text variant="description">
                 Different states of the Textarea component
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              </Text>
+            </ProCard.Header>
+            <ProCard.Content className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Text variant="label">Default</Text>
                 <Textarea
@@ -193,19 +187,19 @@ export default function ShowroomTextarea() {
                   isEditing
                 />
               </div>
-            </CardContent>
-          </Card>
+            </ProCard.Content>
+          </ProCard>
         </TabsContent>
 
         <TabsContent value="examples">
-          <Card>
-            <CardHeader>
-              <CardTitle>Textarea Examples</CardTitle>
-              <CardDescription>
+          <ProCard>
+            <ProCard.Header>
+              <ProCard.Title>Textarea Examples</ProCard.Title>
+              <Text variant="description">
                 Common use cases for the Textarea component
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              </Text>
+            </ProCard.Header>
+            <ProCard.Content className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Text variant="label">With Character Count</Text>
                 <Textarea
@@ -253,8 +247,8 @@ export default function ShowroomTextarea() {
                   }
                 />
               </div>
-            </CardContent>
-          </Card>
+            </ProCard.Content>
+          </ProCard>
         </TabsContent>
       </Tabs>
     </div>

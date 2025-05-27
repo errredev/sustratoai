@@ -1,7 +1,7 @@
 "use client"
 import { Home, Settings, User, Bell, AlertTriangle, CheckCircle, XCircle, FileText, Search, Menu } from "lucide-react"
 import { Icon, createIcon } from "./icon"
-import { Card, CardContent, CardHeader, CardTitle } from "./card"
+import { ProCard } from './pro-card'
 
 // Crear iconos preconfigurados para uso común
 const HomeIcon = createIcon(Home)
@@ -18,11 +18,11 @@ const MenuIcon = createIcon(Menu)
 export function IconShowcase() {
   return (
     <div className="space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Tamaños de iconos</CardTitle>
-        </CardHeader>
-        <CardContent className="flex items-end gap-4">
+      <ProCard>
+        <ProCard.Header>
+          <ProCard.Title>Tamaños de iconos</ProCard.Title>
+        </ProCard.Header>
+        <ProCard.Content className="flex items-end gap-4">
           <div className="flex flex-col items-center">
             <Icon icon={Home} size="xs" />
             <span className="text-xs mt-1">xs</span>
@@ -47,14 +47,14 @@ export function IconShowcase() {
             <Icon icon={Home} size="2xl" />
             <span className="text-xs mt-1">2xl</span>
           </div>
-        </CardContent>
-      </Card>
+        </ProCard.Content>
+      </ProCard>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Colores de iconos</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <ProCard>
+        <ProCard.Header>
+          <ProCard.Title>Colores de iconos</ProCard.Title>
+        </ProCard.Header>
+        <ProCard.Content className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="flex flex-col items-center">
             <Icon icon={Bell} color="primary" size="lg" />
             <span className="text-xs mt-1">primary</span>
@@ -87,14 +87,14 @@ export function IconShowcase() {
             <Icon icon={Bell} color="neutral" size="lg" />
             <span className="text-xs mt-1">neutral</span>
           </div>
-        </CardContent>
-      </Card>
+        </ProCard.Content>
+      </ProCard>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Iconos preconfigurados</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <ProCard>
+        <ProCard.Header>
+          <ProCard.Title>Iconos preconfigurados</ProCard.Title>
+        </ProCard.Header>
+        <ProCard.Content className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="flex flex-col items-center">
             <HomeIcon size="lg" />
             <span className="text-xs mt-1">HomeIcon</span>
@@ -135,8 +135,8 @@ export function IconShowcase() {
             <BellIcon size="lg" color="accent" />
             <span className="text-xs mt-1">BellIcon</span>
           </div>
-        </CardContent>
-      </Card>
+        </ProCard.Content>
+      </ProCard>
     </div>
   )
 }

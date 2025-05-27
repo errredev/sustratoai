@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CustomSlider } from "@/components/ui/custom-slider";
 import { CustomButton } from "@/components/ui/custom-button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProCard } from '@/components/ui/pro-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "@/app/theme-provider";
 
@@ -41,11 +41,11 @@ export default function SliderShowroom() {
 				</TabsList>
 
 				<TabsContent value="basic">
-					<Card>
-						<CardHeader>
-							<CardTitle>Slider Básico</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-8">
+					<ProCard>
+						<ProCard.Header>
+							<ProCard.Title>Slider Básico</ProCard.Title>
+						</ProCard.Header>
+						<ProCard.Content className="space-y-8">
 							<div>
 								<h3 className="text-lg font-medium mb-4">Slider Simple</h3>
 								<CustomSlider
@@ -86,16 +86,16 @@ export default function SliderShowroom() {
 								</h3>
 								<CustomSlider defaultValue={[50]} max={100} step={1} disabled />
 							</div>
-						</CardContent>
-					</Card>
+						</ProCard.Content>
+					</ProCard>
 				</TabsContent>
 
 				<TabsContent value="variants">
-					<Card>
-						<CardHeader>
-							<CardTitle>Variantes de Slider</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-8">
+					<ProCard>
+						<ProCard.Header>
+							<ProCard.Title>Variantes de Slider</ProCard.Title>
+						</ProCard.Header>
+						<ProCard.Content className="space-y-8">
 							<div>
 								<h3 className="text-lg font-medium mb-4">
 									Solid (Predeterminado)
@@ -117,16 +117,16 @@ export default function SliderShowroom() {
 								<h3 className="text-lg font-medium mb-4">Con Gradiente</h3>
 								<CustomSlider defaultValue={[50]} max={100} gradient />
 							</div>
-						</CardContent>
-					</Card>
+						</ProCard.Content>
+					</ProCard>
 				</TabsContent>
 
 				<TabsContent value="colors">
-					<Card>
-						<CardHeader>
-							<CardTitle>Colores de Slider</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-8">
+					<ProCard>
+						<ProCard.Header>
+							<ProCard.Title>Colores de Slider</ProCard.Title>
+						</ProCard.Header>
+						<ProCard.Content className="space-y-8">
 							<div>
 								<h3 className="text-lg font-medium mb-4">
 									Primary (Predeterminado)
@@ -168,16 +168,16 @@ export default function SliderShowroom() {
 								<h3 className="text-lg font-medium mb-4">Default</h3>
 								<CustomSlider defaultValue={[50]} max={100} color="default" />
 							</div>
-						</CardContent>
-					</Card>
+						</ProCard.Content>
+					</ProCard>
 				</TabsContent>
 
 				<TabsContent value="sizes">
-					<Card>
-						<CardHeader>
-							<CardTitle>Tamaños de Slider</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-8">
+					<ProCard>
+						<ProCard.Header>
+							<ProCard.Title>Tamaños de Slider</ProCard.Title>
+						</ProCard.Header>
+						<ProCard.Content className="space-y-8">
 							<div>
 								<h3 className="text-lg font-medium mb-4">XS</h3>
 								<CustomSlider defaultValue={[50]} max={100} size="xs" />
@@ -204,16 +204,16 @@ export default function SliderShowroom() {
 								<h3 className="text-lg font-medium mb-4">XL</h3>
 								<CustomSlider defaultValue={[50]} max={100} size="xl" />
 							</div>
-						</CardContent>
-					</Card>
+						</ProCard.Content>
+					</ProCard>
 				</TabsContent>
 
 				<TabsContent value="features">
-					<Card>
-						<CardHeader>
-							<CardTitle>Características Adicionales</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-8">
+					<ProCard>
+						<ProCard.Header>
+							<ProCard.Title>Características Adicionales</ProCard.Title>
+						</ProCard.Header>
+						<ProCard.Content className="space-y-8">
 							<div>
 								<h3 className="text-lg font-medium mb-4">Mostrar Valor</h3>
 								<CustomSlider defaultValue={[50]} max={100} showValue />
@@ -270,8 +270,8 @@ export default function SliderShowroom() {
 									/>
 								</div>
 							</div>
-						</CardContent>
-					</Card>
+						</ProCard.Content>
+					</ProCard>
 				</TabsContent>
 			</Tabs>
 		</div>

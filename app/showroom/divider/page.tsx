@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ProCard } from '@/components/ui/pro-card'
 import { Divider } from "@/components/ui/divider"
 import { colorTokens } from "@/lib/theme/color-tokens"
 import { useTheme } from "next-themes"
@@ -88,11 +88,11 @@ export default function ShowroomDivider() {
           </TabsList>
 
           <TabsContent value="variants" className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Variantes de Divider</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-8">
+            <ProCard>
+              <ProCard.Header>
+                <ProCard.Title>Variantes de Divider</ProCard.Title>
+              </ProCard.Header>
+              <ProCard.Content className="space-y-8">
                 <div className="space-y-6">
                   <Text variant="subtitle" className="font-semibold">
                     Gradient (default)
@@ -133,11 +133,11 @@ export default function ShowroomDivider() {
           </TabsContent>
 
           <TabsContent value="sizes" className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Tamaños disponibles</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-8">
+            <ProCard>
+              <ProCard.Header>
+                <ProCard.Title>Tamaños disponibles</ProCard.Title>
+              </ProCard.Header>
+              <ProCard.Content className="space-y-8">
                 <div className="space-y-6">
                   <Text variant="subtitle" className="font-semibold">
                     Extra Small (xs)
@@ -202,11 +202,11 @@ export default function ShowroomDivider() {
           </TabsContent>
 
           <TabsContent value="examples" className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Ejemplos de uso</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-12">
+            <ProCard>
+              <ProCard.Header>
+                <ProCard.Title>Ejemplos de uso</ProCard.Title>
+              </ProCard.Header>
+              <ProCard.Content className="space-y-12">
                 <div className="space-y-6">
                   <Text variant="subtitle" className="font-semibold">
                     Separador de secciones
@@ -280,11 +280,11 @@ export default function ShowroomDivider() {
           </TabsContent>
 
           <TabsContent value="api" className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>API del componente Divider</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
+            <ProCard>
+              <ProCard.Header>
+                <ProCard.Title>API del componente Divider</ProCard.Title>
+              </ProCard.Header>
+              <ProCard.Content className="space-y-6">
                 <div>
                   <Text variant="subtitle" className="font-semibold mb-2">
                     Props
