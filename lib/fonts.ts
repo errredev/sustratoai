@@ -29,6 +29,9 @@ const interFont = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
+  preload: true,
+  fallback: ["system-ui", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+  adjustFontFallback: true,
 });
 
 const openSansFont = Open_Sans({
@@ -53,6 +56,9 @@ const jetbrainsMonoFont = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains-mono",
   display: "swap",
+  preload: true,
+  fallback: ["Consolas", "Monaco", "Courier New", "monospace"],
+  adjustFontFallback: true,
 });
 
 const ubuntuFont = Ubuntu({
@@ -69,6 +75,9 @@ const spaceGroteskFont = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-space-grotesk",
   display: "swap",
+  preload: true,
+  fallback: ["system-ui", "Arial", "sans-serif"],
+  adjustFontFallback: true,
 });
 
 const workSansFont = Work_Sans({
@@ -83,6 +92,9 @@ const marheyFont = Marhey({
   weight: ["400", "500", "600", "700"],
   variable: "--font-marhey",
   display: "swap",
+  preload: true,
+  fallback: ["cursive", "Arial", "sans-serif"],
+  adjustFontFallback: true,
 });
 
 // Crear el objeto fonts usando las constantes
