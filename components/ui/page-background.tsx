@@ -12,12 +12,13 @@ import {
 interface PageBackgroundProps {
   children: React.ReactNode;
   variant?: PageBackgroundVariant;
-  // className ya no se usa aquí, se pasa a PageWrapper y este lo usa
+  className?: string;
 }
 
 export function PageBackground({
   children,
   variant = "minimal",
+  className = "",
 }: PageBackgroundProps) {
   const { appColorTokens, mode } = useTheme();
   const [backgroundStyle, setBackgroundStyle] = useState<React.CSSProperties>({});
@@ -36,7 +37,7 @@ export function PageBackground({
       <div
         className={`fixed inset-0 -z-10 w-full h-full ${
           mode === "dark" ? "dark" : ""
-        }`}
+        } ${className}`}
         style={backgroundStyle}
         aria-hidden="true"
       />

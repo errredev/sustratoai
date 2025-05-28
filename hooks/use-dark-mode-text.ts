@@ -19,6 +19,7 @@ interface DarkModeTextOptions {
   colorVariant?: TextColorVariant
   gradient?: boolean | TextColorType
   forceLightVariant?: boolean
+  adaptToDarkMode?: boolean
 }
 
 /**

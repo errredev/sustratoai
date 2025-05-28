@@ -291,7 +291,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
               "border-green-500 ring-green-500/20": variant === "success",
               "bg-accent/5": variant === "editing",
               "border-primary ring-4 ring-primary/20": isFocused,
-              "hover:border-input/80": !isFocused && !variant === "editing" && !variant === "error",
+              "hover:border-input/80": !isFocused && variant !== "editing" && variant !== "error",
             },
           )}
           tabIndex={disabled || variant === "readonly" ? -1 : 0}

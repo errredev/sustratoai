@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Importar dinámicamente la biblioteca
-    const { GoogleGenerativeAI } = await import("@google/genai");
+    const { GoogleGenerativeAI } = await import("@google/generative-ai");
     console.log("📝 Biblioteca importada correctamente");
 
     // Inicializar el cliente de Gemini
@@ -147,10 +147,15 @@ Ensure the output is a valid JSON array. Example for one article:
 
       // Try non-streaming approach first (more reliable)
       console.log("📝 Realizando petición no-streaming a Gemini");
-      const response = await model.generateContent([
-        { text: systemInstructionText, role: "system" },
-        { text: userPrompt, role: "user" },
-      ]);
+      const chat = model.startChat({
+        history: [
+          {
+            role: "user",
+            parts: [{ text: systemInstructionText }]
+          },
+        ],
+      });
+      const response = await chat.sendMessage(userPrompt);
 
       const responseText = response.response.text();
       console.log(

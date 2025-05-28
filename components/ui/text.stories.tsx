@@ -1,6 +1,7 @@
+import type { Meta, StoryObj } from "@storybook/react";
 import { Text, type TextProps } from "./text"
 
-export default {
+const meta = {
   title: "UI/Text",
   component: Text,
   parameters: {
@@ -34,134 +35,194 @@ export default {
       control: "boolean",
     },
   },
+  args: {
+    children: "Este es un texto de ejemplo",
+    variant: "default",
+  },
+} satisfies Meta<typeof Text>
+
+export default meta;
+type Story = StoryObj<typeof Text>;
+
+export const Default: Story = {
+  args: {
+    children: "Este es un texto de ejemplo",
+    variant: "default",
+  },
+};
+
+export const Heading: Story = {
+  args: {
+    children: "Este es un encabezado",
+    variant: "heading",
+    as: "h1",
+  },
+};
+
+export const Subheading: Story = {
+  args: {
+    children: "Este es un subencabezado",
+    variant: "subheading",
+    as: "h2",
+  },
+};
+
+export const Title: Story = {
+  args: {
+    children: "Este es un título",
+    variant: "title",
+    as: "h2",
+  },
+};
+
+export const Subtitle: Story = {
+  args: {
+    children: "Este es un subtítulo",
+    variant: "subtitle",
+  },
+};
+
+export const Label: Story = {
+  args: {
+    children: "Esta es una etiqueta",
+    variant: "label",
+  },
+};
+
+export const Caption: Story = {
+  args: {
+    children: "Este es un texto de ayuda",
+    variant: "caption",
+  },
+};
+
+export const Muted: Story = {
+  args: {
+    children: "Este es un texto secundario",
+    variant: "muted",
+  },
+};
+
+export const Gradient: Story = {
+  args: {
+    children: "Este es un texto con gradiente",
+    variant: "heading",
+    gradient: true,
+    size: "4xl",
+  },
 }
 
-const Template = (args: TextProps) => <Text {...args} />
+export const Truncated: Story = {
+  args: {
+    children: "Este es un texto muy largo que se truncará con puntos suspensivos al final si es necesario.",
+    variant: "default",
+    truncate: true,
+    className: "w-64",
+  },
+};
 
-export const Default = Template.bind({})
-Default.args = {
-  children: "Este es un texto de ejemplo",
-  variant: "default",
-}
+export const AllVariants: Story = {
+  render: () => (
+    <div className="space-y-4">
+      <Text variant="heading" as="h1">
+        Heading (h1)
+      </Text>
+      <Text variant="subheading" as="h2">
+        Subheading (h2)
+      </Text>
+      <Text variant="title" as="h3">
+        Title (h3)
+      </Text>
+      <Text variant="subtitle">Subtitle</Text>
+      <Text variant="default">Default text</Text>
+      <Text variant="label">Label</Text>
+      <Text variant="caption">Caption</Text>
+      <Text variant="muted">Muted text</Text>
+    </div>
+  ),
+};
 
-export const Heading = Template.bind({})
-Heading.args = {
-  children: "Este es un encabezado",
-  variant: "heading",
-  as: "h1",
-}
+export const AllSizes: Story = {
+  render: () => (
+    <div className="space-y-4">
+      <div>
+        <Text size="xs">Extra Small (xs)</Text>
+      </div>
+      <div>
+        <Text size="sm">Small (sm)</Text>
+      </div>
+      <div>
+        <Text size="base">Base (base)</Text>
+      </div>
+      <div>
+        <Text size="lg">Large (lg)</Text>
+      </div>
+      <div>
+        <Text size="xl">Extra Large (xl)</Text>
+      </div>
+    </div>
+  ),
+};
 
-export const Subheading = Template.bind({})
-Subheading.args = {
-  children: "Este es un subencabezado",
-  variant: "subheading",
-  as: "h2",
-}
+export const AllWeights: Story = {
+  render: () => (
+    <div className="space-y-2">
+      <div>
+        <Text weight="normal">Normal weight</Text>
+      </div>
+      <div>
+        <Text weight="medium">Medium weight</Text>
+      </div>
+      <div>
+        <Text weight="semibold">Semibold weight</Text>
+      </div>
+      <div>
+        <Text weight="bold">Bold weight</Text>
+      </div>
+    </div>
+  ),
+};
 
-export const Title = Template.bind({})
-Title.args = {
-  children: "Este es un título",
-  variant: "title",
-  as: "h3",
-}
+export const AllAlignments: Story = {
+  render: () => (
+    <div className="space-y-8">
+      <div>
+        <Text as="div" className="mb-2 text-sm text-muted-foreground">
+          Align Left (default)
+        </Text>
+        <Text align="left" className="border p-4">
+          Este texto está alineado a la izquierda. Es la alineación predeterminada para la mayoría de los textos en
+          español.
+        </Text>
+      </div>
 
-export const Subtitle = Template.bind({})
-Subtitle.args = {
-  children: "Este es un subtítulo",
-  variant: "subtitle",
-}
+      <div>
+        <Text as="div" className="mb-2 text-sm text-muted-foreground">
+          Align Center
+        </Text>
+        <Text align="center" className="border p-4">
+          Este texto está centrado. Útil para títulos y encabezados que necesitan destacar en la página.
+        </Text>
+      </div>
 
-export const Label = Template.bind({})
-Label.args = {
-  children: "Esta es una etiqueta",
-  variant: "label",
-}
+      <div>
+        <Text as="div" className="mb-2 text-sm text-muted-foreground">
+          Align Right
+        </Text>
+        <Text align="right" className="border p-4">
+          Este texto está alineado a la derecha. A menudo se usa para fechas, precios o información secundaria.
+        </Text>
+      </div>
 
-export const Caption = Template.bind({})
-Caption.args = {
-  children: "Este es un texto de pie de foto",
-  variant: "caption",
-}
-
-export const Muted = Template.bind({})
-Muted.args = {
-  children: "Este es un texto atenuado",
-  variant: "muted",
-}
-
-export const Gradient = Template.bind({})
-Gradient.args = {
-  children: "Este es un texto con gradiente",
-  variant: "heading",
-  gradient: true,
-  size: "4xl",
-}
-
-export const Truncated = Template.bind({})
-Truncated.args = {
-  children:
-    "Este es un texto muy largo que será truncado cuando alcance el final del contenedor y se mostrará con puntos suspensivos",
-  truncate: true,
-  className: "max-w-xs",
-}
-
-export const AllVariants = () => (
-  <div className="space-y-4">
-    <Text variant="heading" as="h1">
-      Heading (h1)
-    </Text>
-    <Text variant="subheading" as="h2">
-      Subheading (h2)
-    </Text>
-    <Text variant="title" as="h3">
-      Title (h3)
-    </Text>
-    <Text variant="subtitle">Subtitle</Text>
-    <Text variant="default">Default text</Text>
-    <Text variant="label">Label</Text>
-    <Text variant="caption">Caption</Text>
-    <Text variant="muted">Muted text</Text>
-  </div>
-)
-
-export const AllSizes = () => (
-  <div className="space-y-2">
-    <Text size="xs">Tamaño xs</Text>
-    <Text size="sm">Tamaño sm</Text>
-    <Text size="base">Tamaño base</Text>
-    <Text size="lg">Tamaño lg</Text>
-    <Text size="xl">Tamaño xl</Text>
-    <Text size="2xl">Tamaño 2xl</Text>
-    <Text size="3xl">Tamaño 3xl</Text>
-    <Text size="4xl">Tamaño 4xl</Text>
-    <Text size="5xl">Tamaño 5xl</Text>
-  </div>
-)
-
-export const AllWeights = () => (
-  <div className="space-y-2">
-    <Text weight="normal">Peso normal</Text>
-    <Text weight="medium">Peso medium</Text>
-    <Text weight="semibold">Peso semibold</Text>
-    <Text weight="bold">Peso bold</Text>
-  </div>
-)
-
-export const AllAlignments = () => (
-  <div className="space-y-4">
-    <Text align="left" className="border p-2">
-      Alineado a la izquierda
-    </Text>
-    <Text align="center" className="border p-2">
-      Alineado al centro
-    </Text>
-    <Text align="right" className="border p-2">
-      Alineado a la derecha
-    </Text>
-    <Text align="justify" className="border p-2">
-      Texto justificado. Este es un párrafo más largo para demostrar cómo funciona la justificación. El texto se
-      distribuye uniformemente entre los márgenes izquierdo y derecho, creando un borde limpio en ambos lados. Esto es
-      común en periódicos, revistas y libros.
-    </Text>
-  </div>
-)
+      <div>
+        <Text as="div" className="mb-2 text-sm text-muted-foreground">
+          Justify
+        </Text>
+        <Text align="justify" className="border p-4">
+          Este texto está justificado, lo que significa que se alinea tanto al margen izquierdo como al derecho.
+          Crea un bloque de texto uniforme y ordenado, ideal para párrafos largos en documentos formales o artículos.
+        </Text>
+      </div>
+    </div>
+  ),
+};

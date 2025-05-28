@@ -179,7 +179,6 @@ export default function ShowroomSelect() {
                   placeholder="Selecciona un país"
                   leadingIcon={Globe}
                   success
-                  successMessage="País seleccionado correctamente"
                 />
               </div>
 
@@ -265,12 +264,18 @@ export default function ShowroomSelect() {
 
               {/* Con etiqueta y pista */}
               <div className="space-y-2">
+                <div className="space-y-1">
+                  <Text variant="subtitle" color="neutral">
+                    Rol de usuario
+                  </Text>
+                  <Text variant="caption" color="neutral" className="text-neutral-500">
+                    El rol determina los permisos del usuario
+                  </Text>
+                </div>
                 <SelectCustom
                   options={userOptions}
                   placeholder="Selecciona un rol"
                   leadingIcon={User}
-                  label="Rol de usuario"
-                  hint="El rol determina los permisos del usuario"
                 />
               </div>
             </TabsContent>

@@ -28,7 +28,7 @@ export default function ProCardShowroomPage() {
     <div className="p-4 md:p-8 space-y-8 bg-neutral-bg min-h-screen text-neutral-text">
       <Text
         variant="heading"
-        size="h1"
+        size="4xl"
         as="h1"
         className="text-center mb-12 text-primary-text"
       >
@@ -42,7 +42,7 @@ export default function ProCardShowroomPage() {
         >
           <Text
             variant="heading"
-            size="h2"
+            size="2xl"
             as="h2"
             className="capitalize text-accent-text"
           >

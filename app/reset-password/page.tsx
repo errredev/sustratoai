@@ -80,8 +80,7 @@ export default function ResetPasswordPage() {
             <Text
               variant="default"
               color="neutral"
-              colorVariant="muted"
-              className="text-center"
+              className="text-center text-muted-foreground"
             >
               {!sent
                 ? "Ingresa tu correo electrónico y te enviaremos instrucciones para restablecer tu contraseña"

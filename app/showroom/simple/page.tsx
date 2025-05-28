@@ -1,10 +1,10 @@
-// Componente de Prueba Simple (ej. TestToastButton.tsx)
 "use client";
+
 import React from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button"; // Un botón simple de shadcn
+import { Button } from "@/components/ui/button";
 
-export function TestToastButton() {
+export default function Page() {
   const { toast } = useToast();
 
   const handleClick = () => {
@@ -23,9 +23,4 @@ export function TestToastButton() {
       <Button onClick={handleClick}>Mostrar Toast de Prueba</Button>
     </div>
   );
-}
-
-// Exporta el componente como exportación por defecto
-export default function Page() {
-  return <TestToastButton />;
 }

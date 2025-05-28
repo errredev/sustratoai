@@ -26,7 +26,7 @@ export function ThemeSelector() {
         >
           <Palette
             className={cn("h-[18px] w-[18px]", {
-              "text-blue-600": colorScheme === "default",
+              "text-blue-600": colorScheme === "blue",
               "text-green-600": colorScheme === "green",
               "text-orange-500": colorScheme === "orange",
             })}
@@ -38,14 +38,14 @@ export function ThemeSelector() {
           <CustomButton
             variant="ghost"
             className="flex items-center justify-between px-2 py-1.5 w-full"
-            onClick={() => setColorScheme("default")}
+            onClick={() => setColorScheme("blue")}
             onMouseDown={(e) => ripple(e.nativeEvent, RIPPLE_COLOR, RIPPLE_SCALE)}
           >
             <div className="flex items-center gap-2">
               <div className="h-4 w-4 rounded-full bg-blue-600" />
               <span>Azul</span>
             </div>
-            {colorScheme === "default" && <Check className="h-4 w-4" />}
+            {colorScheme === "blue" && <Check className="h-4 w-4" />}
           </CustomButton>
           <CustomButton
             variant="ghost"

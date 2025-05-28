@@ -24,6 +24,8 @@ import {
 
 
 import { coerce } from "zod";
+import { createAppColorTokens } from "./ColorToken";
+import type { AppColorTokens } from "./ColorToken";
 
 // Tipos base para los tokens de color
 export type ColorToken = string;
@@ -381,7 +383,8 @@ function generateComponentTokens(
   colorScheme: ColorScheme,
   mode: Mode,
   semanticTokens: SemanticTokens,
-  modeTokens: ModeTokens
+  modeTokens: ModeTokens,
+  appColorTokens: AppColorTokens
 ): ComponentTokens {
   const isDark = mode === "dark";
   const themeColors = colors.themes[colorScheme];
@@ -407,7 +410,8 @@ function generateComponentTokens(
     minimal: { background: "", backgroundImage: "" },
   } as ComponentTokens["pageBackground"];
 
-  const navbarTokens = generateNavbarTokens(colorScheme, mode);
+  // Generate navbar tokens using appColorTokens
+  const navbarTokens = generateNavbarTokens(appColorTokens, mode);
 
   // Corregir la llamada a generateInputTokens para que use solo 2 argumentos
   
@@ -438,11 +442,14 @@ export function createColorTokens(
 ): ColorTokens {
   const modeTokens = generateModeTokens(colorScheme, mode);
   const semanticTokens = generateSemanticTokens(colorScheme, mode);
+  const appColorTokens = createAppColorTokens(colorScheme, mode);
+  
   const componentTokens = generateComponentTokens(
     colorScheme,
     mode,
     semanticTokens,
-    modeTokens
+    modeTokens,
+    appColorTokens
   );
 
   return {

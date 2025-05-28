@@ -60,6 +60,9 @@ const ubuntuFont = Ubuntu({
   weight: ["300", "400", "500", "700"],
   variable: "--font-ubuntu",
   display: "swap",
+  fallback: ["system-ui", "sans-serif"],
+  preload: true,
+  adjustFontFallback: true,
 });
 
 const spaceGroteskFont = Space_Grotesk({

@@ -1,6 +1,8 @@
-import colors from "../colors"
-import type { ColorScheme, Mode } from "../color-tokens"
-import tinycolor from "tinycolor2"
+import type { Mode, ColorScheme } from "../color-tokens";
+import type { AppColorTokens } from "../ColorToken";
+import { createAppColorTokens } from "../ColorToken";
+import tinycolor from "tinycolor2";
+import { colors } from "../colors";
 
 export interface NavbarTokens {
   logo: {
@@ -64,30 +66,31 @@ function createThemedDarkBackground(baseColor: string): string {
   return color.setAlpha(0.15).darken(75).toRgbString()
 }
 
-export const generateNavbarTokens = (colorScheme: ColorScheme, mode: Mode): NavbarTokens => {
-  const isDark = mode === "dark"
-  const theme = colors.themes[colorScheme] || colors.themes["blue"]
-  const semantic = colors.semantic
-  const neutral = colors.neutral
+const generateNavbarTokens = (appColorTokens: AppColorTokens, mode: Mode): NavbarTokens => {
+  const isDark = mode === "dark";
+  
+  // Get colors from appColorTokens
+  const { primary, secondary, tertiary, accent, neutral, white } = appColorTokens;
 
   // Colores básicos
-  const whiteColor = neutral.white
-  const grayColor = isDark ? neutral.gray[800] : neutral.gray[100]
-  const borderColor = isDark ? neutral.gray[700] : neutral.gray[200]
+  const whiteColor = white.pure;
+  // Use the appropriate neutral colors from ColorShade
+  const grayColor = isDark ? neutral.bgShade : neutral.bg;
+  const borderColor = isDark ? neutral.textShade : neutral.text;
 
   // Colores primarios con ajuste de contraste para modo oscuro
-  const primaryColor = isDark ? adjustColorForContrast(theme.primary.pureDark, isDark) : theme.primary.pure
-
-  const accentColor = isDark ? adjustColorForContrast(semantic.accent.pureDark, isDark) : semantic.accent.pure
-  const secondaryColor = isDark ? adjustColorForContrast(theme.secondary.pureDark, isDark) : theme.secondary.pure
-
-  const tertiaryColor = isDark ? adjustColorForContrast(theme.tertiary.pureDark, isDark) : theme.tertiary.pure
+  const primaryColor = primary.pure;
+  const accentColor = accent.pure;
+  const secondaryColor = secondary.pure;
+  const tertiaryColor = tertiary.pure;
 
   // Crear el degradado específico para el título del logo
   const titleGradient = `linear-gradient(to right, ${primaryColor}, ${accentColor})`
 
   // Crear un fondo oscuro con un sutil tinte del color primario del tema
-  const themedDarkBackground = createThemedDarkBackground(theme.primary.pure)
+  const themedDarkBackground = isDark 
+      ? tinycolor(primary.pure).lighten(5).toString()
+      : tinycolor(primary.pure).darken(5).toString()
 
   return {
     logo: {
@@ -100,7 +103,7 @@ export const generateNavbarTokens = (colorScheme: ColorScheme, mode: Mode): Navb
       start: primaryColor,
       middle: accentColor,
       // En modo oscuro, usamos un color más suave para el final del gradiente
-      end: isDark ? neutral.gray[700] : whiteColor,
+      end: isDark ? neutral.bgShade : whiteColor,
     },
     hover: {
       // Más visible en modo oscuro, usando color accent para el hover
@@ -108,7 +111,7 @@ export const generateNavbarTokens = (colorScheme: ColorScheme, mode: Mode): Navb
     },
     active: {
       // Más visible en modo oscuro
-      bg: isDark ? `${primaryColor}33` : `${theme.primary.pure}15`,
+      bg: isDark ? `${primaryColor}33` : `${primaryColor}15`,
     },
     background: {
       normal: "transparent",
@@ -116,7 +119,7 @@ export const generateNavbarTokens = (colorScheme: ColorScheme, mode: Mode): Navb
       scrolled: isDark ? themedDarkBackground : `${whiteColor}DD`,
     },
     submenu: {
-      background: isDark ? neutral.gray[800] : whiteColor,
+      background: isDark ? neutral.bgShade : neutral.bg,
       border: borderColor,
     },
     icon: {
@@ -129,3 +132,11 @@ export const generateNavbarTokens = (colorScheme: ColorScheme, mode: Mode): Navb
     shadow: isDark ? "0 4px 8px rgba(0, 0, 0, 0.3)" : "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
   }
 }
+
+// Default export for backward compatibility
+export const navTokens = generateNavbarTokens(
+  createAppColorTokens("blue", "light"), // Default color scheme
+  "light" // Default mode
+);
+
+export { generateNavbarTokens };

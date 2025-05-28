@@ -132,9 +132,13 @@ export function UserAvatar() {
   };
 
   // Manejar cambio de proyecto
-  const handleProjectChange = (projectId: string | string[]) => {
+  const handleProjectChange = (projectId: string | string[] | undefined) => {
     if (typeof projectId === "string" && projectId) {
       seleccionarProyecto(projectId);
+      toast.success("Proyecto cambiado exitosamente");
+    } else if (Array.isArray(projectId) && projectId.length > 0) {
+      // Handle array case if needed
+      seleccionarProyecto(projectId[0]);
       toast.success("Proyecto cambiado exitosamente");
     }
   };

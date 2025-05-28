@@ -310,7 +310,7 @@ export function SustratoLogoWithTextRotating({
   textClassName?: string;
   variant?: "horizontal" | "vertical";
 }) {
-  const { colorScheme, mode } = useTheme();
+  const { theme } = useTheme();
   const [textColors, setTextColors] = useState({
     primary: "#3D7DF6", // Blue theme primary default
     accent: "#8A4EF6", // Accent color (purple)
@@ -319,28 +319,28 @@ export function SustratoLogoWithTextRotating({
   // Definición de colores por tema
   const themeColors = {
     blue: {
-      primary: mode === "dark" ? "#2E5EB9" : "#3D7DF6",
-      secondary: mode === "dark" ? "#1EA4E9" : "#516e99",
+      primary: "#3D7DF6",
+      secondary: "#3B82F6",
     },
     green: {
-      primary: mode === "dark" ? "#1c8e63" : "#24BC81",
-      secondary: mode === "dark" ? "#2CA18F" : "#3AD7BF",
+      primary: "#10B981",
+      secondary: "#059669",
     },
     orange: {
-      primary: mode === "dark" ? "#B95413" : "#F77019",
-      secondary: mode === "dark" ? "#6D2F0B" : "#913E0F",
+      primary: "#F59E0B",
+      secondary: "#F59E0B",
     },
   };
 
   // Actualizar los colores cuando cambie el tema global
   useEffect(() => {
-    const currentTheme = (colorScheme as keyof typeof themeColors) || "blue";
+    const currentTheme = (theme as keyof typeof themeColors) || "blue";
 
     setTextColors({
       primary: themeColors[currentTheme].primary,
       accent: "#8A4EF6", // Mantener el acento púrpura
     });
-  }, [colorScheme, mode]);
+  }, [theme]);
 
   // Tamaño del texto según el tamaño del logo
   const getTextSize = () => {

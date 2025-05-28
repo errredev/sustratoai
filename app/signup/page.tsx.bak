@@ -104,8 +104,8 @@ export default function SignUpPage() {
                     <Text
                       variant="default"
                       color="neutral"
-                      
-                      className="mt-1 text-muted-foreground"
+                      colorVariant="muted"
+                      className="mt-1"
                     >
                       Estamos ofreciendo acceso limitado a nuestra plataforma en
                       esta etapa inicial para garantizar una experiencia óptima.
@@ -124,8 +124,8 @@ export default function SignUpPage() {
                     <Text
                       variant="default"
                       color="neutral"
-                      
-                      className="mt-1 text-muted-foreground"
+                      colorVariant="muted"
+                      className="mt-1"
                     >
                       Únete a nuestra comunidad de usuarios pioneros y ayúdanos
                       a moldear el futuro de la plataforma con tu valioso
@@ -175,7 +175,7 @@ export default function SignUpPage() {
                     <Text
                       variant="default"
                       color="neutral"
-                      
+                      colorVariant="muted"
                     >
                       Completa el formulario para solicitar acceso a la beta
                       privada.
@@ -240,7 +240,7 @@ export default function SignUpPage() {
               variant="default"
               size="sm"
               color="neutral"
-              
+              colorVariant="muted"
             >
               Al enviar este formulario, aceptas recibir comunicaciones
               relacionadas con Sustrato.ai.

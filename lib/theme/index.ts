@@ -1,13 +1,24 @@
-import { buttonTokens } from "./components/button-tokens";
-import { cardTokens } from "./components/card-tokens";
-import { checkTokens } from "./components/check-tokens";
-import { inputTokens } from "./components/input-tokens";
-import { selectTokens } from "./components/select-tokens";
-import { textareaTokens } from "./components/textarea-tokens";
-import { textTokens } from "./components/text-tokens";
+import { generateButtonTokens } from "./components/button-tokens";
+import { generateInputTokens } from "./components/input-tokens";
+import { generateTextTokens } from "./components/text-tokens";
 import { navTokens } from "./components/nav-tokens";
 import { colorTokens } from "./color-tokens";
 import { sizeTokens } from "./size-tokens";
+import { createAppColorTokens } from "./ColorToken";
+
+// Create default app color tokens
+const defaultAppColorTokens = createAppColorTokens("blue", "light");
+
+// Generate default tokens for each component
+const buttonTokens = generateButtonTokens(defaultAppColorTokens, "light");
+const inputTokens = generateInputTokens(defaultAppColorTokens, "light");
+const textTokens = generateTextTokens(defaultAppColorTokens, "light");
+
+// For now, we'll use empty objects for the missing token generators
+const cardTokens = {} as any;
+const checkTokens = {} as any;
+const selectTokens = {} as any;
+const textareaTokens = {} as any;
 
 export const theme = {
   components: {

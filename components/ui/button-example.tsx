@@ -9,17 +9,19 @@ import React from "react"
 import { cn } from "@/lib/utils"
 import { colors } from "@/lib/theme/colors"
 import { useTheme } from "@/app/theme-provider"
+import type { Mode } from "@/lib/theme/color-tokens"
 
 // Definimos los estilos base y variantes usando JS en lugar de CSS
-const getButtonStyles = (theme: string, isDark: boolean) => {
+const getButtonStyles = (theme: string, mode: Mode) => {
+  const isDark = mode === "dark";
   // Obtenemos los colores correctos basados en el tema actual
-  const themeKey = theme === "default" ? "blue" : theme
-  const themeColors = colors.themes[themeKey]
+  const themeKey = (theme === "default" ? "blue" : theme) as keyof typeof colors.themes
+  const themeVariant = colors.themes[themeKey]
 
   // Ajustamos los colores según el modo (claro/oscuro)
-  const primary = isDark ? themeColors[300] : themeColors[500]
-  const primaryHover = isDark ? themeColors[200] : themeColors[600]
-  const primaryActive = isDark ? themeColors[100] : themeColors[700]
+  const primary = isDark ? themeVariant.primary.pureShade : themeVariant.primary.pure
+  const primaryHover = isDark ? themeVariant.primary.bgShade : themeVariant.primary.pureShade
+  const primaryActive = isDark ? themeVariant.primary.bgDark : themeVariant.primary.pureDark
 
   // Definimos los estilos para cada variante
   return {
@@ -39,7 +41,7 @@ const getButtonStyles = (theme: string, isDark: boolean) => {
       variant: {
         default: {
           backgroundColor: primary,
-          color: isDark ? colors.neutral[900] : colors.neutral[50],
+          color: isDark ? colors.semantic.neutralDark.pure : colors.semantic.neutral.pure,
           "&:hover": {
             backgroundColor: primaryHover,
           },
@@ -94,16 +96,16 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "default", size = "default", ...props }, ref) => {
     // Usamos el hook de tema para obtener el tema actual
-    const { theme, isDark } = useTheme()
+    const { theme, mode } = useTheme()
 
     // Obtenemos los estilos basados en el tema actual
-    const buttonStyles = getButtonStyles(theme, isDark)
+    const buttonStyles = getButtonStyles(theme, mode)
 
     // Combinamos los estilos base con las variantes seleccionadas
     const styles = {
       ...buttonStyles.base,
-      ...buttonStyles.variants.variant[variant],
-      ...buttonStyles.variants.size[size],
+      ...(buttonStyles.variants?.variant?.[variant] || {}),
+      ...(buttonStyles.variants?.size?.[size] || {}),
     }
 
     return <button className={cn(className)} ref={ref} style={styles} {...props} />

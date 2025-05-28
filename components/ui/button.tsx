@@ -59,17 +59,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     // Añadir el hook useRipple
     const ripple = useRipple()
 
-    // Combinar refs
-    const combinedRef = React.useMemo(() => {
-      return (node: HTMLButtonElement) => {
-        buttonRef.current = node
-        if (typeof ref === "function") {
-          ref(node)
-        } else if (ref) {
-          ref.current = node
-        }
-      }
-    }, [ref])
+    // Use useImperativeHandle to expose the button ref
+    React.useImperativeHandle(ref, () => buttonRef.current as HTMLButtonElement, [])
 
     // Manejar el efecto ripple
     const handlePress = React.useCallback(
@@ -104,7 +95,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {/* Botón principal */}
         <Comp
           className={cn(buttonVariants({ variant, size, className }))}
-          ref={combinedRef}
+          ref={buttonRef}
           onMouseDown={handlePress}
           onMouseUp={() => setIsPressed(false)}
           onMouseLeave={() => setIsPressed(false)}

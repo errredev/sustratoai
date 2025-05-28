@@ -34,7 +34,7 @@ export default function ShowroomLoadingLogo() {
         </Text>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <ProCard border="soft" className="p-6">
+          <ProCard border="normal" className="p-6">
             <Text as="h2" size="xl" weight="semibold" className="mb-4">
               Personalización
             </Text>
@@ -120,7 +120,7 @@ export default function ShowroomLoadingLogo() {
           </ProCard>
 
           <ProCard
-            border="soft"
+            border="normal"
             className="p-6 flex items-center justify-center"
           >
             <div className="flex flex-col items-center">
@@ -146,7 +146,7 @@ export default function ShowroomLoadingLogo() {
         </Text>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-          <ProCard border="soft" className="p-4 flex flex-col items-center">
+          <ProCard border="normal" className="p-4 flex flex-col items-center">
             <SustratoLoadingLogo
               variant="spin"
               breathingEffect={true}
@@ -157,7 +157,7 @@ export default function ShowroomLoadingLogo() {
             </Text>
           </ProCard>
 
-          <ProCard border="soft" className="p-4 flex flex-col items-center">
+          <ProCard border="normal" className="p-4 flex flex-col items-center">
             <SustratoLoadingLogo
               variant="spin"
               breathingEffect={false}
@@ -168,7 +168,7 @@ export default function ShowroomLoadingLogo() {
             </Text>
           </ProCard>
 
-          <ProCard border="soft" className="p-4 flex flex-col items-center">
+          <ProCard border="normal" className="p-4 flex flex-col items-center">
             <SustratoLoadingLogo
               variant="spin"
               breathingEffect={true}
@@ -187,7 +187,7 @@ export default function ShowroomLoadingLogo() {
         </Text>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          <ProCard border="soft" className="p-4 flex flex-col items-center">
+          <ProCard border="normal" className="p-4 flex flex-col items-center">
             <SustratoLoadingLogo
               variant="spin"
               breathingEffect={true}
@@ -198,7 +198,7 @@ export default function ShowroomLoadingLogo() {
             </Text>
           </ProCard>
 
-          <ProCard border="soft" className="p-4 flex flex-col items-center">
+          <ProCard border="normal" className="p-4 flex flex-col items-center">
             <SustratoLoadingLogo
               variant="pulse"
               breathingEffect={true}
@@ -209,7 +209,7 @@ export default function ShowroomLoadingLogo() {
             </Text>
           </ProCard>
 
-          <ProCard border="soft" className="p-4 flex flex-col items-center">
+          <ProCard border="normal" className="p-4 flex flex-col items-center">
             <SustratoLoadingLogo
               variant="spin-pulse"
               breathingEffect={true}
@@ -220,7 +220,7 @@ export default function ShowroomLoadingLogo() {
             </Text>
           </ProCard>
 
-          <ProCard border="soft" className="p-4 flex flex-col items-center">
+          <ProCard border="normal" className="p-4 flex flex-col items-center">
             <SustratoLoadingLogo
               variant="dash"
               breathingEffect={true}
@@ -231,7 +231,7 @@ export default function ShowroomLoadingLogo() {
             </Text>
           </ProCard>
 
-          <ProCard border="soft" className="p-4 flex flex-col items-center">
+          <ProCard border="normal" className="p-4 flex flex-col items-center">
             <SustratoLoadingLogo
               variant="progress"
               breathingEffect={true}
@@ -250,7 +250,7 @@ export default function ShowroomLoadingLogo() {
         </Text>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-          <ProCard border="soft" className="p-4 flex flex-col items-center">
+          <ProCard border="normal" className="p-4 flex flex-col items-center">
             <SustratoLoadingLogo
               variant="spin"
               speed="slow"
@@ -262,7 +262,7 @@ export default function ShowroomLoadingLogo() {
             </Text>
           </ProCard>
 
-          <ProCard border="soft" className="p-4 flex flex-col items-center">
+          <ProCard border="normal" className="p-4 flex flex-col items-center">
             <SustratoLoadingLogo
               variant="spin"
               speed="normal"
@@ -274,7 +274,7 @@ export default function ShowroomLoadingLogo() {
             </Text>
           </ProCard>
 
-          <ProCard border="soft" className="p-4 flex flex-col items-center">
+          <ProCard border="normal" className="p-4 flex flex-col items-center">
             <SustratoLoadingLogo
               variant="spin"
               speed="fast"

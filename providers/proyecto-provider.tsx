@@ -5,12 +5,11 @@ import { useAuth } from "@/app/auth-provider";
 
 // Tipo para los permisos del proyecto
 export interface ProjectPermissions {
-  can_manage_master_data?: boolean;
-  can_create_batches?: boolean;
-  can_upload_files?: boolean;
-  can_bulk_edit_master_data?: boolean;
-  role_name?: string;
-  // Otros permisos relevantes
+  role_name?: string | null;
+  can_manage_master_data?: boolean | null;
+  can_create_batches?: boolean | null;
+  can_upload_files?: boolean | null;
+  can_bulk_edit_master_data?: boolean | null;
 }
 
 interface ProyectoContextType {

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { CustomButton } from "@/components/ui/custom-button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { TextArea } from "@/components/ui/textarea";
 import { FormField } from "@/components/ui/form-field";
 import { Text } from "@/components/ui/text";
 import { ProCard } from "@/components/ui/pro-card";
@@ -50,7 +50,7 @@ export default function ContactPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-background to-muted p-4">
-      <ProCard className="max-w-xl w-full" border="top" borderColor="primary">
+      <ProCard className="max-w-xl w-full" border="top" variant="primary">
         <ProCard.Header className="space-y-2 text-center">
           <div className="flex justify-center mb-2">
             <img src="/logo.svg" alt="Logo" width={120} height={40} />
@@ -66,8 +66,7 @@ export default function ContactPage() {
           <Text
             variant="default"
             color="neutral"
-            colorVariant="muted"
-            className="text-center"
+            className="text-center text-muted-foreground"
           >
             ¿Tienes preguntas o comentarios? ¡Nos encantaría escucharte!
           </Text>
@@ -98,7 +97,7 @@ export default function ContactPage() {
             </FormField>
 
             <FormField label="Mensaje" htmlFor="message">
-              <Textarea
+              <TextArea
                 id="message"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
