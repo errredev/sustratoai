@@ -1,18 +1,44 @@
 // Configuración de cliente Supabase
-import { createClient } from "@supabase/supabase-js";
-import { type Session, type User } from "@supabase/supabase-js";
+import { createClient, type AuthChangeEvent, type AuthSession, type User } from '@supabase/supabase-js';
+import { Database } from './database.types';
+import { cookies } from 'next/headers';
 
-// En el sandbox, usamos valores de prueba
-// En producción, estos valores vendrían de las variables de entorno
+// Obtener variables de entorno
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const isProduction = process.env.NODE_ENV === 'production';
 
-import { createBrowserClient } from '@supabase/ssr';
+// Configuración común para todos los clientes
+const options = {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce' as const,
+    debug: !isProduction,
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'sustratoai-web/1.0.0',
+    },
+  },
+  cookieOptions: {
+    name: 'sb-auth-token',
+    lifetime: 60 * 60 * 24 * 7, // 7 días
+    domain: isProduction ? new URL(supabaseUrl).hostname.replace('www.', '') : undefined,
+    path: '/',
+    sameSite: 'lax' as const,
+  }
+};
 
-export const supabase =
-  typeof window !== 'undefined'
-    ? createBrowserClient(supabaseUrl, supabaseAnonKey)
-    : createClient(supabaseUrl, supabaseAnonKey);
+// Crear cliente de navegador con configuración mejorada
+const createBrowserSupabaseClient = () => {
+  return createClient<Database>(supabaseUrl, supabaseAnonKey, options);
+};
+
+export const supabase = typeof window !== 'undefined' 
+  ? createBrowserSupabaseClient() 
+  : createClient<Database>(supabaseUrl, supabaseAnonKey, options);
 
 // Para el sandbox, vamos a crear un mock de Supabase
 // Esto solo se usa en el entorno de desarrollo del sandbox
@@ -152,39 +178,82 @@ export const mockSupabase = {
 // Exportamos el cliente adecuado según el entorno
 export const supabaseClient = isSandbox ? mockSupabase : supabase;
 
-// Funciones de autenticación (garantizando cookies en navegador)
+// Funciones de autenticación con manejo mejorado de errores
 export async function signIn(email: string, password: string) {
-  const client = isSandbox
-    ? mockSupabase
-    : (typeof window !== 'undefined'
-        ? createBrowserClient(supabaseUrl, supabaseAnonKey)
-        : createClient(supabaseUrl, supabaseAnonKey));
-  return client.auth.signInWithPassword({ email, password });
+  try {
+    console.log('🔐 Iniciando sesión con:', { email });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      console.error('❌ Error al iniciar sesión:', error);
+      throw error;
+    }
+
+    console.log('✅ Sesión iniciada correctamente');
+    return { data, error: null };
+  } catch (error) {
+    console.error('❌ Error inesperado en signIn:', error);
+    return { data: null, error };
+  }
 }
 
 export async function signUp(email: string, password: string) {
-  const client = isSandbox
-    ? mockSupabase
-    : (typeof window !== 'undefined'
-        ? createBrowserClient(supabaseUrl, supabaseAnonKey)
-        : createClient(supabaseUrl, supabaseAnonKey));
-  return client.auth.signUp({ email, password });
+  try {
+    console.log('📝 Registrando nuevo usuario:', { email });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      console.error('❌ Error al registrar usuario:', error);
+      throw error;
+    }
+
+    console.log('✅ Usuario registrado correctamente');
+    return { data, error: null };
+  } catch (error) {
+    console.error('❌ Error inesperado en signUp:', error);
+    return { data: null, error };
+  }
 }
 
 export async function signOut() {
-  const client = isSandbox
-    ? mockSupabase
-    : (typeof window !== 'undefined'
-        ? createBrowserClient(supabaseUrl, supabaseAnonKey)
-        : createClient(supabaseUrl, supabaseAnonKey));
-  return client.auth.signOut();
+  try {
+    console.log('🚪 Cerrando sesión...');
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
+      console.error('❌ Error al cerrar sesión:', error);
+      throw error;
+    }
+
+    console.log('✅ Sesión cerrada correctamente');
+    return { error: null };
+  } catch (error) {
+    console.error('❌ Error inesperado en signOut:', error);
+    return { error };
+  }
 }
 
 export async function getSession() {
-  const client = isSandbox
-    ? mockSupabase
-    : (typeof window !== 'undefined'
-        ? createBrowserClient(supabaseUrl, supabaseAnonKey)
-        : createClient(supabaseUrl, supabaseAnonKey));
-  return client.auth.getSession();
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error('❌ Error al obtener la sesión:', error);
+      throw error;
+    }
+
+    return { data, error: null };
+  } catch (error) {
+    console.error('❌ Error inesperado en getSession:', error);
+    return { data: { session: null }, error };
+  }
 }

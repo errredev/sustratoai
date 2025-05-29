@@ -1,67 +1,128 @@
-// middleware.ts - OPTIMIZADO
+// middleware.ts - MEJORADO
 import { createMiddlewareClient } from "@/lib/supabase-middleware-client";
 import { NextResponse } from "next/server";
-
 import type { NextRequest } from "next/server";
 import type { Database } from "@/lib/database.types";
 
+// Rutas públicas que no requieren autenticación
+const PUBLIC_ROUTES = [
+  "/login",
+  "/signup",
+  "/reset-password",
+  "/contact",
+  "/api/auth/callback", // Ruta de callback de autenticación
+  "/auth/callback",     // Ruta de callback alternativa
+];
+
+// Patrones de rutas que deben ser ignorados por el middleware
+const IGNORE_PATTERNS = [
+  '/_next',
+  '/api',
+  '/_vercel',
+  '/favicon',
+  '/sitemap',
+  '/robots.txt',
+  '/manifest.json',
+  '.json',
+  '.ico',
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.svg',
+  '.webp',
+  '.gif',
+  '.css',
+  '.js',
+  '.woff',
+  '.woff2',
+  '.ttf',
+  '.eot',
+];
+
 export async function middleware(req: NextRequest) {
   const requestId = Math.floor(Math.random() * 10000);
-  console.log(`[MW:${requestId}] Ejecutando para: ${req.nextUrl.pathname}`);
+  const { pathname } = req.nextUrl;
   
-  const publicRoutes = ["/login", "/signup", "/reset-password", "/contact"];
-  if (publicRoutes.some(route => req.nextUrl.pathname === route || req.nextUrl.pathname.startsWith(`${route}/`))) {
+  console.log(`[MW:${requestId}] Procesando ruta: ${pathname}`);
+  
+  // Verificar si la ruta es pública
+  const isPublicRoute = PUBLIC_ROUTES.some(
+    route => pathname === route || pathname.startsWith(`${route}/`)
+  );
+  
+  if (isPublicRoute) {
     console.log(`[MW:${requestId}] Ruta pública - acceso permitido`);
     return NextResponse.next();
   }
   
-  const skipPatterns = [
-    '/_next', '/api/', 'favicon', '.json', '.ico', '.png', '.jpg', '.svg', '.js', '.css', '.woff', '.woff2'
-  ];
-  if (skipPatterns.some(pattern => req.nextUrl.pathname.includes(pattern))) {
+  // Verificar si la ruta debe ser ignorada
+  const shouldIgnore = IGNORE_PATTERNS.some(pattern => 
+    pathname.includes(pattern)
+  );
+  
+  if (shouldIgnore) {
     return NextResponse.next();
   }
   
+  // Crear una respuesta que podamos modificar
   const res = NextResponse.next();
   
   try {
-    const supabase = createMiddlewareClient(req, res); // createMiddlewareClient es de @supabase/ssr
+    // Crear cliente de Supabase para el middleware
+    const supabase = createMiddlewareClient(req, res);
     
-    // CAMBIO SUGERIDO AQUÍ: Usar getUser() en lugar de getSession()
-    const { data: { user }, error: userError } = await supabase.auth.getUser(); // getUser() devuelve { data: { user }, error }
-
-    if (userError || !user) { // Si hay error o no hay usuario (sesión inválida/expirada)
-      console.log(`[MW:${requestId}] Sin sesión válida (error: ${userError?.message}) o usuario no encontrado - redirigiendo a /login`);
+    // Obtener la sesión del usuario
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    // Si hay un error al obtener la sesión o no hay sesión
+    if (sessionError || !session) {
+      console.log(`[MW:${requestId}] Sin sesión válida - redirigiendo a /login`);
       const loginUrl = new URL('/login', req.url);
-      loginUrl.searchParams.set('redirectTo', req.nextUrl.pathname);
+      loginUrl.searchParams.set('redirectTo', pathname);
       return NextResponse.redirect(loginUrl);
     }
     
-    // Si hay usuario, la sesión es válida y ha sido autenticada contra el servidor de Supabase
-    console.log(`[MW:${requestId}] Sesión válida y autenticada para usuario: ${user.id.substring(0, 8)}...`);
-    return res; // Continuar con la respuesta original (que ya tiene la cookie de sesión actualizada si fue necesario)
-
-  } catch (e) {
-    // Este catch es para errores inesperados en el proceso del middleware mismo
-    console.error(`[MW:${requestId}] Error inesperado en middleware:`, e);
-    // En caso de error, permitir el acceso podría ser una opción, 
-    // o podrías redirigir a una página de error o login como fallback seguro.
-    // Por ahora, mantendremos NextResponse.next() para no bloquear si algo sale muy mal.
-    return NextResponse.next();
+    // Verificar que el token sea válido
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      console.log(`[MW:${requestId}] Token inválido o expirado - redirigiendo a /login`);
+      const loginUrl = new URL('/login', req.url);
+      loginUrl.searchParams.set('redirectTo', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    
+    // Si llegamos aquí, la autenticación es válida
+    console.log(`[MW:${requestId}] Usuario autenticado: ${user.email} (${user.id.substring(0, 8)}...)`);
+    
+    // Asegurarnos de que las cookies de autenticación estén configuradas correctamente
+    res.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    
+    return res;
+    
+  } catch (error) {
+    console.error(`[MW:${requestId}] Error inesperado en middleware:`, error);
+    
+    // En caso de error, redirigir al login con un mensaje de error
+    const loginUrl = new URL('/login', req.url);
+    loginUrl.searchParams.set('error', 'Ocurrió un error al verificar tu sesión. Por favor, inicia sesión nuevamente.');
+    return NextResponse.redirect(loginUrl);
   }
 }
 
-// Configuración del middleware: asegura que se ejecute en las rutas necesarias
-// y excluye las rutas estáticas o de API internas de Next.js.
+// Configuración del middleware
 export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
+     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
+     * - public folder
+     * - static files (images, fonts, etc.)
+     * - auth routes (login, signup, etc.)
      */
-    "/((?!_next/static|_next/image|favicon.ico).*)",
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|css|js|woff|woff2|ttf|eot|json)$|api/auth/|auth/|login|signup|reset-password|contact).*)',
   ],
 };
