@@ -19,12 +19,13 @@ const nextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   swcMinify: true,
-  // Configuración de cabeceras de seguridad
+  // Configuración de cabeceras de seguridad y CORS
   async headers() {
     return [
       {
-        source: '/(.*)',
+        source: '/:path*',
         headers: [
+          // Seguridad
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
@@ -37,7 +38,39 @@ const nextConfig = {
             key: 'X-XSS-Protection',
             value: '1; mode=block',
           },
+          // CORS
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, DELETE, OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'X-Requested-With, Content-Type, Authorization',
+          },
+          {
+            key: 'Access-Control-Allow-Credentials',
+            value: 'true',
+          },
         ],
+      },
+    ];
+  },
+  // Configuración de CORS para rutas de API
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        has: [
+          {
+            type: 'host',
+            value: '(?<host>.*)',
+          },
+        ],
+        destination: '/api/:path*',
       },
     ];
   },
