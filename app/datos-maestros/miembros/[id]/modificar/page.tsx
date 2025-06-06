@@ -22,7 +22,7 @@ import { ArrowLeft, User } from "lucide-react";
 import { useLoading } from "@/contexts/LoadingContext";
 import { PageBackground } from "@/components/ui/page-background";
 import { PageTitle } from "@/components/ui/page-title";
-import { ProCard } from "@/components/ui/pro-card";
+import { StandardCard, type StandardCardColorScheme } from "@/components/ui/StandardCard";
 
 interface RolOption {
   value: string;
@@ -301,7 +301,7 @@ export default function ModificarMiembroPage() {
           
 
           {valoresIniciales && roles.length > 0 && (
-            <ProCard border="top" color="primary"   >
+            <StandardCard styleType="subtle" colorScheme="primary" accentPlacement="top" accentColorScheme="primary">
             <MiembroForm
               modo="editar"
               valoresIniciales={valoresIniciales}
@@ -309,7 +309,7 @@ export default function ModificarMiembroPage() {
               loading={isButtonSubmitting}
               onSubmit={onSubmit}
             />
-            </ProCard>
+            </StandardCard>
           )}
         </div>
       </div>

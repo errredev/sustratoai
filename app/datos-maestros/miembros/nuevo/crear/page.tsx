@@ -23,7 +23,7 @@ import { toast } from "sonner"; // Para notificaciones
 import { useLoading } from "@/contexts/LoadingContext"; // Opcional, para loading global
 import { PageBackground } from "@/components/ui/page-background";
 import { PageTitle } from "@/components/ui/page-title";
-import { ProCard } from "@/components/ui/pro-card";
+import { StandardCard, type StandardCardColorScheme } from "@/components/ui/StandardCard";
 
 export default function CrearMiembroPage() {
   const router = useRouter();
@@ -205,7 +205,7 @@ export default function CrearMiembroPage() {
             showBackButton={{ href: "/datos-maestros/miembros" }}
          />
 
-         <ProCard border="top" color="primary"   >
+         <StandardCard styleType="subtle" colorScheme="primary" accentPlacement="top" accentColorScheme="primary">
           <MiembroForm
             modo="crear"
             // valoresIniciales se omite o es {} por defecto en MiembroForm para "crear"
@@ -213,7 +213,7 @@ export default function CrearMiembroPage() {
             onSubmit={handleFormSubmit}
             loading={isSubmitting} // Pasar el estado de submitting al formulario
           />
-          </ProCard>
+          </StandardCard>
 
         </div>
       </div>

@@ -16,7 +16,7 @@ import { PageTitle } from "@/components/ui/page-title";
 import { CustomButton } from "@/components/ui/custom-button";
 import { SustratoLoadingLogo } from "@/components/ui/sustrato-loading-logo";
 import { Text } from "@/components/ui/text";
-import { ProCard } from "@/components/ui/pro-card";
+import { StandardCard, type StandardCardColorScheme } from "@/components/ui/StandardCard";
 import { EmptyState } from "@/components/common/empty-state";
 import { AlertTriangle, PlusCircle, LayoutGrid, Trash2 } from "lucide-react";
 import { DimensionCard } from "./components/DimensionCard"; // Tu componente DimensionCard
@@ -171,7 +171,7 @@ export default function DimensionesPage() {
         )}
 
         {error && (
-          <ProCard variant="danger" border="left" className="my-6 p-4">
+          <StandardCard styleType="mixed" colorScheme="danger" accentPlacement="left" accentColorScheme="danger" className="my-6 p-4">
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 mt-0.5 text-danger-fg" />
               <div>
@@ -187,7 +187,7 @@ export default function DimensionesPage() {
         )}
 
         {!proyectoActual?.id && !cargandoProyectos && !error && (
-           <ProCard className="my-6 p-6 text-center">
+           <StandardCard styleType="subtle" hasOutline={false} accentPlacement="none" className="my-6 p-6 text-center">
               <Text variant="subheading" weight="medium" className="mb-2">
                Proyecto No Seleccionado
              </Text>

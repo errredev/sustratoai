@@ -6,7 +6,7 @@ import { motion } from "framer-motion"; // Aunque no se usa activamente ahora, s
 import { useTheme } from "@/app/theme-provider"; 
 import { generateBatchTokens, type BatchTokens, type BatchAuxColor } from "./batch-tokens"; 
 import { CustomSlider } from "@/components/ui/custom-slider";
-import { ProCard } from "@/components/ui/pro-card";
+import { StandardCard, type StandardCardColorScheme } from "@/components/ui/StandardCard";
 import { Text } from "@/components/ui/text";
 import { BatchItem } from "./BatchItem";
 import tinycolor from "tinycolor2";
@@ -176,15 +176,15 @@ export default function BatchSimulatorPage() { // Renombrado el componente para 
     return (
       <PageBackground>
         <div style={{display: "flex", alignItems: "center", justifyContent: "center", minHeight: "80vh" }}>
-            <ProCard variant="primary" className="text-center max-w-lg p-8">
-            <ProCard.Header className="items-center flex flex-col"> 
+            <StandardCard styleType="subtle" colorScheme="primary" hasOutline={false} accentPlacement="none" className="text-center max-w-lg p-8">
+            <StandardCard.Header className="items-center flex flex-col">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-warning-100 mb-4">
                     <AlertTriangle className="h-6 w-6 text-warning-600" />
                 </div>
                 <Text variant="subheading" weight="bold" color="warning">Proyecto No Seleccionado</Text>
-            </ProCard.Header>
-            <ProCard.Content><Text>Por favor, selecciona un proyecto activo para poder configurar y simular la creación de lotes.</Text></ProCard.Content>
-            </ProCard>
+            </StandardCard.Header>
+            <StandardCard.Content><Text>Por favor, selecciona un proyecto activo para poder configurar y simular la creación de lotes.</Text></StandardCard.Content>
+            </StandardCard>
         </div>
       </PageBackground>
     );
@@ -194,16 +194,16 @@ export default function BatchSimulatorPage() { // Renombrado el componente para 
      return (
       <PageBackground>
         <div style={{display: "flex", alignItems: "center", justifyContent: "center", minHeight: "80vh" }}>
-            <ProCard variant="primary" className="text-center max-w-lg p-8">
-            <ProCard.Header className="items-center flex flex-col"> 
+            <StandardCard styleType="subtle" colorScheme="primary" hasOutline={false} accentPlacement="none" className="text-center max-w-lg p-8">
+            <StandardCard.Header className="items-center flex flex-col">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-info-100 mb-4">
                     <AlertTriangle className="h-6 w-6 text-info-600" />
                 </div>
                 <Text variant="subheading" weight="bold" color="neutral">Sin Miembros en el Proyecto</Text>
-            </ProCard.Header>
-            <ProCard.Content><Text>Este proyecto no tiene miembros asignados. Dirígete a la sección de gestión de miembros para agregar participantes antes de crear lotes.</Text></ProCard.Content>
+            </StandardCard.Header>
+            <StandardCard.Content><Text>Este proyecto no tiene miembros asignados. Dirígete a la sección de gestión de miembros para agregar participantes antes de crear lotes.</Text></StandardCard.Content>
             {/* Podrías añadir un botón para ir a la página de miembros */}
-            </ProCard>
+            </StandardCard>
         </div>
       </PageBackground>
     );
@@ -219,13 +219,13 @@ export default function BatchSimulatorPage() { // Renombrado el componente para 
             />
             
             {/* TARJETA DE CONFIGURACIÓN */}
-            <ProCard className="mt-6 mb-8" variant="primary" border="top" borderVariant="primary" shadow="md">
-                <ProCard.Header>
+            <StandardCard styleType="subtle" className="mt-6 mb-8" colorScheme="primary" accentPlacement="top" accentColorScheme="primary" shadow="md">
+                <StandardCard.Header>
                     <Text variant="subheading" weight="medium" color="primary">Configuración de Lotes</Text>
-                </ProCard.Header>
-                <ProCard.Content className={`grid md:grid-cols-2 gap-6 ${isSimulating ? 'opacity-70 pointer-events-none' : ''}`}>
+                </StandardCard.Header>
+                <StandardCard.Content className={`grid md:grid-cols-2 gap-6 ${isSimulating ? 'opacity-70 pointer-events-none' : ''}`}>
                     {/* Columna Izquierda: Tamaño de Lote */}
-                    <ProCard variant="primary" borderVariant="primary" border="normal" className="p-4">
+                    <StandardCard styleType="subtle" colorScheme="primary" outlineColorScheme="primary" hasOutline={true} className="p-4">
                     <Text variant="label" weight="semibold" className="mb-1 block">1. Definir Tamaño por Lote</Text>
                     <div className="flex justify-between items-baseline my-3">
                         <Text size="sm">Artículos/Lote:{" "}
@@ -255,7 +255,7 @@ export default function BatchSimulatorPage() { // Renombrado el componente para 
                     </ProCard>
 
                     {/* Columna Derecha: Selección de Miembros */}
-                    <ProCard variant="primary" borderVariant="primary" border="normal" className="p-4">
+                    <StandardCard styleType="subtle" colorScheme="primary" outlineColorScheme="primary" hasOutline={true} className="p-4">
                     <Text variant="label" weight="semibold" className="mb-3 block">2. Asignar a Miembros</Text>
                     <div className="flex gap-2 flex-wrap min-h-[40px]">
                         {projectMembers.map((member) => {
@@ -295,7 +295,7 @@ export default function BatchSimulatorPage() { // Renombrado el componente para 
 
             {/* SECCIÓN DE ERROR GENERAL DE UI O SIMULACIÓN */}
             {uiError && !isSimulating && ( /* Mostrar errores si los hay y no estamos simulando */
-                <ProCard variant="danger" border="left" className="mb-8 p-4">
+                <StandardCard styleType="subtle" colorScheme="danger" accentPlacement="left" className="mb-8 p-4">
                     <div className="flex items-start gap-3">
                         <AlertTriangle className="h-5 w-5 mt-0.5 text-danger-fg" />
                         <div>
@@ -316,11 +316,11 @@ export default function BatchSimulatorPage() { // Renombrado el componente para 
 
             {/* TARJETA DE VISUALIZACIÓN (Solo si hay datos y no hay error fatal) */}
             {((simulationData && totalBatchesCalculated > 0) || isSimulating) && !uiError && (
-            <ProCard variant="primary" border="top" borderVariant="secondary" shadow="md" className="mb-8">
-                <ProCard.Header>
+            <StandardCard styleType="subtle" colorScheme="primary" accentPlacement="top" accentColorScheme="secondary" shadow="md" className="mb-8">
+                <StandardCard.Header>
                     <Text variant="subheading" weight="medium" color="secondary">Previsualización de la Distribución</Text>
-                </ProCard.Header>
-                <ProCard.Content className="grid md:grid-cols-3 gap-6 items-start">
+                </StandardCard.Header>
+                <StandardCard.Content className="grid md:grid-cols-3 gap-6 items-start">
                     {/* Columna Izquierda: Visualización de Lotes (Grilla) */}
                     <div className="md:col-span-2 relative min-h-[300px]"> {/* Contenedor relativo para el loader */}
                         <Text variant="label" weight="semibold" className="mb-1 block">Lotes Generados</Text>
@@ -402,12 +402,12 @@ export default function BatchSimulatorPage() { // Renombrado el componente para 
             
             {/* TARJETA DE CONFIRMACIÓN Y ACCIÓN */}
             {simulationData && totalBatchesCalculated > 0 && !uiError && !isSimulating && (
-                <ProCard variant="success" border="top" borderVariant="success" shadow="md">
-                    <ProCard.Header className="flex items-center gap-2">
+                <StandardCard styleType="subtle" colorScheme="success" accentPlacement="top" accentColorScheme="success" shadow="md">
+                    <StandardCard.Header className="flex items-center gap-2">
                         <CheckCircle className="h-6 w-6 text-success-fg"/>
                         <Text variant="subheading" weight="medium" color="success">Confirmar y Crear Lotes</Text>
-                    </ProCard.Header>
-                    <ProCard.Content className="flex flex-col md:flex-row items-center justify-between gap-4">
+                    </StandardCard.Header>
+                    <StandardCard.Content className="flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="flex-grow">
                             <Text size="sm" className="text-muted-foreground">
                                 Se generarán <strong className="text-foreground">{totalBatchesCalculated}</strong> lotes

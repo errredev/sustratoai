@@ -8,7 +8,7 @@ import { useAuth } from "@/app/auth-provider";
 import { obtenerRolesDelProyecto } from "@/lib/actions/proyect-role-actions";
 import type { ProjectRoleRow } from "@/lib/actions/proyect-role-actions"; // Corregido el nombre del archivo
 import { Text } from "@/components/ui/text";
-import { ProCard } from "@/components/ui/pro-card";
+import { StandardCard, type StandardCardColorScheme } from "@/components/ui/StandardCard";
 import { ProTable } from "@/components/ui/pro-table";
 import type { ColumnDef } from "@tanstack/react-table";
 import { CustomButton } from "@/components/ui/custom-button";
@@ -285,21 +285,22 @@ export default function RolesPage() {
 							/>
 						</div>
 					) : error ? (
-						<ProCard
-							variant="secondary"
-							border="top"
+						<StandardCard
+							styleType="subtle"
+							colorScheme="secondary"
+							accentPlacement="top"
 							className="overflow-hidden hover:shadow-md transition-shadow duration-300"
-							borderVariant="primary">
-							<ProCard>
-								<ProCard.Header>
+							accentColorScheme="primary">
+							<StandardCard styleType="subtle" hasOutline={false} accentPlacement="none">
+								<StandardCard.Header>
 									<Text
 										variant="subheading"
 										color="danger"
 										className="flex items-center gap-2">
 										<AlertCircle className="h-5 w-5" /> Error al Cargar Roles
 									</Text>
-								</ProCard.Header>
-								<ProCard.Content>
+								</StandardCard.Header>
+								<StandardCard.Content>
 									<Text>{error}</Text>
 									<CustomButton
 										onClick={cargarRoles}
@@ -308,9 +309,9 @@ export default function RolesPage() {
 										{" "}
 										Reintentar Carga{" "}
 									</CustomButton>
-								</ProCard.Content>
-							</ProCard>
-						</ProCard>
+								</StandardCard.Content>
+							</StandardCard>
+						</StandardCard>
 					) : roles.length === 0 ? (
 						<EmptyState
 							icon={ShieldPlus}
@@ -333,20 +334,21 @@ export default function RolesPage() {
 							}
 						/>
 					) : (
-						<ProCard
-							variant="secondary"
-							border="top"
+						<StandardCard
+							styleType="subtle"
+							colorScheme="secondary"
+							accentPlacement="top"
 							className="overflow-hidden hover:shadow-md transition-shadow duration-300"
-							borderVariant="primary">
-							<ProCard className="overflow-x-auto">
+							accentColorScheme="primary">
+							<StandardCard styleType="subtle" hasOutline={false} accentPlacement="none" className="overflow-x-auto">
 								<ProTable<ProjectRoleRow>
 									data={roles}
 									columns={columnas}
 									showColumnSelector={true} // Mostrar selector de columnas
 									stickyHeader={true}
 								/>
-							</ProCard>
-						</ProCard>
+							</StandardCard>
+						</StandardCard>
 					)}
 				</div>
 			</div>

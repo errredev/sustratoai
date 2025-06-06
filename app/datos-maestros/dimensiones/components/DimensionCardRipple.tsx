@@ -3,7 +3,7 @@
 import React from "react";
 import { useRipple } from "@/components/ripple/RippleProvider";
 import { useTheme } from "@/app/theme-provider";
-import { ProCard } from "@/components/ui/pro-card";
+import { StandardCard, type StandardCardColorScheme } from "@/components/ui/StandardCard";
 import { Text } from "@/components/ui/text";
 import { BadgeCustom } from "@/components/ui/badge-custom";
 import { CustomButton } from "@/components/ui/custom-button";
@@ -49,31 +49,29 @@ export const DimensionCard: React.FC<DimensionCardProps> = ({
   };
 
   return (
-    <ProCard
+    <StandardCard
+      styleType="subtle"
       className={cn(
-        "flex flex-col h-full group relative",
+        "h-full group relative", // StandardCard is flex flex-col by default
         isBeingDeleted && "opacity-50 pointer-events-none"
       )}
-      border="left"
-      color={cardColorVariant as any}
+      accentPlacement="left"
+      colorScheme={cardColorVariant as any}
+      accentColorScheme={cardColorVariant as any}
       shadow="md"
+      onCardClick={handleCardClick}
+      // The p-4 from the div is now split between Header and Content
     >
       {isBeingDeleted && (
         <div className="absolute inset-0 flex items-center justify-center bg-card/50 z-10">
           <span>Cargando...</span>
         </div>
       )}
-      <div
-        onClick={handleCardClick}
-        className="cursor-pointer flex-grow flex flex-col p-4"
-        tabIndex={0}
-        role="button"
-        aria-label={`Ver detalles de ${dimension.name}`}
-      >
-        <ProCard.Header className="p-0 mb-2">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-start justify-between">
-              <Text
+      {/* The intermediate div is removed. Its content is now direct children of StandardCard or within its Header/Content */}
+      <StandardCard.Header className="p-4 pb-2"> {/* p-4 from div, mb-2 from original header becomes pb-2 here */}
+        <div className="flex flex-col gap-1">
+          <div className="flex items-start justify-between">
+            <Text
                 variant="heading"
                 size="md"
                 weight="semibold"

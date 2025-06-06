@@ -14,7 +14,7 @@ import { PageBackground } from "@/components/ui/page-background";
 import { PageTitle } from "@/components/ui/page-title";
 import { CustomButton } from "@/components/ui/custom-button";
 import { SustratoLoadingLogo } from "@/components/ui/sustrato-loading-logo";
-import { ProCard } from "@/components/ui/pro-card";
+import { StandardCard, type StandardCardColorScheme } from "@/components/ui/StandardCard";
 import { Text } from "@/components/ui/text";
 import { AlertTriangle, ArrowLeft, LayoutGrid, PlusCircle } from "lucide-react"; // LayoutGrid para dimensiones
 import {
@@ -146,17 +146,17 @@ export default function CrearDimensionPage() {
     return (
       <PageBackground>
         <div className="container mx-auto py-8 flex flex-col items-center justify-center min-h-[70vh]">
-            <ProCard variant="danger" className="max-w-lg w-full">
-                <ProCard.Header className="items-center flex flex-col text-center">
+            <StandardCard styleType="mixed" colorScheme="danger" hasOutline={false} accentPlacement="none" className="max-w-lg w-full">
+                <StandardCard.Header className="items-center flex flex-col text-center">
                     <AlertTriangle className="h-12 w-12 text-danger-fg mb-4" />
                     <Text variant="subheading" weight="bold" color="danger">
                         {puedeGestionarDimensiones ? "Error de Configuración" : "Acceso Denegado"}
                     </Text>
-                </ProCard.Header>
-                <ProCard.Content className="text-center">
+                </StandardCard.Header>
+                <StandardCard.Content className="text-center">
                     <Text>{errorPage}</Text>
-                </ProCard.Content>
-                <ProCard.Footer className="flex justify-center">
+                </StandardCard.Content>
+                <StandardCard.Footer className="flex justify-center">
                      <CustomButton
                         onClick={handleVolver}
                         leftIcon={<ArrowLeft className="h-4 w-4" />}
@@ -165,8 +165,8 @@ export default function CrearDimensionPage() {
                     >
                         Volver a Dimensiones
                     </CustomButton>
-                </ProCard.Footer>
-            </ProCard>
+                </StandardCard.Footer>
+            </StandardCard>
         </div>
       </PageBackground>
     );
@@ -200,14 +200,14 @@ export default function CrearDimensionPage() {
             showBackButton={{ href: "/datos-maestros/dimensiones" }}
           />
 
-          <ProCard className="mt-6" border="top" color="primary" shadow="lg">
+          <StandardCard styleType="subtle" className="mt-6" accentPlacement="top" colorScheme="primary" accentColorScheme="primary" shadow="lg">
             <DimensionForm
               modo="crear"
               // No se pasan valoresIniciales para "crear", el form usa sus defaults.
               onSubmit={handleFormSubmit}
               loading={isSubmitting}
             />
-          </ProCard>
+          </StandardCard>
         </div>
       </div>
     </PageBackground>
